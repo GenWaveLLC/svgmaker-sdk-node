@@ -258,7 +258,7 @@ export class HttpClient {
       } else {
         errorData = { error: await response.text() };
       }
-    } catch (e) {
+    } catch {
       errorData = { error: `HTTP Error ${response.status}` };
     }
 
