@@ -25,40 +25,26 @@ The project uses automated GitHub Actions workflows for continuous integration, 
 1. `test` - Runs tests across Node.js versions
 2. `build` - Builds the package and uploads artifacts
 
-#### 2. Auto Release Workflow (`.github/workflows/auto-release.yml`)
-
-**Triggers**:
-- Push to `main` branch with changes to `package.json`
-
-**Features**:
-- **Version detection**: Automatically detects version changes in package.json
-- **Git tagging**: Creates and pushes semantic version tags (e.g., `v1.2.3`)
-- **Release triggering**: Automatically triggers the release workflow
-
-**Process**:
-1. Compares current and previous `package.json` versions
-2. Creates git tag if version changed (follows `v*.*.*` pattern)
-3. Pushes tag to trigger release workflow
-
-#### 3. Release Workflow (`.github/workflows/release.yml`)
+#### 2. Release Workflow (`.github/workflows/release.yml`)
 
 **Triggers**:
 - Git tags matching `v*.*.*` pattern (e.g., `v1.2.3`)
 
 **Features**:
+- **Version validation**: Ensures package.json version matches git tag
+- **npm existence check**: Verifies version doesn't already exist on npm
 - **Quality gates**: Runs tests and linting before release
 - **Automated publishing**: Publishes to npm automatically
 - **GitHub releases**: Creates GitHub releases with changelog
-- **Documentation updates**: Updates documentation if needed
 
 **Process**:
-1. Validates code quality (tests, linting, build)
-2. Extracts changelog for the version
-3. Creates GitHub release
-4. Publishes to npm
-5. Updates documentation
+1. Validates that git tag version matches package.json version
+2. Checks if version already exists on npm (skips if exists)
+3. Runs code quality checks (tests, linting, build)
+4. Publishes to npm registry
+5. Creates GitHub release with changelog
 
-#### 4. Security Workflow (`.github/workflows/security.yml`)
+#### 3. Security Workflow (`.github/workflows/security.yml`)
 
 **Triggers**:
 - Weekly schedule (Mondays at 9 AM UTC)
@@ -103,12 +89,17 @@ git commit -m "chore: prepare for release"
 git add CHANGELOG.md
 git commit -m "docs: update changelog for release"
 
-# 3. Run the appropriate version command:
+# 3. Run the appropriate release command (this triggers the automated workflow):
 npm run release:patch    # For bug fixes (0.1.0 → 0.1.1)
 npm run release:minor    # For new features (0.1.0 → 0.2.0)
 npm run release:major    # For breaking changes (0.1.0 → 1.0.0)
 
-# 4. The CI/CD pipeline handles the rest automatically
+# 4. The above command automatically:
+#    - Creates version commit and git tag
+#    - Pushes to GitHub
+#    - Triggers release workflow via git tag
+#    - Workflow validates version/tag match
+#    - Publishes to npm if version doesn't exist
 ```
 
 **Important**:
@@ -194,7 +185,7 @@ git push origin main --tags
 
 The automated process provides a seamless release experience:
 
-1. **Version Bump**: When you run `npm run release:[patch|minor|major]`, it:
+1. **Version Bump & Git Operations**: When you run `npm run release:[patch|minor|major]`, it:
    - Updates `package.json` version using semantic versioning
    - Creates a git commit with the version change
    - Creates a git tag (e.g., `v1.2.3`)
@@ -204,14 +195,15 @@ The automated process provides a seamless release experience:
    - [`npm run version:*`](package.json:37): Only bumps version locally (requires manual push)
    - [`npm run release:*`](package.json:40): Bumps version AND pushes to remote (recommended)
 
-2. **Auto-Release Trigger**: The auto-release workflow detects the new tag and:
+2. **Automated Publishing**: The release workflow is triggered by the git tag and:
+   - Validates that the git tag version matches the package.json version
+   - Checks if the version already exists on npm (skips if it does)
    - Runs comprehensive quality checks (tests, linting, TypeScript compilation)
    - Builds the package for distribution
    - Publishes to npm registry
    - Creates a GitHub release with extracted changelog
-   - Updates documentation if configured
 
-**Benefits**: Ensures consistency, reduces human error, and provides audit trail.
+**Benefits**: Ensures consistency, reduces human error, prevents duplicate releases, and provides audit trail.
 
 ### 4. Emergency Releases
 
