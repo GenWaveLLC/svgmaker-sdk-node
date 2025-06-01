@@ -83,6 +83,11 @@ export class GenerateClient extends BaseClient {
    * @returns Generate response
    */
   public async execute(): Promise<GenerateResponse> {
+    this.logger.debug('Starting SVG generation', {
+      prompt: this.params.prompt,
+      quality: this.params.quality,
+    });
+
     // Apply defaults before validation
     this.applyDefaults();
 
@@ -90,13 +95,21 @@ export class GenerateClient extends BaseClient {
     this.validateRequest(this.params, generateParamsSchema);
 
     // Execute request
-    return this.handleRequest<GenerateResponse>('/generate', {
+    const result = await this.handleRequest<GenerateResponse>('/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(this.params),
     });
+
+    this.logger.debug('SVG generation completed', {
+      creditCost: result.creditCost,
+      hasSvgText: !!result.svgText,
+      hasPngData: !!result.pngImageData,
+    });
+
+    return result;
   }
 
   /**
@@ -105,6 +118,8 @@ export class GenerateClient extends BaseClient {
    * @returns New client instance
    */
   public configure(config: Partial<GenerateParams>): GenerateClient {
+    this.logger.debug('Configuring generation parameters', { config });
+
     const client = this.clone();
     client.params = { ...client.params, ...config };
 

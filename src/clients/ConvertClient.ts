@@ -35,6 +35,11 @@ export class ConvertClient extends BaseClient {
    * @returns Convert response
    */
   public async execute(): Promise<ConvertResponse> {
+    this.logger.debug('Starting image to SVG conversion', {
+      hasFile: !!this.params.file,
+      svgTextRequested: !!this.params.svgText,
+    });
+
     // Validate parameters
     this.validateRequest(this.params, convertParamsSchema);
 
@@ -64,10 +69,17 @@ export class ConvertClient extends BaseClient {
 
     if (!response.ok) {
       const errorText = await response.text();
+      this.logger.error('Convert request failed', { status: response.status, error: errorText });
       throw new Error(`HTTP error ${response.status}: ${errorText}`);
     }
 
     const result = await response.json();
+    this.logger.debug('Image to SVG conversion completed', {
+      creditCost: result.creditCost,
+      hasSvgText: !!result.svgText,
+      hasOriginalUrl: !!result.originalImageUrl,
+    });
+
     return result as ConvertResponse;
   }
 
@@ -77,6 +89,8 @@ export class ConvertClient extends BaseClient {
    * @returns New client instance
    */
   public configure(config: Partial<ConvertParams>): ConvertClient {
+    this.logger.debug('Configuring convert parameters', { config });
+
     const client = this.clone();
     client.params = { ...client.params, ...config };
     return client;

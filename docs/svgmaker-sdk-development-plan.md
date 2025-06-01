@@ -324,7 +324,6 @@ classDiagram
 - Interceptors implementation
 - Retry logic
 - Rate limiting
-- Caching system
 - Logging system
 
 ### Phase 4: Documentation & Examples (Week 4)

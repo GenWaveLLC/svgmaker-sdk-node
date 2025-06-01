@@ -2,6 +2,7 @@ import { SVGMakerClient } from '../core/SVGMakerClient';
 import { HttpClient, RequestOptions } from '../utils/httpClient';
 import { SVGMakerConfig } from '../types/config';
 import { ValidationError } from '../errors/CustomErrors';
+import { Logger } from '../utils/logger';
 import { z } from 'zod';
 
 /**
@@ -25,6 +26,11 @@ export abstract class BaseClient {
   protected config: SVGMakerConfig;
 
   /**
+   * Logger instance
+   */
+  protected logger: Logger;
+
+  /**
    * Create a new base client
    * @param client Parent SVGMaker client
    */
@@ -32,6 +38,7 @@ export abstract class BaseClient {
     this.client = client;
     this.httpClient = client.getHttpClient();
     this.config = client.getConfig();
+    this.logger = client.getLogger();
   }
 
   /**
@@ -41,6 +48,8 @@ export abstract class BaseClient {
    * @throws {ValidationError} If validation fails
    */
   protected validateRequest<T>(data: T, schema: z.ZodType<T>): void {
+    this.logger.debug('Validating request parameters', { data });
+
     const result = schema.safeParse(data);
 
     if (!result.success) {
@@ -48,8 +57,11 @@ export abstract class BaseClient {
       const errorMessages = issues
         .map(issue => `${issue.path.join('.')}: ${issue.message}`)
         .join(', ');
+      this.logger.error('Request validation failed', { errors: errorMessages });
       throw new ValidationError(`Validation failed: ${errorMessages}`);
     }
+
+    this.logger.debug('Request validation passed');
   }
 
   /**
@@ -59,16 +71,34 @@ export abstract class BaseClient {
    * @returns Response data
    */
   protected async handleRequest<T>(url: string, options: RequestOptions = {}): Promise<T> {
-    // Apply request interceptors
-    if (options instanceof Request) {
-      options = (await this.client.applyRequestInterceptors(options)) as unknown as RequestOptions;
+    this.logger.debug(`Making API request to ${url}`, { method: options.method || 'GET' });
+
+    try {
+      // Apply request interceptors
+      if (options instanceof Request) {
+        options = (await this.client.applyRequestInterceptors(
+          options
+        )) as unknown as RequestOptions;
+      }
+
+      // Make the request
+      const response = await this.httpClient.request<T>(url, options);
+
+      this.logger.debug(`API request completed successfully`, {
+        url,
+        method: options.method || 'GET',
+      });
+
+      // Apply response interceptors
+      return await this.client.applyResponseInterceptors(response);
+    } catch (error) {
+      this.logger.error(`API request failed`, {
+        url,
+        method: options.method || 'GET',
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
     }
-
-    // Make the request
-    const response = await this.httpClient.request<T>(url, options);
-
-    // Apply response interceptors
-    return await this.client.applyResponseInterceptors(response);
   }
 
   /**
@@ -86,5 +116,6 @@ export abstract class BaseClient {
     target.client = this.client;
     target.httpClient = this.httpClient;
     target.config = this.config;
+    target.logger = this.logger;
   }
 }

@@ -1,6 +1,6 @@
 # SVGMaker SDK for Node.js
 
-Official Node.js SDK for the SVGMaker API, providing a clean, type-safe interface for generating, editing, and converting SVG graphics using AI.
+Official Node.js SDK for the [SVGMaker](https://svgmaker.io) API, providing a clean, type-safe interface for generating, editing, and converting SVG graphics using AI.
 
 [![npm version](https://img.shields.io/npm/v/svgmaker-sdk.svg)](https://www.npmjs.com/package/svgmaker-sdk)
 [![License](https://img.shields.io/npm/l/svgmaker-sdk.svg)](https://github.com/GenWaveLLC/svgmaker-sdk-node/blob/main/LICENSE)
@@ -259,6 +259,49 @@ const client = new SVGMakerClient('your-api-key', {
 });
 ```
 
+## Logging
+
+The SDK includes built-in logging functionality for debugging and monitoring API requests.
+
+### Enable Logging
+
+```typescript
+// Basic logging
+const client = new SVGMakerClient('your-api-key', {
+  logging: true,
+  logLevel: 'info', // 'debug' | 'info' | 'warn' | 'error'
+});
+
+// Development (verbose)
+const client = new SVGMakerClient('your-api-key', {
+  logging: true,
+  logLevel: 'debug',
+});
+
+// Production (errors only)
+const client = new SVGMakerClient('your-api-key', {
+  logging: true,
+  logLevel: 'error',
+});
+```
+
+### Log Output
+
+```
+[SVGMaker SDK][2024-01-15T10:30:45.123Z][INFO] SVGMaker SDK initialized
+[SVGMaker SDK][2024-01-15T10:30:46.250Z][DEBUG] Making API request to /generate
+```
+
+### Runtime Configuration
+
+```typescript
+// Change log level during runtime
+client.setConfig({
+  logging: true,
+  logLevel: 'warn',
+});
+```
+
 ## Error Handling
 
 The SDK provides comprehensive error handling with custom error types.
@@ -388,6 +431,6 @@ MIT License - see the [`LICENSE`](LICENSE) file for details.
 
 ## Support
 
-- **Documentation**: [API Documentation](api-documentation.md)
+- **Documentation**: [API Documentation](docs/api-documentation.md)
 - **Issues**: [GitHub Issues](https://github.com/GenWaveLLC/svgmaker-sdk-node/issues)
 - **Repository**: [GitHub Repository](https://github.com/GenWaveLLC/svgmaker-sdk-node)

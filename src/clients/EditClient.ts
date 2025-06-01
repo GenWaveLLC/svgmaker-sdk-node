@@ -59,6 +59,13 @@ export class EditClient extends BaseClient {
    * @returns Edit response
    */
   public async execute(): Promise<EditResponse> {
+    this.logger.debug('Starting image/SVG edit', {
+      prompt: this.params.prompt,
+      quality: this.params.quality,
+      hasImage: !!this.params.image,
+      hasMask: !!this.params.mask,
+    });
+
     // Apply defaults before validation
     this.applyDefaults();
 
@@ -120,10 +127,17 @@ export class EditClient extends BaseClient {
 
     if (!response.ok) {
       const errorText = await response.text();
+      this.logger.error('Edit request failed', { status: response.status, error: errorText });
       throw new Error(`HTTP error ${response.status}: ${errorText}`);
     }
 
     const result = await response.json();
+    this.logger.debug('Image/SVG edit completed', {
+      creditCost: result.creditCost,
+      hasSvgText: !!result.svgText,
+      hasPngData: !!result.pngImageData,
+    });
+
     return result as EditResponse;
   }
 
@@ -133,6 +147,8 @@ export class EditClient extends BaseClient {
    * @returns New client instance
    */
   public configure(config: Partial<EditParams>): EditClient {
+    this.logger.debug('Configuring edit parameters', { config });
+
     const client = this.clone();
     client.params = { ...client.params, ...config };
 

@@ -1,9 +1,12 @@
 import { SVGMakerConfig, DEFAULT_CONFIG } from '../types/config';
-import { HttpClient } from '../utils/httpClient';
+import { HttpClient, RequestOptions } from '../utils/httpClient';
 import { ValidationError } from '../errors/CustomErrors';
 import { GenerateClient } from '../clients/GenerateClient';
 import { EditClient } from '../clients/EditClient';
 import { ConvertClient } from '../clients/ConvertClient';
+import { createRetryWrapper } from '../utils/retry';
+import { createRateLimiter } from '../utils/rateLimit';
+import { Logger, createLogger } from '../utils/logger';
 
 /**
  * Request interceptor function type
@@ -40,6 +43,11 @@ export class SVGMakerClient {
   private responseInterceptors: ResponseInterceptor[] = [];
 
   /**
+   * Logger instance
+   */
+  private logger: Logger;
+
+  /**
    * Generate SVG client
    */
   public readonly generate: GenerateClient;
@@ -71,8 +79,17 @@ export class SVGMakerClient {
       apiKey,
     };
 
+    // Initialize logger
+    this.logger = createLogger(this.config);
+
     // Create HTTP client
     this.httpClient = new HttpClient(this.config);
+
+    // Apply retry wrapper and rate limiting
+    const wrappedRequest = this.wrapRequestWithRetryAndRateLimit(
+      this.httpClient.request.bind(this.httpClient)
+    );
+    this.httpClient.request = wrappedRequest;
 
     // Add built-in response interceptor for base64 image decoding
     this.addResponseInterceptor(this.decodeBase64Images.bind(this));
@@ -81,6 +98,23 @@ export class SVGMakerClient {
     this.generate = new GenerateClient(this);
     this.edit = new EditClient(this);
     this.convert = new ConvertClient(this);
+
+    this.logger.info('SVGMaker SDK initialized');
+  }
+
+  /**
+   * Wrap request method with retry and rate limiting
+   * @param request Original request method
+   * @returns Wrapped request method
+   */
+  private wrapRequestWithRetryAndRateLimit(request: HttpClient['request']): HttpClient['request'] {
+    return async <T>(url: string, options?: RequestOptions) => {
+      const retryWrapper = createRetryWrapper<T>(this.config);
+      const rateLimiter = createRateLimiter<T>(this.config);
+
+      const wrappedRequest = rateLimiter(retryWrapper((u, o) => request<T>(u, o)));
+      return wrappedRequest(url, options);
+    };
   }
 
   /**
@@ -101,6 +135,7 @@ export class SVGMakerClient {
       ...this.config,
       ...config,
     };
+    this.logger.info('Configuration updated', config);
     return this;
   }
 
@@ -119,6 +154,7 @@ export class SVGMakerClient {
    */
   public addRequestInterceptor(interceptor: RequestInterceptor): SVGMakerClient {
     this.requestInterceptors.push(interceptor);
+    this.logger.debug('Request interceptor added');
     return this;
   }
 
@@ -129,6 +165,7 @@ export class SVGMakerClient {
    */
   public addResponseInterceptor(interceptor: ResponseInterceptor): SVGMakerClient {
     this.responseInterceptors.push(interceptor);
+    this.logger.debug('Response interceptor added');
     return this;
   }
 
@@ -187,5 +224,13 @@ export class SVGMakerClient {
     }
 
     return response;
+  }
+
+  /**
+   * Get the logger instance
+   * @returns Logger instance
+   */
+  public getLogger(): Logger {
+    return this.logger;
   }
 }
