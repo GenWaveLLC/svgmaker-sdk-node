@@ -104,14 +104,17 @@ git add CHANGELOG.md
 git commit -m "docs: update changelog for release"
 
 # 3. Run the appropriate version command:
-npm run version:patch    # For bug fixes (0.1.0 → 0.1.1)
-npm run version:minor    # For new features (0.1.0 → 0.2.0)
-npm run version:major    # For breaking changes (0.1.0 → 1.0.0)
+npm run release:patch    # For bug fixes (0.1.0 → 0.1.1)
+npm run release:minor    # For new features (0.1.0 → 0.2.0)
+npm run release:major    # For breaking changes (0.1.0 → 1.0.0)
 
 # 4. The CI/CD pipeline handles the rest automatically
 ```
 
-**Important**: The [`npm version`](package.json:1) command requires a clean git working directory. Commit all changes before running version commands.
+**Important**:
+- The [`npm version`](package.json:1) command requires a clean git working directory
+- Use [`release:*`](package.json:40) scripts (not [`version:*`](package.json:37)) for automated releases as they include the git push step
+- The [`version:*`](package.json:37) scripts only bump locally without pushing to remote
 
 ### 1. Prepare for Release
 
@@ -147,20 +150,25 @@ npm run version:major    # For breaking changes (0.1.0 → 1.0.0)
    git commit -m "docs: update documentation for release"
    ```
 
-4. **Create Version Tag**
+4. **Create Version Tag and Push**
    ```bash
    # Ensure working directory is clean
    git status
    
-   # Create version bump and tag
-   npm run version:patch    # For bug fixes (0.1.0 → 0.1.1)
-   npm run version:minor    # For new features (0.1.0 → 0.2.0)
-   npm run version:major    # For breaking changes (0.1.0 → 1.0.0)
+   # Create version bump, tag, and push to remote (RECOMMENDED)
+   npm run release:patch    # For bug fixes (0.1.0 → 0.1.1)
+   npm run release:minor    # For new features (0.1.0 → 0.2.0)
+   npm run release:major    # For breaking changes (0.1.0 → 1.0.0)
+   
+   # Alternative: Manual push after version bump
+   npm run version:patch    # Only bumps version locally
+   git push --follow-tags   # Then manually push with tags
    ```
 
 **Prerequisites**:
 - Git working directory must be clean (no uncommitted changes)
-- All changes must be committed before running [`npm version`](package.json:1) commands
+- All changes must be committed before running version commands
+- Use [`release:*`](package.json:40) scripts for full automation (bump + push)
 
 ### 2. Manual Release Process
 
@@ -186,11 +194,15 @@ git push origin main --tags
 
 The automated process provides a seamless release experience:
 
-1. **Version Bump**: When you run `npm run version:[patch|minor|major]`, it:
+1. **Version Bump**: When you run `npm run release:[patch|minor|major]`, it:
    - Updates `package.json` version using semantic versioning
    - Creates a git commit with the version change
    - Creates a git tag (e.g., `v1.2.3`)
-   - Pushes both commit and tag to GitHub
+   - Pushes both commit and tag to GitHub automatically
+
+**Script Comparison**:
+   - [`npm run version:*`](package.json:37): Only bumps version locally (requires manual push)
+   - [`npm run release:*`](package.json:40): Bumps version AND pushes to remote (recommended)
 
 2. **Auto-Release Trigger**: The auto-release workflow detects the new tag and:
    - Runs comprehensive quality checks (tests, linting, TypeScript compilation)
@@ -218,7 +230,7 @@ git commit -m "fix: critical security issue"
 git push origin hotfix/critical-fix
 
 # After PR is merged, create release
-npm run release:patch
+npm run release:patch  # This will push automatically
 ```
 
 ## Pre-Release Checklist
@@ -257,7 +269,7 @@ npm deprecate svgmaker-sdk@<version> "This version has critical issues, please u
 
 # 2. Fix the issues in your codebase
 # 3. Create a patch release with fixes
-npm run version:patch
+npm run release:patch  # Includes automatic push
 ```
 
 ### Option 3: Emergency Hotfix
@@ -272,7 +284,7 @@ git checkout -b hotfix/critical-fix
 git push origin hotfix/critical-fix
 
 # After merge, create immediate patch release
-npm run version:patch
+npm run release:patch  # Includes automatic push
 ```
 
 **Important**: Always test thoroughly before any rollback action.
@@ -407,7 +419,7 @@ To customize workflows:
 - [ ] Ensure git working directory is clean (`git status`)
 - [ ] Update CHANGELOG.md with initial release notes
 - [ ] Commit all changes before version bump
-- [ ] Run `npm run version:minor` for first minor release
+- [ ] Run `npm run release:minor` for first minor release (includes push)
 - [ ] Verify automated release completes successfully
 - [ ] Check package appears on npm registry
 - [ ] Validate GitHub release is created

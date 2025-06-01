@@ -42,10 +42,39 @@ jobs:
           echo "No version change detected"
         fi
 
-  create-tag:
+  check-tag-exists:
     runs-on: ubuntu-latest
     needs: check-version
     if: needs.check-version.outputs.version-changed == 'true'
+    outputs:
+      tag-exists: ${{ steps.check-tag.outputs.exists }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+      
+    - name: Check if tag already exists
+      id: check-tag
+      run: |
+        VERSION="${{ needs.check-version.outputs.new-version }}"
+        TAG="v$VERSION"
+        
+        if git rev-parse "$TAG" >/dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "Tag $TAG already exists - skipping tag creation"
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "Tag $TAG does not exist - would create tag"
+        fi
+
+  create-tag:
+    runs-on: ubuntu-latest
+    needs: [check-version, check-tag-exists]
+    if: needs.check-version.outputs.version-changed == 'true' && needs.check-tag-exists.outputs.tag-exists == 'false'
+    permissions:
+      contents: write
     
     steps:
     - name: Checkout code
