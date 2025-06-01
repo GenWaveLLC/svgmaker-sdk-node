@@ -1,5 +1,3 @@
-import fetch, { Response, RequestInit } from 'node-fetch';
-import FormData from 'form-data';
 import { Readable } from 'stream';
 import {
   TimeoutError,
@@ -17,7 +15,7 @@ import { SVGMakerConfig } from '../types/config';
 /**
  * Additional options for requests
  */
-export interface RequestOptions extends RequestInit {
+export interface RequestOptions extends globalThis.RequestInit {
   /**
    * Request timeout in milliseconds
    */
@@ -31,7 +29,7 @@ export interface RequestOptions extends RequestInit {
   /**
    * Form data for multipart/form-data requests
    */
-  formData?: FormData;
+  formData?: globalThis.FormData;
 
   /**
    * HTTP method
@@ -79,7 +77,7 @@ export class HttpClient {
 
     try {
       // Prepare request options
-      const fetchOptions: RequestInit = {
+      const fetchOptions: globalThis.RequestInit = {
         ...options,
         headers: this.buildHeaders(options),
         signal: controller.signal,
@@ -87,7 +85,7 @@ export class HttpClient {
 
       // Handle form data
       if (options.formData) {
-        fetchOptions.body = options.formData;
+        fetchOptions.body = options.formData as any;
         // Let form-data set the content-type header with boundary
         delete (fetchOptions.headers as Record<string, string>)['Content-Type'];
       }
@@ -102,7 +100,17 @@ export class HttpClient {
 
       // Parse response
       if (response.headers.get('Content-Type')?.includes('application/json')) {
-        return (await response.json()) as T;
+        const jsonResponse = await response.json();
+
+        // Process base64Png field if present
+        if (jsonResponse.base64Png && typeof jsonResponse.base64Png === 'string') {
+          // Convert base64 PNG to Buffer for consistent API
+          const base64Data = jsonResponse.base64Png.replace(/^data:image\/png;base64,/, '');
+          jsonResponse.pngImageData = Buffer.from(base64Data, 'base64');
+          // Keep the original base64 string as well for compatibility
+        }
+
+        return jsonResponse as T;
       } else {
         return (await response.text()) as unknown as T;
       }
@@ -157,8 +165,8 @@ export class HttpClient {
         },
         body: JSON.stringify(data),
       });
-    } else if (data instanceof FormData || options.formData) {
-      const formData = data instanceof FormData ? data : options.formData;
+    } else if (data instanceof globalThis.FormData || options.formData) {
+      const formData = data instanceof globalThis.FormData ? data : options.formData;
       return this.request<T>(url, {
         ...options,
         method: 'POST',
@@ -179,22 +187,38 @@ export class HttpClient {
    * @param file File input (path, buffer, or stream)
    * @returns FormData object
    */
-  public createFormData(fieldName: string, file: string | Buffer | Readable): FormData {
+  public async createFormData(
+    fieldName: string,
+    file: string | Buffer | Readable
+  ): Promise<FormData> {
     const formData = new FormData();
 
     if (typeof file === 'string') {
-      // File path
-      formData.append(fieldName, file);
+      // File path - read as buffer and create blob
+      const fs = await import('fs');
+      const path = await import('path');
+
+      if (!fs.existsSync(file)) {
+        throw new Error(`File not found: ${file}`);
+      }
+
+      const fileBuffer = fs.readFileSync(file);
+      const filename = path.basename(file);
+      const blob = new Blob([fileBuffer]);
+      formData.append(fieldName, blob, filename);
     } else if (Buffer.isBuffer(file)) {
-      // Buffer
-      formData.append(fieldName, file, {
-        filename: 'file',
-      });
+      // Buffer - convert to blob
+      const blob = new Blob([file]);
+      formData.append(fieldName, blob, 'file');
     } else if (file instanceof Readable) {
-      // Readable stream
-      formData.append(fieldName, file, {
-        filename: 'file',
-      });
+      // Readable stream - convert to buffer then blob
+      const chunks: Buffer[] = [];
+      for await (const chunk of file) {
+        chunks.push(Buffer.from(chunk));
+      }
+      const buffer = Buffer.concat(chunks);
+      const blob = new Blob([buffer]);
+      formData.append(fieldName, blob, 'file');
     } else {
       throw new Error(`Unsupported file type: ${typeof file}`);
     }
@@ -249,7 +273,7 @@ export class HttpClient {
    * @param response Error response
    * @returns Error object
    */
-  private async handleErrorResponse(response: Response): Promise<Error> {
+  private async handleErrorResponse(response: globalThis.Response): Promise<Error> {
     let errorData: any = {};
 
     try {

@@ -69,6 +69,58 @@ describe('SVGMakerClient', () => {
       expect(client.edit).toBeDefined();
       expect(client.convert).toBeDefined();
     });
+
+    it('should accept new base64Png and svgText parameters for generate', () => {
+      const client = new SVGMakerClient('test-api-key');
+
+      // Should not throw when configuring with new parameters
+      expect(() => {
+        client.generate.configure({
+          prompt: 'Test prompt',
+          base64Png: true,
+          svgText: true,
+        });
+      }).not.toThrow();
+    });
+
+    it('should accept new base64Png and svgText parameters for edit', () => {
+      const client = new SVGMakerClient('test-api-key');
+
+      // Should not throw when configuring with new parameters
+      expect(() => {
+        client.edit.configure({
+          image: Buffer.from('test'),
+          prompt: 'Test prompt',
+          base64Png: true,
+          svgText: true,
+        });
+      }).not.toThrow();
+    });
+
+    it('should accept new svgText parameter for convert', () => {
+      const client = new SVGMakerClient('test-api-key');
+
+      // Should not throw when configuring with new parameters
+      expect(() => {
+        client.convert.configure({
+          file: Buffer.from('test'),
+          svgText: true,
+        });
+      }).not.toThrow();
+    });
+
+    it('should validate boolean types for new parameters', () => {
+      const client = new SVGMakerClient('test-api-key');
+
+      // These should pass validation (will be tested when execute is called with proper mocking)
+      expect(() => {
+        client.generate.configure({
+          prompt: 'Test prompt',
+          base64Png: false,
+          svgText: false,
+        });
+      }).not.toThrow();
+    });
   });
 
   describe('interceptors', () => {

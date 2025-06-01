@@ -1,19 +1,21 @@
 # SVGMaker SDK for Node.js
 
-Official Node.js SDK for the SVGMaker API, providing a clean, type-safe wrapper for generating, editing, and converting SVGs.
+Official Node.js SDK for the SVGMaker API, providing a clean, type-safe interface for generating, editing, and converting SVG graphics using AI.
 
 [![npm version](https://img.shields.io/npm/v/svgmaker-sdk.svg)](https://www.npmjs.com/package/svgmaker-sdk)
-[![License](https://img.shields.io/npm/l/svgmaker-sdk.svg)](https://github.com/svgmaker/svgmaker-sdk-node/blob/main/LICENSE)
+[![License](https://img.shields.io/npm/l/svgmaker-sdk.svg)](https://github.com/GenWaveLLC/svgmaker-sdk-node/blob/main/LICENSE)
 
 ## Features
 
-- 🎨 **Full API Support**: Generate, edit, and convert SVGs
-- 🧰 **TypeScript First**: Complete type definitions for all API parameters and responses
-- 🚀 **Clean Configuration**: Object-based configuration for better developer experience
-- 🔁 **Automatic Retries**: Built-in retry logic with exponential backoff
-- 🌊 **Streaming Support**: Real-time progress updates via streaming responses
-- 🔒 **Input Validation**: Schema-based validation for all API requests
-- 📦 **Dual Package**: Support for both ESM and CommonJS
+- 🎨 **Complete API Coverage**: Generate, edit, and convert SVGs with AI
+- 🧰 **TypeScript Native**: Full type safety with comprehensive type definitions  
+- ⚙️ **Configuration-Based**: Clean, object-based parameter configuration
+- 🔄 **Automatic Retries**: Built-in retry logic with exponential backoff
+- 🌊 **Streaming Support**: Real-time progress updates via Server-Sent Events
+- ✅ **Input Validation**: Zod-based schema validation for all requests
+- 📦 **Dual Package**: ESM and CommonJS support with proper exports
+- 🔌 **Extensible**: Request/response interceptors for customization
+
 ## Installation
 
 ```bash
@@ -25,332 +27,367 @@ npm install svgmaker-sdk
 ```typescript
 import { SVGMakerClient } from 'svgmaker-sdk';
 
-// Create a client with your API key
-const svgmaker = new SVGMakerClient('your-api-key');
-
-// Generate an SVG
-const generateResult = await svgmaker.generate
-  .configure({
-    prompt: 'A minimalist mountain landscape with geometric shapes',
-    quality: 'high',
-    style: 'minimalist',
-  })
-  .execute();
-
-console.log('Generated SVG URL:', generateResult.svgUrl);
-
-// Edit an image
-const editResult = await svgmaker.edit
-  .configure({
-    image: './input.png',
-    prompt: 'Add a red border',
-    quality: 'medium'
-  })
-  .execute();
-
-console.log('Edited SVG URL:', editResult.svgUrl);
-
-// Convert an image to SVG
-const convertResult = await svgmaker.convert
-  .configure({
-    file: './image.jpg'
-  })
-  .execute();
-
-console.log('Converted SVG URL:', convertResult.svgUrl);
-```
-
-## Configuration-Based API
-
-The SVGMaker SDK uses a clean configuration object approach instead of method chaining. This provides better TypeScript support, cleaner code, and easier maintenance.
-
-### Basic Pattern
-
-```typescript
-// Configure all parameters in a single object
-const result = await client.generate
-  .configure({
-    prompt: 'Your description here',
-    quality: 'high',
-    style: 'minimalist',
-    // ... other options
-  })
-  .execute();
-```
-
-### Benefits
-
-- **Type Safety**: Full TypeScript intellisense and validation
-- **Cleaner Code**: Single configuration object instead of method chains
-- **Flexible**: Easy to pass configuration from variables or functions
-- **Maintainable**: Adding new options doesn't require new methods
-
-## API Reference
-
-### SVGMakerClient
-
-The main client for interacting with the SVGMaker API.
-
-```typescript
-// Create client with API key
+// Initialize client
 const client = new SVGMakerClient('your-api-key');
 
-// Create client with API key and custom configuration
-const client = new SVGMakerClient('your-api-key', {
-  baseUrl: 'https://custom-svgmaker-api.com/api',
-  timeout: 60000, // 60 seconds
-  maxRetries: 5,
-});
-```
-
-### Configuration Options
-
-```typescript
-interface SVGMakerConfig {
-  apiKey: string;                   // API key for authentication
-  baseUrl: string;                  // Base URL for the API
-  timeout: number;                  // Request timeout in milliseconds
-  maxRetries: number;               // Maximum number of retries for failed requests
-  retryBackoffFactor: number;       // Retry backoff factor in milliseconds
-  retryStatusCodes: number[];       // Status codes that should trigger a retry
-  logging: boolean;                 // Enable request/response logging
-  logLevel: string;                 // Log level: 'debug', 'info', 'warn', 'error'
-  caching: boolean;                 // Enable request caching
-### Generate SVG
-
-Generate SVG from text prompts using AI.
-
-```typescript
-// Basic generation
+// Generate an SVG
 const result = await client.generate
   .configure({
     prompt: 'A minimalist mountain landscape',
+    quality: 'high',
+    styleParams: {
+      style: 'minimalist',
+    },
+    svgText: true, // Get SVG source code
   })
   .execute();
 
-// Advanced generation with options
+console.log('SVG URL:', result.svgUrl);
+console.log('Credits used:', result.creditCost);
+```
+
+## Core API
+
+### Client Initialization
+
+```typescript
+// Basic client
+const client = new SVGMakerClient('your-api-key');
+
+// Client with custom configuration
+const client = new SVGMakerClient('your-api-key', {
+  timeout: 60000,
+  maxRetries: 5,
+  logging: true,
+});
+```
+
+### Generate SVG
+
+Create SVGs from text descriptions using AI.
+
+```typescript
 const result = await client.generate
   .configure({
-    prompt: 'A minimalist mountain landscape with geometric shapes',
+    prompt: 'A geometric mountain landscape with sun',
     quality: 'high',
     aspectRatio: 'landscape',
-    background: 'transparent',
-    style: 'minimalist',
-    color_mode: 'monochrome',
-    composition: 'center-object',
-    advanced: {
-      stroke_weight: 'thin',
-      corner_style: 'rounded',
-      shadow_effect: 'none'
-    }
+    styleParams: {
+      style: 'minimalist',
+      color_mode: 'monochrome',
+      composition: 'center-object',
+      advanced: {
+        stroke_weight: 'thin',
+        corner_style: 'rounded',
+        shadow_effect: 'none'
+      }
+    },
+    base64Png: true, // Include PNG preview
+    svgText: true,   // Include SVG source
   })
   .execute();
+
+// Access results
+console.log('SVG URL:', result.svgUrl);
+console.log('Credits used:', result.creditCost);
+console.log('Revised prompt:', result.revisedPrompt);
+
+if (result.pngImageData) {
+  // PNG preview as Buffer
+  console.log('PNG size:', result.pngImageData.length, 'bytes');
+}
+
+if (result.svgText) {
+  // SVG source code
+  console.log('SVG content:', result.svgText);
+}
 ```
+
+#### Generation Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `prompt` | `string` | - | **Required.** Description of the SVG to generate |
+| `quality` | `'low' \| 'medium' \| 'high'` | `'medium'` | Generation quality level |
+| `aspectRatio` | `'auto' \| 'portrait' \| 'landscape' \| 'square' \| 'wide' \| 'tall'` | `'auto'` for low/medium, `'square'` for high | Output aspect ratio. **Note:** Low and medium quality only support `'auto'`, `'portrait'`, `'landscape'`, `'square'`. High quality supports all options except `'auto'` |
+| `background` | `'auto' \| 'transparent' \| 'opaque'` | `'auto'` | Background type |
+| `styleParams` | `StyleParams` | `{}` | Style parameters object (see StyleParams table below) |
+| `base64Png` | `boolean` | `false` | Include PNG preview in response |
+| `svgText` | `boolean` | `false` | Include SVG source code in response |
+
+#### StyleParams Object
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `style` | `'minimalist' \| 'cartoon' \| 'realistic' \| 'abstract' \| 'flat' \| 'isometric'` | `none` | Art style preference |
+| `color_mode` | `'monochrome' \| '2-colors' \| '3-colors' \| 'full-color'` | `none` | Color scheme preference |
+| `image_complexity` | `'simple' \| 'detailed'` | `none` | Complexity level |
+| `category` | `'icon' \| 'illustration' \| 'pattern' \| 'logo' \| 'scene'` | `none` | Content category |
+| `composition` | `'center-object' \| 'full-scene'` | `none` | Layout composition |
+| `advanced` | `AdvancedStyleParams` | `{}` | Advanced styling parameters (see AdvancedStyleParams table below) |
+
+#### AdvancedStyleParams Object
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `stroke_weight` | `'thin' \| 'medium' \| 'thick'` | `none` | Stroke weight for lines and shapes |
+| `corner_style` | `'none' \| 'rounded' \| 'sharp'` | `none` | Corner style for shapes |
+| `shadow_effect` | `'none' \| 'soft' \| 'hard'` | `none` | Shadow effect type |
 
 ### Edit SVG/Image
 
-Edit existing images or SVGs using AI-powered modifications.
+Modify existing images or SVGs using AI-powered editing.
 
 ```typescript
 // Basic editing
 const result = await client.edit
   .configure({
     image: './input.png',
-    prompt: 'Add a red border'
-  })
-  .execute();
-
-// Advanced editing with options
-const result = await client.edit
-  .configure({
-    image: './input.svg',
-    prompt: {
-      prompt: 'Make this more cartoonish',
-      style: 'cartoon',
-      color_mode: '3-colors'
-    },
+    prompt: 'Add a red border and make it more vibrant',
     quality: 'medium',
-    aspectRatio: 'square',
-    background: 'transparent'
+    base64Png: true,
+    svgText: true,
   })
   .execute();
 
-// Editing with a mask
+// Advanced editing with style parameters
 const result = await client.edit
   .configure({
-    image: './input.png',
-    prompt: 'Change the color to blue',
-    mask: './mask.png'
+    image: fs.readFileSync('./input.svg'),
+    prompt: 'Make this more cartoonish',
+    styleParams: {
+      style: 'cartoon',
+      color_mode: '3-colors',
+      advanced: {
+        stroke_weight: 'medium',
+        corner_style: 'rounded'
+      }
+    },
+    mask: './mask.png', // Optional mask for targeted editing
   })
   .execute();
 ```
+
+#### Edit Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `image` | `string \| Buffer \| Readable` | - | **Required.** Image file to edit (file path, Buffer, or Readable stream) |
+| `prompt` | `string` | - | **Required.** Edit instructions as a simple text string |
+| `styleParams` | `StyleParams` | `{}` | Style parameters object (see StyleParams table above) |
+| `mask` | `string \| Buffer \| Readable` | `none` | Optional mask for targeted editing (file path, Buffer, or Readable stream) |
+| `quality` | `'low' \| 'medium' \| 'high'` | `'medium'` | Processing quality |
+| `aspectRatio` | `'auto' \| 'portrait' \| 'landscape' \| 'square' \| 'wide' \| 'tall'` | `'auto'` for low/medium, `'square'` for high | Output aspect ratio. **Note:** Low and medium quality only support `'auto'`, `'portrait'`, `'landscape'`, `'square'`. High quality supports all options except `'auto'` |
+| `background` | `'auto' \| 'transparent' \| 'opaque'` | `'auto'` | Background handling |
+| `base64Png` | `boolean` | `false` | Include PNG preview in response |
+| `svgText` | `boolean` | `false` | Include SVG source code in response |
 
 ### Convert Image to SVG
 
-Convert raster images (PNG, JPEG, etc.) to SVG format.
+Convert raster images to vector SVG format.
 
 ```typescript
-// Basic conversion
 const result = await client.convert
   .configure({
-    file: './image.jpg'
+    file: './photo.jpg',
+    svgText: true,
   })
   .execute();
 
-// Conversion with streaming
-const result = await client.convert
-  .configure({
-    file: './image.png',
-    stream: true
-  })
-  .execute();
+console.log('Original:', result.originalImageUrl);
+console.log('SVG:', result.svgUrl);
+console.log('SVG source:', result.svgText);
 ```
 
-## Streaming Support
+## Streaming Responses
 
-All API endpoints support streaming responses for real-time updates on the progress of operations.
+All operations support real-time progress updates via streaming.
 
 ```typescript
-// Generate with streaming
 const stream = client.generate
   .configure({
-    prompt: 'A geometric mountain landscape',
+    prompt: 'A detailed cityscape illustration',
     quality: 'high',
   })
   .stream();
 
-// Handle stream events
 for await (const event of stream) {
-  if (event.status === 'processing') {
-    console.log(`Progress: ${event.message}`);
-  } else if (event.status === 'complete') {
-    console.log(`Complete! SVG URL: ${event.svgUrl}`);
-  } else if (event.status === 'error') {
-    console.error(`Error: ${event.error}`);
+  switch (event.status) {
+    case 'processing':
+      console.log(`Progress: ${event.message}`);
+      break;
+    case 'complete':
+      console.log(`Complete! SVG: ${event.svgUrl}`);
+      break;
+    case 'error':
+      console.error(`Error: ${event.error}`);
+      break;
   }
-```
-
-### Configuration Options
-
-```typescript
-interface SVGMakerConfig {
-  apiKey: string;                   // API key for authentication
-  baseUrl: string;                  // Base URL for the API (default: "https://svgmaker.io/api")
-  timeout: number;                  // Request timeout in milliseconds (default: 30000)
-  maxRetries: number;               // Maximum number of retries for failed requests (default: 3)
-  retryBackoffFactor: number;       // Retry backoff factor in milliseconds (default: 300)
-  retryStatusCodes: number[];       // Status codes that should trigger a retry (default: [408, 429, 500, 502, 503, 504])
-  logging: boolean;                 // Enable request/response logging (default: false)
-  logLevel: 'debug' | 'info' | 'warn' | 'error';  // Log level (default: "info")
-  caching: boolean;                 // Enable request caching (default: false)
-  cacheTTL: number;                 // Cache TTL in milliseconds (default: 300000)
-  rateLimit: number;                // Maximum number of requests per minute (default: 60)
 }
 ```
 
-#### Using Custom Configuration
+## Configuration
+
+### Client Configuration
 
 ```typescript
-// Create client with custom configuration
-const client = new SVGMakerClient('your-api-key', {
-  baseUrl: 'https://svgmaker.io/api',
-  timeout: 30000,                   // 30 seconds timeout
-  maxRetries: 3,                    // Retry failed requests up to 3 times
-  retryBackoffFactor: 300,          // Wait 300ms before first retry
-  retryStatusCodes: [408, 429, 500, 502, 503, 504],  // Retry on these status codes
-  logging: true,                    // Enable request/response logging
-  logLevel: 'info',                 // Log level
-  caching: true,                    // Enable response caching
-  cacheTTL: 300000,                 // Cache for 5 minutes
-  rateLimit: 60                     // Maximum 60 requests per minute
-});
+interface SVGMakerConfig {
+  apiKey: string;                    // API authentication key
+  baseUrl: string;                   // API base URL (default: "https://svgmaker.io/api")
+  timeout: number;                   // Request timeout ms (default: 30000)
+  maxRetries: number;                // Max retry attempts (default: 3)
+  retryBackoffFactor: number;        // Retry delay factor ms (default: 300)
+  retryStatusCodes: number[];        // Status codes to retry (default: [408, 429, 500, 502, 503, 504])
+  logging: boolean;                  // Enable request logging (default: false)
+  logLevel: 'debug' | 'info' | 'warn' | 'error'; // Log level (default: "info")
+  caching: boolean;                  // Enable response caching (default: false)
+  cacheTTL: number;                  // Cache TTL ms (default: 300000)
+  rateLimit: number;                 // Requests per minute (default: 60)
+}
+```
 
-// The client will now use these custom settings for all requests
-const result = await client.generate
-  .configure({
-    prompt: 'A minimalist mountain landscape',
-  })
-  .execute();
+### Example Configuration
+
+```typescript
+const client = new SVGMakerClient('your-api-key', {
+  timeout: 60000,
+  maxRetries: 5,
+  logging: true,
+  logLevel: 'debug',
+  caching: true,
+  cacheTTL: 600000, // 10 minutes
+});
 ```
 
 ## Error Handling
 
-The SDK provides custom error classes for different types of errors.
+The SDK provides comprehensive error handling with custom error types.
 
 ```typescript
+import { SVGMakerClient, Errors } from 'svgmaker-sdk';
+
 try {
   const result = await client.generate
-    .configure({
-      prompt: 'A minimalist mountain landscape',
-      quality: 'high',
-    })
+    .configure({ prompt: 'A landscape' })
     .execute();
 } catch (error) {
-  if (error instanceof SVGMaker.Errors.ValidationError) {
+  if (error instanceof Errors.ValidationError) {
     console.error('Invalid parameters:', error.message);
-  } else if (error instanceof SVGMaker.Errors.APIError) {
+  } else if (error instanceof Errors.APIError) {
     console.error('API error:', error.message, error.statusCode);
-  } else if (error instanceof SVGMaker.Errors.RateLimitError) {
-    console.error('Rate limit exceeded. Try again in', error.retryAfter, 'seconds');
-  } else if (error instanceof SVGMaker.Errors.TimeoutError) {
-    console.error('Request timed out after', error.timeout, 'ms');
-  } else if (error instanceof SVGMaker.Errors.NetworkError) {
+  } else if (error instanceof Errors.RateLimitError) {
+    console.error('Rate limited. Retry after:', error.retryAfter, 'seconds');
+  } else if (error instanceof Errors.AuthError) {
+    console.error('Authentication failed:', error.message);
+  } else if (error instanceof Errors.TimeoutError) {
+    console.error('Request timed out after:', error.timeout, 'ms');
+  } else if (error instanceof Errors.NetworkError) {
     console.error('Network error:', error.message);
-  } else {
-    console.error('Unexpected error:', error);
+  } else if (error instanceof Errors.InsufficientCreditsError) {
+    console.error('Insufficient credits. Required:', error.creditsRequired);
+  } else if (error instanceof Errors.ContentSafetyError) {
+    console.error('Content safety violation:', error.message);
+  } else if (error instanceof Errors.FileSizeError) {
+    console.error('File too large:', error.message);
+  } else if (error instanceof Errors.FileFormatError) {
+    console.error('Unsupported file format:', error.message);
   }
 }
 ```
 
+## Advanced Features
+
+### Request/Response Interceptors
+
+Customize requests and responses with interceptors.
+
+```typescript
+// Add request interceptor
+client.addRequestInterceptor(async (request) => {
+  console.log('Making request:', request.url);
+  return request;
+});
+
+// Add response interceptor
+client.addResponseInterceptor(async (response) => {
+  console.log('Received response:', response);
+  return response;
+});
+```
+
+### Dynamic Configuration
+
+Update client configuration at runtime.
+
+```typescript
+// Update configuration
+client.setConfig({
+  timeout: 120000,
+  maxRetries: 2,
+});
+
+// Get current configuration
+const config = client.getConfig();
+console.log('Current timeout:', config.timeout);
+```
+
 ## TypeScript Support
 
-The SDK is written in TypeScript and provides comprehensive type definitions for all API parameters and responses.
+Full TypeScript support with comprehensive type definitions.
 
 ```typescript
 import { SVGMakerClient, Types } from 'svgmaker-sdk';
 
-// Type-safe parameters for generation
+// Typed parameters
 const generateParams: Types.GenerateParams = {
-  prompt: 'A minimalist mountain landscape',
+  prompt: 'A minimalist logo',
   quality: 'high',
-  aspectRatio: 'landscape',
-  background: 'transparent'
+  style: 'minimalist',
+  color_mode: 'monochrome',
 };
 
-// Type-safe parameters for editing
-const editParams: Types.EditParams = {
-  image: './input.png',
-  prompt: 'Add a red border',
-  quality: 'medium',
-  aspectRatio: 'square'
-};
+// Typed responses
+const result: Types.GenerateResponse = await client.generate
+  .configure(generateParams)
+  .execute();
 
-// Type-safe parameters for conversion
-const convertParams: Types.ConvertParams = {
-  file: './image.jpg'
-};
-
-// Type-safe responses
-const generateResult = await client.generate.configure(generateParams).execute();
-const editResult = await client.edit.configure(editParams).execute();
-const convertResult = await client.convert.configure(convertParams).execute();
-
-// TypeScript knows the shape of all responses
-console.log(generateResult.svgUrl);
-console.log(generateResult.pngImageData);
-console.log(generateResult.revisedPrompt);
-
-console.log(editResult.svgUrl);
-console.log(editResult.originalImageUrl);
-
-console.log(convertResult.svgUrl);
-console.log(convertResult.originalImageUrl);
+// Type-safe access
+console.log(result.svgUrl);      // string
+console.log(result.creditCost);  // number
+console.log(result.pngImageData); // Buffer | undefined
 ```
+
+## Package Structure
+
+```
+svgmaker-sdk/
+├── dist/
+│   ├── cjs/         # CommonJS build
+│   ├── esm/         # ES Module build
+│   └── types/       # TypeScript declarations
+├── src/
+│   ├── core/        # Core client implementation
+│   ├── clients/     # API-specific clients
+│   ├── types/       # TypeScript definitions
+│   ├── errors/      # Custom error classes
+│   └── utils/       # Utility functions
+└── examples/        # Usage examples
+```
+
+## Browser Compatibility
+
+The SDK is designed for Node.js environments and requires Node.js 16.0.0 or higher. For browser usage, consider the potential limitations with file system operations and ensure proper bundling configuration.
 
 ## Contributing
 
-We welcome contributions to the SVGMaker SDK! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+We welcome contributions! Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see the [`LICENSE`](LICENSE) file for details.
+
+## Support
+
+- **Documentation**: [API Documentation](api-documentation.md)
+- **Issues**: [GitHub Issues](https://github.com/GenWaveLLC/svgmaker-sdk-node/issues)
+- **Repository**: [GitHub Repository](https://github.com/GenWaveLLC/svgmaker-sdk-node)

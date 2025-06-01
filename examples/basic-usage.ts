@@ -9,20 +9,33 @@ async function main() {
     // Create a client instance
     const client = new SVGMakerClient(API_KEY);
 
-    // Generate an SVG
+    // Generate an SVG with base64 PNG and SVG text
     console.log('Generating SVG...');
     const generateResult = await client.generate
       .configure({
         prompt: 'A minimalist mountain landscape with sun',
         quality: 'high',
-        style: 'minimalist',
-        color_mode: 'monochrome',
+        styleParams: {
+          style: 'minimalist',
+          color_mode: 'monochrome',
+        },
+        base64Png: true, // Include base64-encoded PNG preview
+        svgText: true, // Include SVG source code as text
       })
       .execute();
 
     console.log('Generation successful!');
     console.log('SVG URL:', generateResult.svgUrl);
     console.log('Credits used:', generateResult.creditCost);
+
+    // Access the new optional fields
+    if (generateResult.pngImageData) {
+      console.log('PNG preview data size:', generateResult.pngImageData.length, 'bytes');
+    }
+
+    if (generateResult.svgText) {
+      console.log('SVG source code preview:', generateResult.svgText.substring(0, 100) + '...');
+    }
 
     // Example for editing (uncomment to use):
     /*
@@ -31,12 +44,26 @@ async function main() {
       .configure({
         image: './input.png',
         prompt: 'Add a red border',
-        quality: 'medium'
+        styleParams: {
+          style: 'cartoon',
+          color_mode: 'full-color',
+        },
+        quality: 'medium',
+        base64Png: true, // Include base64-encoded PNG preview
+        svgText: true,   // Include SVG source code as text
       })
       .execute();
     
     console.log('Edit successful!');
     console.log('SVG URL:', editResult.svgUrl);
+    
+    if (editResult.pngImageData) {
+      console.log('PNG preview data size:', editResult.pngImageData.length, 'bytes');
+    }
+    
+    if (editResult.svgText) {
+      console.log('SVG source code preview:', editResult.svgText.substring(0, 100) + '...');
+    }
     */
 
     // Example for converting (uncomment to use):
@@ -44,12 +71,17 @@ async function main() {
     console.log('Converting image to SVG...');
     const convertResult = await client.convert
       .configure({
-        file: './image.jpg'
+        file: './image.jpg',
+        svgText: true, // Include SVG source code as text
       })
       .execute();
     
     console.log('Conversion successful!');
     console.log('SVG URL:', convertResult.svgUrl);
+    
+    if (convertResult.svgText) {
+      console.log('SVG source code preview:', convertResult.svgText.substring(0, 100) + '...');
+    }
     */
 
     // Example with streaming response

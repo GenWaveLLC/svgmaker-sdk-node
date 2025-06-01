@@ -3,7 +3,6 @@ import { EditParams, EditResponse, EditStreamEvent } from '../types/api';
 import { SVGMakerClient } from '../core/SVGMakerClient';
 import { z } from 'zod';
 import { Readable } from 'stream';
-import FormData from 'form-data';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ValidationError } from '../errors/CustomErrors';
@@ -13,14 +12,16 @@ import { ValidationError } from '../errors/CustomErrors';
  */
 const editParamsSchema = z.object({
   image: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]),
-  prompt: z.union([
-    z.string(),
-    z.object({
-      prompt: z.string(),
+  prompt: z.string(),
+  styleParams: z
+    .object({
       style: z
         .enum(['minimalist', 'cartoon', 'realistic', 'abstract', 'flat', 'isometric'])
         .optional(),
       color_mode: z.enum(['monochrome', '2-colors', '3-colors', 'full-color']).optional(),
+      image_complexity: z.enum(['simple', 'detailed']).optional(),
+      category: z.enum(['icon', 'illustration', 'pattern', 'logo', 'scene']).optional(),
+      composition: z.enum(['center-object', 'full-scene']).optional(),
       advanced: z
         .object({
           stroke_weight: z.enum(['thin', 'medium', 'thick']).optional(),
@@ -28,13 +29,15 @@ const editParamsSchema = z.object({
           shadow_effect: z.enum(['none', 'soft', 'hard']).optional(),
         })
         .optional(),
-    }),
-  ]),
+    })
+    .optional(),
   mask: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]).optional(),
-  quality: z.enum(['low', 'medium', 'high']).optional(),
-  aspectRatio: z.enum(['auto', 'portrait', 'landscape', 'square', 'wide', 'tall']).optional(),
+  quality: z.enum(['medium']).optional(), // Edit mode only supports medium quality
+  aspectRatio: z.enum(['auto', 'portrait', 'landscape', 'square']).optional(), // Edit mode only supports these aspect ratios
   background: z.enum(['auto', 'transparent', 'opaque']).optional(),
   stream: z.boolean().optional(),
+  base64Png: z.boolean().optional(),
+  svgText: z.boolean().optional(),
 });
 
 /**
@@ -56,6 +59,9 @@ export class EditClient extends BaseClient {
    * @returns Edit response
    */
   public async execute(): Promise<EditResponse> {
+    // Apply defaults before validation
+    this.applyDefaults();
+
     // Validate parameters
     this.validateRequest(this.params, editParamsSchema);
 
@@ -63,18 +69,19 @@ export class EditClient extends BaseClient {
     const formData = new FormData();
 
     // Add image file
-    this.addFileToForm(formData, 'image', this.params.image!);
+    await this.addFileToForm(formData, 'image', this.params.image!);
 
     // Add prompt
-    if (typeof this.params.prompt === 'string') {
-      formData.append('prompt', this.params.prompt);
-    } else {
-      formData.append('prompt', JSON.stringify(this.params.prompt));
+    formData.append('prompt', this.params.prompt!);
+
+    // Add styleParams if present
+    if (this.params.styleParams) {
+      formData.append('styleParams', JSON.stringify(this.params.styleParams));
     }
 
     // Add mask if present
     if (this.params.mask) {
-      this.addFileToForm(formData, 'mask', this.params.mask);
+      await this.addFileToForm(formData, 'mask', this.params.mask);
     }
 
     // Add options
@@ -94,11 +101,30 @@ export class EditClient extends BaseClient {
       formData.append('stream', String(this.params.stream));
     }
 
-    // Execute request
-    return this.handleRequest<EditResponse>('/edit', {
+    if (this.params.base64Png) {
+      formData.append('base64Png', String(this.params.base64Png));
+    }
+
+    if (this.params.svgText) {
+      formData.append('svgText', String(this.params.svgText));
+    }
+
+    // Execute request using native fetch
+    const response = await fetch(`${this.config.baseUrl}/edit`, {
       method: 'POST',
-      formData,
+      headers: {
+        'x-api-key': this.config.apiKey,
+      },
+      body: formData,
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
+    return result as EditResponse;
   }
 
   /**
@@ -109,7 +135,22 @@ export class EditClient extends BaseClient {
   public configure(config: Partial<EditParams>): EditClient {
     const client = this.clone();
     client.params = { ...client.params, ...config };
+
+    // Apply default values for edit mode
+    client.applyDefaults();
+
     return client;
+  }
+
+  /**
+   * Apply default values for edit mode
+   * @private
+   */
+  private applyDefaults(): void {
+    // Set default quality to medium if not specified
+    if (!this.params.quality) {
+      this.params.quality = 'medium';
+    }
   }
 
   /**
@@ -120,6 +161,9 @@ export class EditClient extends BaseClient {
     // Create a clone with streaming enabled
     const client = this.clone();
     client.params.stream = true;
+
+    // Apply defaults before validation
+    client.applyDefaults();
 
     // Validate parameters
     this.validateRequest(client.params, editParamsSchema);
@@ -137,18 +181,19 @@ export class EditClient extends BaseClient {
         const formData = new FormData();
 
         // Add image file
-        this.addFileToForm(formData, 'image', client.params.image!);
+        await this.addFileToForm(formData, 'image', client.params.image!);
 
         // Add prompt
-        if (typeof client.params.prompt === 'string') {
-          formData.append('prompt', client.params.prompt);
-        } else {
-          formData.append('prompt', JSON.stringify(client.params.prompt));
+        formData.append('prompt', client.params.prompt!);
+
+        // Add styleParams if present
+        if (client.params.styleParams) {
+          formData.append('styleParams', JSON.stringify(client.params.styleParams));
         }
 
         // Add mask if present
         if (client.params.mask) {
-          this.addFileToForm(formData, 'mask', client.params.mask);
+          await this.addFileToForm(formData, 'mask', client.params.mask);
         }
 
         // Add options
@@ -166,19 +211,27 @@ export class EditClient extends BaseClient {
 
         formData.append('stream', 'true');
 
-        // In a real implementation, this would handle SSE or other streaming protocol
-        // For now, we'll simulate it with a basic implementation
+        if (client.params.base64Png) {
+          formData.append('base64Png', String(client.params.base64Png));
+        }
+
+        if (client.params.svgText) {
+          formData.append('svgText', String(client.params.svgText));
+        }
+
+        // Make request to the streaming endpoint using native fetch
         const response = await fetch(`${this.config.baseUrl}/edit`, {
           method: 'POST',
           headers: {
             Accept: 'text/event-stream',
             'x-api-key': this.config.apiKey,
           },
-          body: formData as any,
+          body: formData,
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}`);
+          const errorText = await response.text();
+          throw new Error(`HTTP error ${response.status}: ${errorText}`);
         }
 
         const reader = response.body?.getReader();
@@ -193,31 +246,51 @@ export class EditClient extends BaseClient {
           const { done, value } = await reader.read();
           if (done) break;
 
+          // Decode the chunk and add to buffer
           buffer += decoder.decode(value, { stream: true });
+
+          // Split by newlines to get individual JSON objects
           const lines = buffer.split('\n');
+
+          // Keep the last incomplete line in the buffer
           buffer = lines.pop() || '';
 
+          // Process each complete line
           for (const line of lines) {
-            if (line.trim() === '') continue;
-            if (line.startsWith('data:')) {
-              const data = line.slice(5).trim();
-              try {
-                const event = JSON.parse(data) as EditStreamEvent;
-                stream.push(event);
-                if (event.status === 'complete' || event.status === 'error') {
-                  stream.push(null); // End the stream
-                  return;
-                }
-              } catch (e) {
-                console.error('Error parsing event data:', e);
+            const trimmedLine = line.trim();
+            if (trimmedLine === '') continue;
+
+            try {
+              // Parse the JSON chunk directly (no "data:" prefix like SSE)
+              const event = JSON.parse(trimmedLine) as EditStreamEvent;
+              stream.push(event);
+
+              // End the stream when we get a complete or error status
+              if (event.status === 'complete' || event.status === 'error') {
+                stream.push(null);
+                return;
               }
+            } catch (e) {
+              console.error('Error parsing streaming chunk:', e);
+              console.error('Problematic line:', trimmedLine);
             }
+          }
+        }
+
+        // Process any remaining data in buffer
+        if (buffer.trim()) {
+          try {
+            const event = JSON.parse(buffer.trim()) as EditStreamEvent;
+            stream.push(event);
+          } catch (e) {
+            console.error('Error parsing final chunk:', e);
           }
         }
 
         // End of stream
         stream.push(null);
       } catch (error) {
+        console.error('Streaming error:', error);
         stream.emit('error', error);
         stream.push(null);
       }
@@ -232,34 +305,59 @@ export class EditClient extends BaseClient {
    * @param fieldName Form field name
    * @param file File path, buffer, or stream
    */
-  private addFileToForm(
+  private async addFileToForm(
     formData: FormData,
     fieldName: string,
     file: string | Buffer | Readable
-  ): void {
+  ): Promise<void> {
     if (typeof file === 'string') {
       // Check if the file exists
       if (!fs.existsSync(file)) {
         throw new ValidationError(`File not found: ${file}`);
       }
 
-      // Add file from path
-      formData.append(fieldName, fs.createReadStream(file), {
-        filename: path.basename(file),
-      });
+      // Read file and create a Blob
+      const fileBuffer = fs.readFileSync(file);
+      const filename = path.basename(file);
+      const mimeType = this.getMimeType(filename);
+
+      const blob = new Blob([fileBuffer], { type: mimeType });
+      formData.append(fieldName, blob, filename);
     } else if (Buffer.isBuffer(file)) {
-      // Add file from buffer
-      formData.append(fieldName, file, {
-        filename: 'file',
-      });
+      // Convert buffer to Blob
+      const blob = new Blob([file], { type: 'application/octet-stream' });
+      formData.append(fieldName, blob, 'file');
     } else if (file instanceof Readable) {
-      // Add file from stream
-      formData.append(fieldName, file, {
-        filename: 'file',
-      });
+      // Convert stream to buffer then to Blob
+      const chunks: Buffer[] = [];
+      for await (const chunk of file) {
+        chunks.push(Buffer.from(chunk));
+      }
+      const buffer = Buffer.concat(chunks);
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
+      formData.append(fieldName, blob, 'file');
     } else {
       throw new ValidationError(`Invalid file type: ${typeof file}`);
     }
+  }
+
+  /**
+   * Get MIME type from filename
+   * @param filename File name
+   * @returns MIME type
+   */
+  private getMimeType(filename: string): string {
+    const ext = path.extname(filename).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+      '.webp': 'image/webp',
+      '.bmp': 'image/bmp',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
   }
 
   /**

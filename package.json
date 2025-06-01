@@ -27,7 +27,7 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "manual-test": "npx ts-node --project tsconfig.cjs.json manual-test.ts",
+    "manual-test": "npx ts-node --project tsconfig.cjs.json tests/manual-test.ts",
     "prepublishOnly": "npm run test && npm run lint"
   },
   "keywords": [
@@ -50,13 +50,11 @@
   },
   "homepage": "https://github.com/GenWaveLLC/svgmaker-sdk-node#readme",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@types/form-data": "^2.2.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^18.19.110",
-    "@types/node-fetch": "^2.6.12",
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@typescript-eslint/parser": "^8.15.0",
     "eslint": "^8.45.0",
@@ -70,9 +68,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "abort-controller": "^3.0.0",
-    "form-data": "^4.0.2",
-    "node-fetch": "^2.7.0",
     "p-retry": "^5.1.2",
     "p-throttle": "^5.1.0",
     "zod": "^3.25.42"

@@ -36,7 +36,8 @@ All endpoints return responses in the following format:
   "svgUrl": "string",
   "creditCost": "number",
   "originalImageUrl": "string", // Only for edit/convert
-  "base64Png": "string", // Only for generate/edit
+  "base64Png": "string", // Only when base64Png=true for generate/edit
+  "svgText": "string", // Only when svgText=true
   "prompt": "string", // Only when provided
   "quality": "string", // Only when applicable
   "revisedPrompt": "string" // Only for generate/edit
@@ -81,17 +82,21 @@ x-api-key: svgmaker-io{your-api-key}
   "aspectRatio": "auto|portrait|landscape|square|wide|tall", // Optional: Default "auto"
   "background": "auto|transparent|opaque", // Optional: Default "auto"
   "stream": "boolean", // Optional: Enable streaming response
+  "base64Png": "boolean", // Optional: Include base64 PNG in response (default: false)
+  "svgText": "boolean", // Optional: Include SVG source code in response (default: false)
   
-  // Style Parameters (Optional)
-  "style": "string", // Art style (e.g., "minimalist", "cartoon", "realistic")
-  "color_mode": "string", // Color scheme (e.g., "monochrome", "full-color", "2-colors")
-  "image_complexity": "string", // Complexity level (e.g., "simple", "detailed")
-  "category": "string", // Category (e.g., "icon", "illustration", "pattern")
-  "composition": "string", // Layout (e.g., "center-object", "full-scene")
-  "advanced": {
-    "stroke_weight": "thin|medium|thick",
-    "corner_style": "none|rounded|sharp",
-    "shadow_effect": "none|soft|hard"
+  // Style Parameters as separate JSON object (Optional)
+  "styleParams": {
+    "style": "string", // Art style (e.g., "minimalist", "cartoon", "realistic")
+    "color_mode": "string", // Color scheme (e.g., "monochrome", "full-color", "2-colors")
+    "image_complexity": "string", // Complexity level (e.g., "simple", "detailed")
+    "category": "string", // Category (e.g., "icon", "illustration", "pattern")
+    "composition": "string", // Layout (e.g., "center-object", "full-scene")
+    "advanced": {
+      "stroke_weight": "thin|medium|thick",
+      "corner_style": "none|rounded|sharp",
+      "shadow_effect": "none|soft|hard"
+    }
   }
 }
 ```
@@ -105,12 +110,9 @@ x-api-key: svgmaker-io{your-api-key}
 | `aspectRatio` | string | No | "auto" | Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" |
 | `background` | string | No | "auto" | Background type: "auto", "transparent", "opaque" |
 | `stream` | boolean | No | false | Enable streaming response for real-time updates |
-| `style` | string | No | - | Art style preference |
-| `color_mode` | string | No | - | Color scheme preference |
-| `image_complexity` | string | No | - | Complexity level |
-| `category` | string | No | - | Content category |
-| `composition` | string | No | - | Layout composition |
-| `advanced` | object | No | - | Advanced styling parameters |
+| `base64Png` | boolean | No | false | Include base64-encoded PNG preview in response |
+| `svgText` | boolean | No | false | Include SVG source code as text in response |
+| `styleParams` | object | No | {} | Style parameters object containing style, color_mode, image_complexity, category, composition, and advanced options |
 
 ### Example Request
 
@@ -123,9 +125,13 @@ curl -X POST https://svgmaker.io/api/generate \
     "quality": "high",
     "aspectRatio": "landscape",
     "background": "transparent",
-    "style": "minimalist",
-    "color_mode": "monochrome",
-    "composition": "center-object"
+    "base64Png": true,
+    "svgText": true,
+    "styleParams": {
+      "style": "minimalist",
+      "color_mode": "monochrome",
+      "composition": "center-object"
+    }
   }'
 ```
 
@@ -136,6 +142,7 @@ curl -X POST https://svgmaker.io/api/generate \
   "svgUrl": "https://storage.googleapis.com/your-bucket/generated-svg.svg",
   "creditCost": 4,
   "base64Png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+  "svgText": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\">...</svg>",
   "prompt": "A minimalist mountain landscape with geometric shapes",
   "quality": "high",
   "revisedPrompt": "A minimalist mountain landscape featuring clean geometric mountain shapes..."
@@ -161,31 +168,15 @@ x-api-key: svgmaker-io{your-api-key}
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `image` | File | Yes | Image file to edit (PNG, JPEG, WebP, SVG) |
-| `prompt` | string/JSON | Yes | Edit instructions or JSON with style parameters |
+| `prompt` | string | Yes | Edit instructions as a simple text string |
+| `styleParams` | string | No | JSON string containing style parameters |
 | `quality` | string | No | Quality level: "low", "medium", "high" (default: "medium") |
 | `aspectRatio` | string | No | Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" (default: "auto") |
 | `background` | string | No | Background: "auto", "transparent", "opaque" (default: "auto") |
 | `mask` | File | No | Optional mask file for targeted editing |
 | `stream` | boolean | No | Enable streaming response (default: false) |
-
-### Prompt Parameter Options
-
-#### Simple String Prompt
-```
-"Add a red border around the image"
-```
-
-#### JSON Prompt with Style Parameters
-```json
-{
-  "prompt": "Change the colors to be more vibrant",
-  "style": "cartoon",
-  "color_mode": "full-color",
-  "advanced": {
-    "stroke_weight": "thick"
-  }
-}
-```
+| `base64Png` | boolean | No | Include base64-encoded PNG preview in response (default: false) |
+| `svgText` | boolean | No | Include SVG source code as text in response (default: false) |
 
 ### Example Request
 
@@ -196,7 +187,9 @@ curl -X POST https://svgmaker.io/api/edit \
   -F "prompt=Add a golden frame around this image" \
   -F "quality=high" \
   -F "aspectRatio=square" \
-  -F "background=transparent"
+  -F "background=transparent" \
+  -F "base64Png=true" \
+  -F "svgText=true"
 ```
 
 ### Example Request with Style Parameters
@@ -205,7 +198,8 @@ curl -X POST https://svgmaker.io/api/edit \
 curl -X POST https://svgmaker.io/api/edit \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "image=@input-image.svg" \
-  -F 'prompt={"prompt":"Make this more cartoonish","style":"cartoon","color_mode":"3-colors"}' \
+  -F "prompt=Make this more cartoonish" \
+  -F 'styleParams={"style":"cartoon","color_mode":"3-colors","advanced":{"stroke_weight":"thick"}}' \
   -F "quality=medium"
 ```
 
@@ -217,6 +211,7 @@ curl -X POST https://svgmaker.io/api/edit \
   "originalImageUrl": "https://storage.googleapis.com/your-bucket/original-image.png",
   "creditCost": 3,
   "base64Png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+  "svgText": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\">...</svg>",
   "prompt": "Add a golden frame around this image",
   "quality": "high"
 }
@@ -242,6 +237,7 @@ x-api-key: svgmaker-io{your-api-key}
 |-------|------|----------|-------------|
 | `file` | File | Yes | Image file to convert (PNG, JPEG, WebP, etc.) |
 | `stream` | boolean | No | Enable streaming response (default: false) |
+| `svgText` | boolean | No | Include SVG source code as text in response (default: false) |
 
 ### Supported Formats
 
@@ -255,7 +251,8 @@ x-api-key: svgmaker-io{your-api-key}
 curl -X POST https://svgmaker.io/api/convert \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image-to-convert.png" \
-  -F "stream=false"
+  -F "stream=false" \
+  -F "svgText=true"
 ```
 
 ### Example Response
@@ -265,7 +262,8 @@ curl -X POST https://svgmaker.io/api/convert \
   "svgUrl": "https://storage.googleapis.com/bucket-name/converted-svg.svg",
   "originalImageUrl": "https://storage.googleapis.com/bucket-name/original-image.png",
   "creditCost": 1,
-  "quality": "medium"
+  "quality": "medium",
+  "svgText": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\">...</svg>"
 }
 ```
 
@@ -331,6 +329,46 @@ When `stream=true` is set, responses are sent as Server-Sent Events (SSE):
 ```
 Content-Type: text/event-stream
 ```
+## Response Format Options
+
+### Base64 PNG Output (`base64Png`)
+
+When `base64Png=true` is included in requests to [`/api/generate`](docs/api-documentation.md:63) or [`/api/edit`](docs/api-documentation.md:147), the response will include a `base64Png` field containing a base64-encoded PNG preview of the generated SVG.
+
+**Use Cases:**
+- Immediate preview without additional HTTP requests
+- Client-side image display before downloading the SVG
+- Thumbnail generation for galleries
+- Email embedding or offline usage
+
+**Example:**
+```json
+{
+  "svgUrl": "https://storage.googleapis.com/bucket/file.svg",
+  "base64Png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+}
+```
+
+### SVG Source Code Output (`svgText`)
+
+When `svgText=true` is included in requests to any endpoint, the response will include a `svgText` field containing the raw SVG source code.
+
+**Use Cases:**
+- Direct SVG manipulation and editing
+- Inline SVG embedding in HTML
+- SVG analysis and processing
+- Client-side SVG modifications
+- Reduced HTTP requests for immediate SVG access
+
+**Example:**
+```json
+{
+  "svgUrl": "https://storage.googleapis.com/bucket/file.svg",
+  "svgText": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\"><path d=\"M100,100 L200,200\" fill=\"blue\"/></svg>"
+}
+```
+
+**Note:** The [`/api/convert`](docs/api-documentation.md:227) endpoint does not support `base64Png` since it converts PNG/raster images to SVG format.
 
 ### Stream Event Types
 
@@ -430,7 +468,13 @@ class SVGMakerAPI {
     formData.append('image', fs.createReadStream(imagePath));
     formData.append('prompt', prompt);
     
-    Object.entries(options).forEach(([key, value]) => {
+    // Handle styleParams separately
+    const { styleParams, ...otherOptions } = options;
+    if (styleParams) {
+      formData.append('styleParams', JSON.stringify(styleParams));
+    }
+    
+    Object.entries(otherOptions).forEach(([key, value]) => {
       formData.append(key, value);
     });
 
@@ -444,9 +488,13 @@ class SVGMakerAPI {
     return response.json();
   }
 
-  async convert(imagePath) {
+  async convert(imagePath, options = {}) {
     const formData = new FormData();
     formData.append('file', fs.createReadStream(imagePath));
+    
+    Object.entries(options).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
 
     const response = await fetch(`${this.baseUrl}/convert`, {
       method: 'POST',
@@ -466,18 +514,20 @@ const api = new SVGMakerAPI('svgmaker-io{your-api-key}');
 const result = await api.generate({
   prompt: 'A geometric mountain landscape',
   quality: 'high',
-  style: 'minimalist'
+  style: 'minimalist',
+  base64Png: true,
+  svgText: true
 });
 
 // Edit image
 const editResult = await api.edit(
   './input.png',
   'Add a red border',
-  { quality: 'medium', aspectRatio: 'square' }
+  { quality: 'medium', aspectRatio: 'square', base64Png: true, svgText: true }
 );
 
 // Convert image
-const convertResult = await api.convert('./image.jpg');
+const convertResult = await api.convert('./image.jpg', { svgText: true });
 ```
 
 ### Python
@@ -514,13 +564,15 @@ class SVGMakerAPI:
             )
         return response.json()
     
-    def convert(self, image_path):
+    def convert(self, image_path, **options):
         with open(image_path, 'rb') as f:
             files = {'file': f}
+            data = options
             response = requests.post(
                 f'{self.base_url}/convert',
                 headers=self._headers(),
-                files=files
+                files=files,
+                data=data
             )
         return response.json()
 
@@ -531,7 +583,12 @@ api = SVGMakerAPI('svgmaker-io{your-api-key}')
 result = api.generate({
     'prompt': 'A geometric mountain landscape',
     'quality': 'high',
-    'style': 'minimalist'
+    'styleParams': {
+        'style': 'minimalist',
+        'color_mode': 'monochrome'
+    },
+    'base64Png': True,
+    'svgText': True
 })
 
 # Edit image
@@ -539,11 +596,13 @@ edit_result = api.edit(
     './input.png',
     'Add a red border',
     quality='medium',
-    aspectRatio='square'
+    aspectRatio='square',
+    base64Png=True,
+    svgText=True
 )
 
 # Convert image
-convert_result = api.convert('./image.jpg')
+convert_result = api.convert('./image.jpg', svgText=True)
 ```
 
 ---
@@ -557,4 +616,4 @@ For API support and questions:
 
 ---
 
-*Last updated: [Current Date]*
+*Last updated: May 31, 2025*

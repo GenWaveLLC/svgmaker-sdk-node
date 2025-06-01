@@ -26,24 +26,9 @@ export interface AdvancedStyleParams {
 }
 
 /**
- * Generate SVG request parameters
+ * Style parameters object
  */
-export interface GenerateParams {
-  /** Required: Description of the SVG to generate */
-  prompt: string;
-
-  /** Optional: Generation quality: "low", "medium", "high" */
-  quality?: Quality;
-
-  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" */
-  aspectRatio?: AspectRatio;
-
-  /** Optional: Background type: "auto", "transparent", "opaque" */
-  background?: Background;
-
-  /** Optional: Enable streaming response for real-time updates */
-  stream?: boolean;
-
+export interface StyleParams {
   /** Optional: Art style preference */
   style?: Style;
 
@@ -64,20 +49,32 @@ export interface GenerateParams {
 }
 
 /**
- * Edit SVG/Image prompt when provided as JSON
+ * Generate SVG request parameters
  */
-export interface EditPromptJson {
-  /** Edit instructions */
+export interface GenerateParams {
+  /** Required: Description of the SVG to generate */
   prompt: string;
 
-  /** Optional: Art style preference */
-  style?: Style;
+  /** Optional: Generation quality: "low", "medium", "high" */
+  quality?: Quality;
 
-  /** Optional: Color scheme preference */
-  color_mode?: ColorMode;
+  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" */
+  aspectRatio?: AspectRatio;
 
-  /** Optional: Advanced styling parameters */
-  advanced?: AdvancedStyleParams;
+  /** Optional: Background type: "auto", "transparent", "opaque" */
+  background?: Background;
+
+  /** Optional: Enable streaming response for real-time updates */
+  stream?: boolean;
+
+  /** Optional: Include base64-encoded PNG preview in response (default: false) */
+  base64Png?: boolean;
+
+  /** Optional: Include SVG source code as text in response (default: false) */
+  svgText?: boolean;
+
+  /** Optional: Style parameters object containing style, color_mode, image_complexity, category, composition, and advanced options */
+  styleParams?: StyleParams;
 }
 
 /**
@@ -87,8 +84,11 @@ export interface EditParams {
   /** Required: Image file to edit */
   image: string | Buffer | Readable;
 
-  /** Required: Edit instructions or style parameters */
-  prompt: string | EditPromptJson;
+  /** Required: Edit instructions as a simple text string */
+  prompt: string;
+
+  /** Optional: Style parameters as JSON object */
+  styleParams?: StyleParams;
 
   /** Optional: Mask file for targeted editing */
   mask?: string | Buffer | Readable;
@@ -104,6 +104,12 @@ export interface EditParams {
 
   /** Optional: Enable streaming response (default: false) */
   stream?: boolean;
+
+  /** Optional: Include base64-encoded PNG preview in response (default: false) */
+  base64Png?: boolean;
+
+  /** Optional: Include SVG source code as text in response (default: false) */
+  svgText?: boolean;
 }
 
 /**
@@ -115,33 +121,9 @@ export interface ConvertParams {
 
   /** Optional: Enable streaming response (default: false) */
   stream?: boolean;
-}
 
-/**
- * Edit SVG/Image options (deprecated - use EditParams instead)
- * @deprecated Use EditParams for the unified parameter approach
- */
-export interface EditOptions {
-  /** Optional: Quality level: "low", "medium", "high" (default: "medium") */
-  quality?: Quality;
-
-  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" (default: "auto") */
-  aspectRatio?: AspectRatio;
-
-  /** Optional: Background: "auto", "transparent", "opaque" (default: "auto") */
-  background?: Background;
-
-  /** Optional: Enable streaming response (default: false) */
-  stream?: boolean;
-}
-
-/**
- * Convert options (deprecated - use ConvertParams instead)
- * @deprecated Use ConvertParams for the unified parameter approach
- */
-export interface ConvertOptions {
-  /** Optional: Enable streaming response (default: false) */
-  stream?: boolean;
+  /** Optional: Include SVG source code as text in response (default: false) */
+  svgText?: boolean;
 }
 
 /**
@@ -159,8 +141,11 @@ export interface BaseResponse {
  * Generate SVG response
  */
 export interface GenerateResponse extends BaseResponse {
-  /** PNG image data as Buffer (decoded from server response) */
-  pngImageData: Buffer;
+  /** PNG image data as Buffer (decoded from server response) - only when base64Png=true */
+  pngImageData?: Buffer;
+
+  /** SVG source code as text - only when svgText=true */
+  svgText?: string;
 
   /** The prompt used for generation */
   prompt: string;
@@ -179,8 +164,11 @@ export interface EditResponse extends BaseResponse {
   /** URL to the original image */
   originalImageUrl: string;
 
-  /** PNG image data as Buffer (decoded from server response) */
-  pngImageData: Buffer;
+  /** PNG image data as Buffer (decoded from server response) - only when base64Png=true */
+  pngImageData?: Buffer;
+
+  /** SVG source code as text - only when svgText=true */
+  svgText?: string;
 
   /** The prompt used for editing */
   prompt: string;
@@ -195,6 +183,9 @@ export interface EditResponse extends BaseResponse {
 export interface ConvertResponse extends BaseResponse {
   /** URL to the original image */
   originalImageUrl: string;
+
+  /** SVG source code as text - only when svgText=true */
+  svgText?: string;
 
   /** The quality level used */
   quality: Quality;
