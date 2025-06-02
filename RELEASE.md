@@ -76,90 +76,47 @@ The project uses automated GitHub Actions workflows for continuous integration, 
 
 Choose between automated (recommended) or manual release process based on your workflow preferences.
 
-### Quick Start (Automated Release)
+### Automated Release Process (Recommended)
 
-For most releases, use the automated process:
+For most releases, follow this automated process:
 
-```bash
-# 1. Ensure working directory is clean
-git add .
-git commit -m "chore: prepare for release"
-
-# 2. Update CHANGELOG.md with your changes (then commit again)
-git add CHANGELOG.md
-git commit -m "docs: update changelog for release"
-
-# 3. Run the appropriate release command (this triggers the automated workflow):
-npm run release:patch    # For bug fixes (0.1.0 → 0.1.1)
-npm run release:minor    # For new features (0.1.0 → 0.2.0)
-npm run release:major    # For breaking changes (0.1.0 → 1.0.0)
-
-# 4. The above command automatically:
-#    - Creates version commit and git tag
-#    - Pushes to GitHub
-#    - Triggers release workflow via git tag
-#    - Workflow validates version/tag match
-#    - Publishes to npm if version doesn't exist
-```
-
-**Important**:
-- The [`npm version`](package.json:1) command requires a clean git working directory
-- Use [`release:*`](package.json:40) scripts (not [`version:*`](package.json:37)) for automated releases as they include the git push step
-- The [`version:*`](package.json:37) scripts only bump locally without pushing to remote
-
-### 1. Prepare for Release
-
-1. **Commit All Current Changes**
+1. **Prepare Your Codebase**
    ```bash
-   # Check git status
-   git status
-   
-   # Commit any uncommitted changes
+   git status  # Ensure your working directory is clean
    git add .
    git commit -m "chore: prepare for release"
    ```
 
-2. **Update CHANGELOG.md**
-   - Add a new section for the upcoming version
-   - Document all changes, bug fixes, and new features
-   - Follow [Keep a Changelog](https://keepachangelog.com/) format
-   - Include migration notes for breaking changes
+2. **Update Documentation**
+   - Add a new section to `CHANGELOG.md` following [Keep a Changelog](https://keepachangelog.com/)
+   - Update `README.md`, examples, and API docs as needed
    ```bash
-   # Commit changelog updates
-   git add CHANGELOG.md
-   git commit -m "docs: update changelog for v$(node -p 'require("./package.json").version')"
+   git add CHANGELOG.md README.md docs/ examples/
+   git commit -m "docs: update changelog and documentation for release"
    ```
 
-3. **Update Documentation**
-   - Ensure README.md reflects new features
-   - Update API documentation if needed
-   - Review and update examples
-   - Verify all links are working
+3. **Run the Appropriate Release Command**
    ```bash
-   # Commit documentation updates
-   git add docs/ README.md examples/
-   git commit -m "docs: update documentation for release"
+   npm run release:patch    # For bug fixes
+   npm run release:minor    # For new features
+   npm run release:major    # For breaking changes
    ```
 
-4. **Create Version Tag and Push**
-   ```bash
-   # Ensure working directory is clean
-   git status
-   
-   # Create version bump, tag, and push to remote (RECOMMENDED)
-   npm run release:patch    # For bug fixes (0.1.0 → 0.1.1)
-   npm run release:minor    # For new features (0.1.0 → 0.2.0)
-   npm run release:major    # For breaking changes (0.1.0 → 1.0.0)
-   
-   # Alternative: Manual push after version bump
-   npm run version:patch    # Only bumps version locally
-   git push --follow-tags   # Then manually push with tags
-   ```
+   This command:
+   - Bumps version in `package.json`
+   - Commits the version change
+   - Creates and pushes a Git tag (e.g., `v1.2.3`)
+   - Triggers the GitHub release workflow
 
-**Prerequisites**:
-- Git working directory must be clean (no uncommitted changes)
-- All changes must be committed before running version commands
-- Use [`release:*`](package.json:40) scripts for full automation (bump + push)
+4. **Automated CI/CD Workflow**
+   - Runs tests, linting, and build
+   - Validates version/tag match
+   - Publishes to npm if version doesn't already exist
+   - Creates a GitHub release with changelog
+
+**Note**:
+- `npm run version:*`: Local version bump only (manual push required)
+- `npm run release:*`: Version bump + git push (recommended)
 
 ### 2. Manual Release Process
 
@@ -181,29 +138,6 @@ git tag -a "v$VERSION" -m "Release v$VERSION"
 git push origin main --tags
 ```
 
-### 3. Automated Release Process (Recommended)
-
-The automated process provides a seamless release experience:
-
-1. **Version Bump & Git Operations**: When you run `npm run release:[patch|minor|major]`, it:
-   - Updates `package.json` version using semantic versioning
-   - Creates a git commit with the version change
-   - Creates a git tag (e.g., `v1.2.3`)
-   - Pushes both commit and tag to GitHub automatically
-
-**Script Comparison**:
-   - [`npm run version:*`](package.json:37): Only bumps version locally (requires manual push)
-   - [`npm run release:*`](package.json:40): Bumps version AND pushes to remote (recommended)
-
-2. **Automated Publishing**: The release workflow is triggered by the git tag and:
-   - Validates that the git tag version matches the package.json version
-   - Checks if the version already exists on npm (skips if it does)
-   - Runs comprehensive quality checks (tests, linting, TypeScript compilation)
-   - Builds the package for distribution
-   - Publishes to npm registry
-   - Creates a GitHub release with extracted changelog
-
-**Benefits**: Ensures consistency, reduces human error, prevents duplicate releases, and provides audit trail.
 
 ### 4. Emergency Releases
 
