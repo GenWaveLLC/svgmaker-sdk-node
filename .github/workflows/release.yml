@@ -37,7 +37,7 @@ jobs:
         echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
         
         # Check if version already exists on npm
-        if npm view "svgmaker-sdk@$PACKAGE_VERSION" version >/dev/null 2>&1; then
+        if npm view "@genwave/svgmaker-sdk@$PACKAGE_VERSION" version >/dev/null 2>&1; then
           echo "should-release=false" >> $GITHUB_OUTPUT
           echo "❌ Version $PACKAGE_VERSION already exists on npm - skipping release"
         else
@@ -125,5 +125,5 @@ jobs:
       run: |
         VERSION="${{ needs.validate-release.outputs.version }}"
         echo "✅ Successfully released version $VERSION"
-        echo "📦 Package published to npm: https://www.npmjs.com/package/svgmaker-sdk"
+        echo "📦 Package published to npm: https://www.npmjs.com/package/@genwave/svgmaker-sdk"
         echo "🚀 GitHub release created: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v$VERSION"

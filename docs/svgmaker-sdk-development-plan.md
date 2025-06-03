@@ -344,7 +344,7 @@ classDiagram
 
 ```typescript
 // Import the SDK
-import { SVGMaker } from 'svgmaker-sdk';
+import { SVGMaker } from '@genwave/svgmaker-sdk';
 
 // Create a client instance
 const client = new SVGMaker('your-api-key');

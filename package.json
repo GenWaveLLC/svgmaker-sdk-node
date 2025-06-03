@@ -1,6 +1,6 @@
 {
-  "name": "svgmaker-sdk",
-  "version": "0.2.1",
+  "name": "@genwave/svgmaker-sdk",
+  "version": "0.2.2",
   "description": "Official Node.js SDK for SVGMaker API",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -56,9 +56,12 @@
   ],
   "author": "SVGMaker",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/GenWaveLLC/svgmaker-sdk-node.git"
+    "url": "git+https://github.com/GenWaveLLC/svgmaker-sdk-node.git"
   },
   "bugs": {
     "url": "https://github.com/GenWaveLLC/svgmaker-sdk-node/issues"

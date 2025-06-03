@@ -155,7 +155,7 @@ npm run build
 ### 3. Import/Require Issues
 ```typescript
 // ES Modules (published package)
-import { SVGMakerClient } from 'svgmaker-sdk';
+import { SVGMakerClient } from '@genwave/svgmaker-sdk';
 
 // Local development with ts-node
 import { SVGMakerClient } from './src/index';

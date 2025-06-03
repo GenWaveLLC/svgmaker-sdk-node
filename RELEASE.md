@@ -172,7 +172,7 @@ npm run release:patch  # This will push automatically
 
 ## Post-Release Checklist
 
-- [ ] Verify package is published on [npm](https://www.npmjs.com/package/svgmaker-sdk)
+- [ ] Verify package is published on [npm](https://www.npmjs.com/package/@genwave/svgmaker-sdk)
 - [ ] GitHub release is created with proper changelog
 - [ ] CI/CD pipeline completed successfully
 - [ ] Documentation website is updated (if applicable)
@@ -185,13 +185,13 @@ If a release has critical issues, follow these steps in order:
 ### Option 1: Unpublish (Within 24 hours only)
 ```bash
 # Only possible within 24 hours of publication
-npm unpublish svgmaker-sdk@<version>
+npm unpublish @genwave/svgmaker-sdk@<version>
 ```
 
 ### Option 2: Deprecate and Patch (Recommended)
 ```bash
 # 1. Deprecate the problematic version
-npm deprecate svgmaker-sdk@<version> "This version has critical issues, please upgrade to latest"
+npm deprecate @genwave/svgmaker-sdk@<version> "This version has critical issues, please upgrade to latest"
 
 # 2. Fix the issues in your codebase
 # 3. Create a patch release with fixes
@@ -319,7 +319,7 @@ To customize workflows:
 ### Getting Help
 
 - Check the [GitHub Actions logs](https://github.com/GenWaveLLC/svgmaker-sdk-node/actions)
-- Review the [npm package page](https://www.npmjs.com/package/svgmaker-sdk)
+- Review the [npm package page](https://www.npmjs.com/package/@genwave/svgmaker-sdk)
 - Open an issue in the repository for support
 
 ## Benefits of This Release Process

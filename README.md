@@ -2,8 +2,8 @@
 
 Official Node.js SDK for the [SVGMaker](https://svgmaker.io) API, providing a clean, type-safe interface for generating, editing, and converting SVG graphics using AI.
 
-[![npm version](https://img.shields.io/npm/v/svgmaker-sdk.svg)](https://www.npmjs.com/package/svgmaker-sdk)
-[![License](https://img.shields.io/npm/l/svgmaker-sdk.svg)](https://github.com/GenWaveLLC/svgmaker-sdk-node/blob/main/LICENSE)
+[![npm version](https://img.shields.io/npm/v/@genwave/svgmaker-sdk.svg)](https://www.npmjs.com/package/@genwave/svgmaker-sdk)
+[![License](https://img.shields.io/npm/l/@genwave/svgmaker-sdk.svg)](https://github.com/GenWaveLLC/svgmaker-sdk-node/blob/main/LICENSE)
 
 ## Features
 
@@ -19,13 +19,13 @@ Official Node.js SDK for the [SVGMaker](https://svgmaker.io) API, providing a cl
 ## Installation
 
 ```bash
-npm install svgmaker-sdk
+npm install @genwave/svgmaker-sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { SVGMakerClient } from 'svgmaker-sdk';
+import { SVGMakerClient } from '@genwave/svgmaker-sdk';
 
 // Initialize client
 const client = new SVGMakerClient('your-api-key');
@@ -307,7 +307,7 @@ client.setConfig({
 The SDK provides comprehensive error handling with custom error types.
 
 ```typescript
-import { SVGMakerClient, Errors } from 'svgmaker-sdk';
+import { SVGMakerClient, Errors } from '@genwave/svgmaker-sdk';
 
 try {
   const result = await client.generate
@@ -379,7 +379,7 @@ console.log('Current timeout:', config.timeout);
 Full TypeScript support with comprehensive type definitions.
 
 ```typescript
-import { SVGMakerClient, Types } from 'svgmaker-sdk';
+import { SVGMakerClient, Types } from '@genwave/svgmaker-sdk';
 
 // Typed parameters
 const generateParams: Types.GenerateParams = {
@@ -403,7 +403,7 @@ console.log(result.pngImageData); // Buffer | undefined
 ## Package Structure
 
 ```
-svgmaker-sdk/
+@genwave/svgmaker-sdk/
 ├── dist/
 │   ├── cjs/         # CommonJS build
 │   ├── esm/         # ES Module build

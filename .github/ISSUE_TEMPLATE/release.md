@@ -51,8 +51,8 @@ assignees: ''
 ## Post-Release Checklist
 
 ### Verification
-- [ ] Package available on [npm](https://www.npmjs.com/package/svgmaker-sdk)
-- [ ] Installation works: `npm install svgmaker-sdk@[VERSION]`
+- [ ] Package available on [npm](https://www.npmjs.com/package/@genwave/svgmaker-sdk)
+- [ ] Installation works: `npm install @genwave/svgmaker-sdk@[VERSION]`
 - [ ] Basic functionality tested in clean environment
 - [ ] Examples work with new version
 
@@ -73,7 +73,7 @@ If issues are discovered:
 
 1. **Immediate**: Deprecate problematic version
    ```bash
-   npm deprecate svgmaker-sdk@[VERSION] "Critical issue found, please upgrade"
+   npm deprecate @genwave/svgmaker-sdk@[VERSION] "Critical issue found, please upgrade"
    ```
 
 2. **Short-term**: Prepare patch release with fixes
