@@ -95,13 +95,37 @@ export class GenerateClient extends BaseClient {
     this.validateRequest(this.params, generateParamsSchema);
 
     // Execute request
-    const result = await this.handleRequest<GenerateResponse>('/generate', {
+    const rawResult = await this.handleRequest<any>('/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(this.params),
     });
+
+    
+
+    // The interceptor already decodes base64Png to pngImageData
+    // Only decode svgText from base64 to string if needed
+    let svgText: string | undefined = undefined;
+    if (rawResult.svgText && typeof rawResult.svgText === 'string') {
+      try {
+        svgText = Buffer.from(rawResult.svgText, 'base64').toString('utf-8');
+      } catch {
+        svgText = rawResult.svgText;
+      }
+    }
+
+    // Compose the response to match GenerateResponse
+    const result: GenerateResponse = {
+      svgUrl: rawResult.svgUrl,
+      creditCost: rawResult.creditCost,
+      pngImageData: rawResult.pngImageData, // Provided by interceptor
+      svgText,
+      prompt: rawResult.prompt ?? this.params.prompt,
+      quality: rawResult.quality ?? this.params.quality ?? 'medium',
+      revisedPrompt: rawResult.revisedPrompt ?? '',
+    };
 
     this.logger.debug('SVG generation completed', {
       creditCost: result.creditCost,

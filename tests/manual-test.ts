@@ -46,7 +46,7 @@ console.log('');
 // Create client with custom configuration for testing
 const client = new SVGMakerClient(apiKey, {
   baseUrl: process.env.SVGMAKER_BASE_URL || 'https://svgmaker.io/api', // Use local URL
-  timeout: process.env.SVGMAKER_TIMEOUT ? parseInt(process.env.SVGMAKER_TIMEOUT, 10) : 60000, // Longer timeout for manual testing
+  timeout: process.env.SVGMAKER_TIMEOUT ? parseInt(process.env.SVGMAKER_TIMEOUT, 10) : 300000, // 5 minutes timeout for manual testing
   maxRetries: 2, // Fewer retries for faster feedback
   logging: true, // Enable logging to see what's happening
 });
@@ -56,7 +56,7 @@ async function testGenerate(): Promise<boolean> {
 
   try {
     const generateParams: Types.GenerateParams = {
-      prompt: 'A simple geometric mountain landscape with sun',
+      prompt: 'A simple tower',
       quality: 'low',
       styleParams: {
         style: 'minimalist',
@@ -119,7 +119,7 @@ async function testEdit(): Promise<boolean> {
   try {
     const editParams: Types.EditParams = {
       image: availableImage,
-      prompt: 'Add a simple red border around the image',
+      prompt: 'Add a simple blue border around the image',
       styleParams: {
         style: 'cartoon',
         color_mode: 'full-color',

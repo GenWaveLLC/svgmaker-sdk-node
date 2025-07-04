@@ -6,6 +6,7 @@ import { Readable } from 'stream';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ValidationError } from '../errors/CustomErrors';
+import { decodeBase64SvgText, decodeBase64Png } from '../utils/base64';
 
 /**
  * Schema for validating edit parameters
@@ -116,7 +117,7 @@ export class EditClient extends BaseClient {
       formData.append('svgText', String(this.params.svgText));
     }
 
-    // Execute request using native fetch
+    // Execute request using native fetch (for FormData compatibility)
     const response = await fetch(`${this.config.baseUrl}/edit`, {
       method: 'POST',
       headers: {
@@ -131,14 +132,37 @@ export class EditClient extends BaseClient {
       throw new Error(`HTTP error ${response.status}: ${errorText}`);
     }
 
-    const result = await response.json();
+    const rawResult = await response.json();
+    // Only log the base64Png field for debugging PNG issues
+    console.log('base64Png from /edit API:', rawResult.base64Png);
+
+    // Manually decode base64Png to pngImageData (like the interceptor)
+    let pngImageData: Buffer | undefined = undefined;
+    if (rawResult.base64Png && typeof rawResult.base64Png === 'string') {
+      pngImageData = decodeBase64Png(rawResult.base64Png);
+    }
+
+    // Only decode svgText from base64 to string if needed
+    let svgText: string | undefined = undefined;
+    if (rawResult.svgText && typeof rawResult.svgText === 'string') {
+      svgText = decodeBase64SvgText(rawResult.svgText);
+    }
+
+    // Compose the response to match EditResponse (only fields present in backend response)
+    const result: EditResponse = {
+      svgUrl: rawResult.svgUrl,
+      creditCost: rawResult.creditCost,
+      pngImageData,
+      svgText,
+    };
+
     this.logger.debug('Image/SVG edit completed', {
       creditCost: result.creditCost,
       hasSvgText: !!result.svgText,
       hasPngData: !!result.pngImageData,
     });
 
-    return result as EditResponse;
+    return result;
   }
 
   /**

@@ -6,6 +6,7 @@ import { Readable } from 'stream';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ValidationError } from '../errors/CustomErrors';
+import { decodeBase64SvgText } from '../utils/base64';
 
 /**
  * Schema for validating convert parameters
@@ -77,8 +78,12 @@ export class ConvertClient extends BaseClient {
     this.logger.debug('Image to SVG conversion completed', {
       creditCost: result.creditCost,
       hasSvgText: !!result.svgText,
-      hasOriginalUrl: !!result.originalImageUrl,
     });
+
+    // Decode base64 SVG text if present
+    if (result.svgText && typeof result.svgText === 'string') {
+      result.svgText = decodeBase64SvgText(result.svgText);
+    }
 
     return result as ConvertResponse;
   }
@@ -174,6 +179,10 @@ export class ConvertClient extends BaseClient {
             try {
               // Parse the JSON chunk directly (no "data:" prefix like SSE)
               const event = JSON.parse(trimmedLine) as ConvertStreamEvent;
+              // Only decode svgText for complete events
+              if (event.status === 'complete' && event.svgText && typeof event.svgText === 'string') {
+                event.svgText = decodeBase64SvgText(event.svgText);
+              }
               stream.push(event);
 
               // End the stream when we get a complete or error status

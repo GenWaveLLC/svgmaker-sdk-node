@@ -161,34 +161,19 @@ export interface GenerateResponse extends BaseResponse {
  * Edit SVG/Image response
  */
 export interface EditResponse extends BaseResponse {
-  /** URL to the original image */
-  originalImageUrl: string;
-
   /** PNG image data as Buffer (decoded from server response) - only when base64Png=true */
   pngImageData?: Buffer;
 
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
-
-  /** The prompt used for editing */
-  prompt: string;
-
-  /** The quality level used */
-  quality: Quality;
 }
 
 /**
  * Convert Image to SVG response
  */
 export interface ConvertResponse extends BaseResponse {
-  /** URL to the original image */
-  originalImageUrl: string;
-
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
-
-  /** The quality level used */
-  quality: Quality;
 }
 
 /**
@@ -217,6 +202,8 @@ export interface CompleteStreamEvent extends StreamEventBase {
   svgUrl: string;
   /** Simulation mode flag */
   simulationMode: boolean;
+  /** SVG source code as text - only when svgText=true */
+  svgText?: string;
 }
 
 /**
