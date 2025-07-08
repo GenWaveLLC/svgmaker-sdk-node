@@ -238,6 +238,26 @@ export class GenerateClient extends BaseClient {
             try {
               // Parse the JSON chunk directly (no "data:" prefix like SSE)
               const event = JSON.parse(trimmedLine) as GenerateStreamEvent;
+
+              // --- Begin: Normalize event fields to match non-streaming response ---
+              // Decode svgText from base64 if present and is a string
+              if (event.svgText && typeof event.svgText === 'string') {
+                try {
+                  event.svgText = Buffer.from(event.svgText, 'base64').toString('utf-8');
+                } catch {
+                  // fallback: leave as is
+                }
+              }
+              // Convert base64Png to pngImageData (Buffer) if present
+              if (event.base64Png && typeof event.base64Png === 'string') {
+                try {
+                  event.pngImageData = Buffer.from(event.base64Png.split(',').pop() || '', 'base64');
+                } catch {
+                  event.pngImageData = undefined;
+                }
+              }
+              // --- End: Normalize event fields ---
+
               stream.push(event);
 
               // End the stream when we get a complete or error status

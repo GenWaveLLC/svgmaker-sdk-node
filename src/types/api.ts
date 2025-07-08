@@ -182,6 +182,12 @@ export interface ConvertResponse extends BaseResponse {
 export interface StreamEventBase {
   /** Status of the streaming response */
   status: 'processing' | 'complete' | 'error';
+  /** SVG source code as text (decoded, only when svgText=true and available) */
+  svgText?: string;
+  /** Base64-encoded PNG preview (only when base64Png=true and available) */
+  base64Png?: string;
+  /** PNG image data as Buffer (decoded from base64Png, only when available) */
+  pngImageData?: Buffer;
 }
 
 /**

@@ -56,7 +56,7 @@ async function testGenerate(): Promise<boolean> {
 
   try {
     const generateParams: Types.GenerateParams = {
-      prompt: 'A simple tower',
+      prompt: 'generate lion image',
       quality: 'low',
       styleParams: {
         style: 'minimalist',
@@ -236,15 +236,14 @@ async function testStreamGenerate(): Promise<boolean> {
       stream.on('data', event => {
         eventCount++;
         console.log(`📨 Event ${eventCount}: ${event.status}`);
+        console.log('DEBUG EVENT:', event); // Log the full event object for debugging
 
         if (event.status === 'processing') {
           console.log(`⏳ Processing: ${event.message}`);
-        } else if (event.status === 'complete') {
-          console.log(`✅ Stream completed! SVG URL: ${event.svgUrl}`);
-          console.log(`💰 Credits used: ${event.creditCost}`);
-
-          // Save SVG file if available
+        } else if (event.status === 'generated' || event.status === 'complete') {
           if (event.svgText) {
+            console.log('DEBUG: event.svgText type:', typeof event.svgText);
+            console.log('DEBUG: event.svgText value:', event.svgText);
             const svgFilename = `tests/test-images/test-stream-generated-ts-${Date.now()}.svg`;
             writeFileSync(svgFilename, event.svgText);
             console.log(`📄 SVG source saved as: ${svgFilename}`);
