@@ -7,6 +7,7 @@ yarn-error.log*
 lerna-debug.log*
 .npm
 
+info.txt
 # Runtime data
 pids
 *.pid

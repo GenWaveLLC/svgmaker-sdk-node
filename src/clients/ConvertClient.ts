@@ -179,9 +179,13 @@ export class ConvertClient extends BaseClient {
             try {
               // Parse the JSON chunk directly (no "data:" prefix like SSE)
               const event = JSON.parse(trimmedLine) as ConvertStreamEvent;
-              // Only decode svgText for complete events
-              if (event.status === 'complete' && event.svgText && typeof event.svgText === 'string') {
-                event.svgText = decodeBase64SvgText(event.svgText);
+              // Decode svgText from base64 if present and is a string
+              if (event.svgText && typeof event.svgText === 'string') {
+                try {
+                  event.svgText = decodeBase64SvgText(event.svgText);
+                } catch {
+                  // fallback: leave as is
+                }
               }
               stream.push(event);
 

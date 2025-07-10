@@ -330,28 +330,28 @@ async function testStreamEdit(): Promise<boolean> {
       stream.on('data', event => {
         eventCount++;
         console.log(`📨 Edit Event ${eventCount}: ${event.status}`);
-
-        if (event.status === 'processing') {
-          console.log(`⏳ Processing edit: ${event.message}`);
-        } else if (event.status === 'complete') {
-          console.log(`✅ Edit stream completed! SVG URL: ${event.svgUrl}`);
-          console.log(`💰 Credits used: ${event.creditCost}`);
-
-          // Save SVG file if available
+        // Save files on 'generated' event for edit streaming
+        if (event.status === 'generated') {
           if (event.svgText) {
             const svgFilename = `tests/test-images/test-stream-edited-ts-${Date.now()}.svg`;
             writeFileSync(svgFilename, event.svgText);
             console.log(`📄 SVG source saved as: ${svgFilename}`);
             console.log(`📏 SVG text preview: ${event.svgText.substring(0, 100)}...`);
           }
-
-          // Save PNG file if available
           if (event.pngImageData) {
             const pngFilename = `tests/test-images/test-stream-edited-ts-${Date.now()}.png`;
             writeFileSync(pngFilename, event.pngImageData);
             console.log(`💾 PNG saved as: ${pngFilename}`);
           }
-
+        } else if (event.status === 'processing') {
+          console.log(`⏳ Processing edit: ${event.message}`);
+        } else if (event.status === 'complete') {
+          if (event.svgUrl) {
+            console.log(`✅ Edit stream completed! SVG URL: ${event.svgUrl}`);
+          }
+          if (event.creditCost) {
+            console.log(`💰 Credits used: ${event.creditCost}`);
+          }
           completedSuccessfully = true;
         } else if (event.status === 'error') {
           console.log(`❌ Edit stream error: ${event.error} (${event.errorType})`);
@@ -418,29 +418,26 @@ async function testStreamConvert(): Promise<boolean> {
       stream.on('data', event => {
         eventCount++;
         console.log(`📨 Convert Event ${eventCount}: ${event.status}`);
-
-        if (event.status === 'processing') {
-          console.log(`⏳ Processing conversion: ${event.message}`);
-        } else if (event.status === 'complete') {
-          console.log(`✅ Convert stream completed! SVG URL: ${event.svgUrl}`);
-          console.log(`💰 Credits used: ${event.creditCost}`);
-          console.log(`🔧 Simulation mode: ${event.simulationMode}`);
-
-          // Save SVG file if available
+        // Save files on 'generated' event for convert streaming
+        if (event.status === 'generated') {
           if (event.svgText) {
             const svgFilename = `tests/test-images/test-stream-converted-ts-${Date.now()}.svg`;
             writeFileSync(svgFilename, event.svgText);
             console.log(`📄 SVG source saved as: ${svgFilename}`);
             console.log(`📏 SVG text preview: ${event.svgText.substring(0, 100)}...`);
           }
-
-          // Save PNG file if available
-          if (event.pngImageData) {
-            const pngFilename = `tests/test-images/test-stream-converted-ts-${Date.now()}.png`;
-            writeFileSync(pngFilename, event.pngImageData);
-            console.log(`💾 PNG saved as: ${pngFilename}`);
+        } else if (event.status === 'processing') {
+          console.log(`⏳ Processing conversion: ${event.message}`);
+        } else if (event.status === 'complete') {
+          if (event.svgUrl) {
+            console.log(`✅ Convert stream completed! SVG URL: ${event.svgUrl}`);
           }
-
+          if (event.creditCost) {
+            console.log(`💰 Credits used: ${event.creditCost}`);
+          }
+          if (event.simulationMode !== undefined) {
+            console.log(`🔧 Simulation mode: ${event.simulationMode}`);
+          }
           completedSuccessfully = true;
         } else if (event.status === 'error') {
           console.log(`❌ Convert stream error: ${event.error} (${event.errorType})`);
