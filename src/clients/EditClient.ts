@@ -6,7 +6,7 @@ import { Readable } from 'stream';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ValidationError } from '../errors/CustomErrors';
-import { decodeBase64SvgText, decodeBase64Png } from '../utils/base64';
+import { decodeSvgContent, decodeBase64Png } from '../utils/base64';
 
 /**
  * Schema for validating edit parameters
@@ -145,7 +145,7 @@ export class EditClient extends BaseClient {
     // Only decode svgText from base64 to string if needed
     let svgText: string | undefined = undefined;
     if (rawResult.svgText && typeof rawResult.svgText === 'string') {
-      svgText = decodeBase64SvgText(rawResult.svgText);
+      svgText = decodeSvgContent(rawResult.svgText);
     }
 
     // Compose the response to match EditResponse (only fields present in backend response)
@@ -307,11 +307,7 @@ export class EditClient extends BaseClient {
               // --- Begin: Normalize event fields to match non-streaming response ---
               // Decode svgText from base64 if present and is a string
               if (event.svgText && typeof event.svgText === 'string') {
-                try {
-                  event.svgText = decodeBase64SvgText(event.svgText);
-                } catch {
-                  // fallback: leave as is
-                }
+                event.svgText = decodeSvgContent(event.svgText);
               }
               // Convert base64Png to pngImageData (Buffer) if present
               if (event.base64Png && typeof event.base64Png === 'string') {

@@ -6,7 +6,7 @@ import { Readable } from 'stream';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ValidationError } from '../errors/CustomErrors';
-import { decodeBase64SvgText } from '../utils/base64';
+import { decodeSvgContent } from '../utils/base64';
 
 /**
  * Schema for validating convert parameters
@@ -82,7 +82,7 @@ export class ConvertClient extends BaseClient {
 
     // Decode base64 SVG text if present
     if (result.svgText && typeof result.svgText === 'string') {
-      result.svgText = decodeBase64SvgText(result.svgText);
+      result.svgText = decodeSvgContent(result.svgText);
     }
 
     return result as ConvertResponse;
@@ -181,11 +181,7 @@ export class ConvertClient extends BaseClient {
               const event = JSON.parse(trimmedLine) as ConvertStreamEvent;
               // Decode svgText from base64 if present and is a string
               if (event.svgText && typeof event.svgText === 'string') {
-                try {
-                  event.svgText = decodeBase64SvgText(event.svgText);
-                } catch {
-                  // fallback: leave as is
-                }
+                event.svgText = decodeSvgContent(event.svgText);
               }
               stream.push(event);
 

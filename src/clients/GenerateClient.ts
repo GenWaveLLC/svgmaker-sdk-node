@@ -3,6 +3,7 @@ import { GenerateParams, GenerateResponse, GenerateStreamEvent } from '../types/
 import { SVGMakerClient } from '../core/SVGMakerClient';
 import { z } from 'zod';
 import { Readable } from 'stream';
+import { decodeSvgContent } from '../utils/base64';
 
 /**
  * Schema for validating generate parameters
@@ -103,17 +104,11 @@ export class GenerateClient extends BaseClient {
       body: JSON.stringify(this.params),
     });
 
-    
-
     // The interceptor already decodes base64Png to pngImageData
     // Only decode svgText from base64 to string if needed
     let svgText: string | undefined = undefined;
     if (rawResult.svgText && typeof rawResult.svgText === 'string') {
-      try {
-        svgText = Buffer.from(rawResult.svgText, 'base64').toString('utf-8');
-      } catch {
-        svgText = rawResult.svgText;
-      }
+      svgText = decodeSvgContent(rawResult.svgText);
     }
 
     // Compose the response to match GenerateResponse
@@ -242,16 +237,15 @@ export class GenerateClient extends BaseClient {
               // --- Begin: Normalize event fields to match non-streaming response ---
               // Decode svgText from base64 if present and is a string
               if (event.svgText && typeof event.svgText === 'string') {
-                try {
-                  event.svgText = Buffer.from(event.svgText, 'base64').toString('utf-8');
-                } catch {
-                  // fallback: leave as is
-                }
+                event.svgText = decodeSvgContent(event.svgText);
               }
               // Convert base64Png to pngImageData (Buffer) if present
               if (event.base64Png && typeof event.base64Png === 'string') {
                 try {
-                  event.pngImageData = Buffer.from(event.base64Png.split(',').pop() || '', 'base64');
+                  event.pngImageData = Buffer.from(
+                    event.base64Png.split(',').pop() || '',
+                    'base64'
+                  );
                 } catch {
                   event.pngImageData = undefined;
                 }
