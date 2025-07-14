@@ -23,16 +23,9 @@ export function decodeSvgContent(svgContent: string): string {
     return svgContent;
   }
 
-  // Check if it's already plain SVG text
-  const trimmed = svgContent.trim();
-  if (trimmed.startsWith('<svg') || trimmed.startsWith('<?xml')) {
+  // Use isSvgContent to check if it's already plain SVG text
+  if (isSvgContent(svgContent)) {
     return svgContent;
-  }
-
-  // Check if it looks like base64
-  const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
-  if (!base64Regex.test(svgContent.replace(/\s/g, ''))) {
-    return svgContent; // Not base64, return as-is
   }
 
   // Attempt to decode from base64
@@ -40,14 +33,14 @@ export function decodeSvgContent(svgContent: string): string {
     const decoded = Buffer.from(svgContent, 'base64').toString('utf-8');
 
     // Validate that decoded content looks like SVG
-    const decodedTrimmed = decoded.trim();
-    if (decodedTrimmed.startsWith('<svg') || decodedTrimmed.startsWith('<?xml')) {
+    if (isSvgContent(decoded)) {
       return decoded;
     }
 
     // If decoded content doesn't look like SVG, return original
     return svgContent;
   } catch {
+    console.error('Failed to decode SVG content from base64:', svgContent);
     // If decoding fails, return original
     return svgContent;
   }
@@ -62,4 +55,13 @@ export function decodeBase64Png(base64: string): Buffer {
   // Remove data URL prefix if present
   const cleanBase64 = base64.replace(/^data:image\/png;base64,/, '');
   return Buffer.from(cleanBase64, 'base64');
+}
+
+// Utility function to check if a string is SVG content
+export function isSvgContent(content: string): boolean {
+  if (!content || typeof content !== 'string') return false;
+  const lower = content.toLowerCase();
+  const svgOpenTag = lower.indexOf('<svg ');
+  const svgCloseTag = lower.indexOf('</svg>', svgOpenTag + 1);
+  return svgOpenTag !== -1 && svgCloseTag !== -1 && svgCloseTag > svgOpenTag;
 }
