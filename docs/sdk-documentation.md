@@ -1,6 +1,8 @@
 # SVGMaker Node.js SDK Documentation
 
 Official Node.js SDK for the [SVGMaker](https://svgmaker.io) API, providing a clean, type-safe interface for generating, editing, and converting SVG graphics using AI.
+[!IMPORTANT]
+**Access Notice:** The SVGMaker Node.js SDK is available only for paid users. You must have an active paid SVGMaker account to use the SDK and obtain an API key.
 
 [![npm version](https://img.shields.io/npm/v/@genwave/svgmaker-sdk.svg)](https://www.npmjs.com/package/@genwave/svgmaker-sdk)
 [![License](https://img.shields.io/npm/l/@genwave/svgmaker-sdk.svg)](https://github.com/GenWaveLLC/svgmaker-sdk-node/blob/main/LICENSE)
