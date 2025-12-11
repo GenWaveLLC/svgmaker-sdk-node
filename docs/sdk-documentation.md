@@ -58,13 +58,15 @@ const result = await client.generate
     prompt: 'A minimalist mountain landscape',
     quality: 'high',
     styleParams: {
-      style: 'minimalist',
+      style: 'flat',
+      color_mode: 'monochrome',
     },
     svgText: true, // Get SVG source code
   })
   .execute();
 
 console.log('SVG URL:', result.svgUrl);
+console.log('Generation ID:', result.generationId);
 console.log('Credits used:', result.creditCost);
 ```
 
@@ -121,14 +123,9 @@ const result = await client.generate
     quality: 'high',
     aspectRatio: 'landscape',
     styleParams: {
-      style: 'minimalist',
+      style: 'flat',
       color_mode: 'monochrome',
-      composition: 'center-object',
-      advanced: {
-        stroke_weight: 'thin',
-        corner_style: 'rounded',
-        shadow_effect: 'none'
-      }
+      composition: 'centered_object',
     },
     base64Png: true, // Include PNG preview
     svgText: true,   // Include SVG source
@@ -137,8 +134,8 @@ const result = await client.generate
 
 // Access results
 console.log('SVG URL:', result.svgUrl);
+console.log('Generation ID:', result.generationId);
 console.log('Credits used:', result.creditCost);
-console.log('Revised prompt:', result.revisedPrompt);
 
 if (result.pngImageData) {
   // PNG preview as Buffer
@@ -157,7 +154,7 @@ if (result.svgText) {
 |-----------|------|---------|-------------|
 | `prompt` | `string` | - | **Required.** Description of the SVG to generate |
 | `quality` | `'low' \| 'medium' \| 'high'` | `'medium'` | Generation quality level |
-| `aspectRatio` | `'auto' \| 'portrait' \| 'landscape' \| 'square' \| 'wide' \| 'tall'` | `'auto'` for low/medium, `'square'` for high | Output aspect ratio |
+| `aspectRatio` | `'auto' \| 'portrait' \| 'landscape' \| 'square'` | `'auto'` | Output aspect ratio |
 | `background` | `'auto' \| 'transparent' \| 'opaque'` | `'auto'` | Background type |
 | `styleParams` | `StyleParams` | `{}` | Style parameters object |
 | `base64Png` | `boolean` | `false` | Include PNG preview in response |
@@ -167,14 +164,11 @@ if (result.svgText) {
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `style` | `'minimalist' \| 'cartoon' \| 'realistic' \| 'abstract' \| 'flat' \| 'isometric'` | Art style preference |
-| `color_mode` | `'monochrome' \| '2-colors' \| '3-colors' \| 'full-color'` | Color scheme preference |
-| `image_complexity` | `'simple' \| 'detailed'` | Complexity level |
-| `category` | `'icon' \| 'illustration' \| 'pattern' \| 'logo' \| 'scene'` | Content category |
-| `composition` | `'center-object' \| 'full-scene'` | Layout composition |
-| `advanced.stroke_weight` | `'thin' \| 'medium' \| 'thick'` | Stroke weight for lines and shapes |
-| `advanced.corner_style` | `'none' \| 'rounded' \| 'sharp'` | Corner style for shapes |
-| `advanced.shadow_effect` | `'none' \| 'soft' \| 'hard'` | Shadow effect type |
+| `style` | `'flat' \| 'line_art' \| 'engraving' \| 'linocut' \| 'silhouette' \| 'isometric' \| 'cartoon' \| 'ghibli'` | Art style preference |
+| `color_mode` | `'full_color' \| 'monochrome' \| 'few_colors'` | Color scheme preference |
+| `image_complexity` | `'icon' \| 'illustration' \| 'scene'` | Complexity level |
+| `text` | `'no_text' \| 'only_title' \| 'embedded_text'` | Text options |
+| `composition` | `'centered_object' \| 'repeating_pattern' \| 'full_scene' \| 'objects_in_grid'` | Layout composition |
 
 ### Edit SVG/Image
 
@@ -199,13 +193,8 @@ const result = await client.edit
     prompt: 'Make this more cartoonish',
     styleParams: {
       style: 'cartoon',
-      color_mode: '3-colors',
-      advanced: {
-        stroke_weight: 'medium',
-        corner_style: 'rounded'
-      }
+      color_mode: 'few_colors',
     },
-    mask: './mask.png', // Optional mask for targeted editing
   })
   .execute();
 ```
@@ -217,7 +206,6 @@ const result = await client.edit
 | `image` | `string \| Buffer \| Readable` | - | **Required.** Image file to edit |
 | `prompt` | `string` | - | **Required.** Edit instructions |
 | `styleParams` | `StyleParams` | `{}` | Style parameters object |
-| `mask` | `string \| Buffer \| Readable` | `none` | Optional mask for targeted editing |
 | `quality` | `'low' \| 'medium' \| 'high'` | `'medium'` | Processing quality |
 | `aspectRatio` | `'auto' \| 'portrait' \| 'landscape' \| 'square'` | `'auto'` | Output aspect ratio |
 | `background` | `'auto' \| 'transparent' \| 'opaque'` | `'auto'` | Background handling |
@@ -389,7 +377,7 @@ const generateParams: Types.GenerateParams = {
   prompt: 'A minimalist logo',
   quality: 'high',
   styleParams: {
-    style: 'minimalist',
+    style: 'flat',
     color_mode: 'monochrome',
   },
 };
@@ -400,8 +388,9 @@ const result: Types.GenerateResponse = await client.generate
   .execute();
 
 // Type-safe access
-console.log(result.svgUrl);      // string
-console.log(result.creditCost);  // number
+console.log(result.svgUrl);       // string
+console.log(result.generationId); // string
+console.log(result.creditCost);   // number
 console.log(result.pngImageData); // Buffer | undefined
 ```
 
@@ -409,9 +398,9 @@ console.log(result.pngImageData); // Buffer | undefined
 
 - `GenerateParams`, `EditParams`, `ConvertParams`
 - `GenerateResponse`, `EditResponse`, `ConvertResponse`
-- `StyleParams`, `AdvancedStyleParams`
+- `StyleParams`
 - `Quality`, `AspectRatio`, `Background`
-- `Style`, `ColorMode`, `ImageComplexity`
+- `Style`, `ColorMode`, `ImageComplexity`, `TextOption`, `Composition`
 - `StreamEvent`, `GenerateStreamEvent`, `EditStreamEvent`, `ConvertStreamEvent`
 
 ## Best Practices
@@ -495,14 +484,10 @@ const result = await client.generate
     aspectRatio: 'square',
     styleParams: {
       style: 'flat',
-      color_mode: '3-colors',
-      category: 'icon',
-      composition: 'center-object',
-      advanced: {
-        stroke_weight: 'medium',
-        corner_style: 'rounded',
-        shadow_effect: 'soft'
-      }
+      color_mode: 'few_colors',
+      image_complexity: 'icon',
+      composition: 'centered_object',
+      text: 'no_text',
     },
     base64Png: true,
     svgText: true,
@@ -572,8 +557,8 @@ const result = await client.edit
     prompt: 'Add a blue background and make it more vibrant',
     quality: 'medium',
     styleParams: {
-      style: 'realistic',
-      color_mode: 'full-color'
+      style: 'flat',
+      color_mode: 'full_color',
     },
     base64Png: true,
   })

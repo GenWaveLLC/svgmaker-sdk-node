@@ -1,6 +1,6 @@
 {
   "name": "@genwave/svgmaker-sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Official Node.js SDK for SVGMaker API",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",

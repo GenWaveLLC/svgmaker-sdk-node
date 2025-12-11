@@ -21,10 +21,12 @@ https://svgmaker.io/api
 All operations consume credits from your account:
 
 - **Convert**: 1 credit
-- **Generate (Low)**: 1 credit  
+- **Generate (Low)**: 1 credit
 - **Generate (Medium)**: 2 credits
-- **Generate (High)**: 4 credits
-- **Edit**: 3 credits
+- **Generate (High)**: 3 credits
+- **Edit (Low)**: 2 credits
+- **Edit (Medium)**: 3 credits
+- **Edit (High)**: 5 credits
 
 ## Common Response Format
 
@@ -34,13 +36,13 @@ All endpoints return responses in the following format:
 ```json
 {
   "svgUrl": "string",
+  "generationId": "string",
   "creditCost": "number",
-  "originalImageUrl": "string", // Only for edit/convert
   "base64Png": "string", // Only when base64Png=true for generate/edit
   "svgText": "string", // Only when svgText=true
   "prompt": "string", // Only when provided
   "quality": "string", // Only when applicable
-  "revisedPrompt": "string" // Only for generate/edit
+  "message": "string" // Success message, typically "Files stored to cloud successfully"
 }
 ```
 
@@ -79,24 +81,19 @@ x-api-key: svgmaker-io{your-api-key}
 {
   "prompt": "string", // Required: Description of the SVG to generate
   "quality": "low|medium|high", // Optional: Default "medium"
-  "aspectRatio": "auto|portrait|landscape|square|wide|tall", // Optional: Default "auto"
+  "aspectRatio": "auto|portrait|landscape|square", // Optional: Default "auto"
   "background": "auto|transparent|opaque", // Optional: Default "auto"
   "stream": "boolean", // Optional: Enable streaming response
   "base64Png": "boolean", // Optional: Include base64 PNG in response (default: false)
   "svgText": "boolean", // Optional: Include SVG source code in response (default: false)
-  
+
   // Style Parameters as separate JSON object (Optional)
   "styleParams": {
-    "style": "string", // Art style (e.g., "minimalist", "cartoon", "realistic")
-    "color_mode": "string", // Color scheme (e.g., "monochrome", "full-color", "2-colors")
-    "image_complexity": "string", // Complexity level (e.g., "simple", "detailed")
-    "category": "string", // Category (e.g., "icon", "illustration", "pattern")
-    "composition": "string", // Layout (e.g., "center-object", "full-scene")
-    "advanced": {
-      "stroke_weight": "thin|medium|thick",
-      "corner_style": "none|rounded|sharp",
-      "shadow_effect": "none|soft|hard"
-    }
+    "style": "string", // Art style (e.g., "Flat", "Line Art", "Cartoon / Playful", "Ghibli")
+    "color_mode": "string", // Color scheme (e.g., "Full Color", "Monochrome", "Few Colors")
+    "image_complexity": "string", // Complexity level (e.g., "Icon", "Illustration", "Scene")
+    "text": "string", // Text options (e.g., "No Text", "Only Title", "Embedded Text")
+    "composition": "string" // Layout (e.g., "Centered object", "Full scene", "Repeating pattern / tile")
   }
 }
 ```
@@ -107,12 +104,20 @@ x-api-key: svgmaker-io{your-api-key}
 |-----------|------|----------|---------|-------------|
 | `prompt` | string | Yes | - | Text description of the SVG to generate |
 | `quality` | string | No | "medium" | Generation quality: "low", "medium", "high" |
-| `aspectRatio` | string | No | "auto" | Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" |
+| `aspectRatio` | string | No | "auto" | Aspect ratio: "auto", "portrait", "landscape", "square" |
 | `background` | string | No | "auto" | Background type: "auto", "transparent", "opaque" |
 | `stream` | boolean | No | false | Enable streaming response for real-time updates |
 | `base64Png` | boolean | No | false | Include base64-encoded PNG preview in response |
 | `svgText` | boolean | No | false | Include SVG source code as text in response |
-| `styleParams` | object | No | {} | Style parameters object containing style, color_mode, image_complexity, category, composition, and advanced options |
+| `styleParams` | object | No | {} | Style parameters object containing style, color_mode, image_complexity, text, and composition |
+
+### Premium Features (Free vs Paid Users)
+
+Both free and paid users have access to all quality levels (`'low'`, `'medium'`, `'high'`), aspect ratios (`'auto'`, `'portrait'`, `'landscape'`, `'square'`), and backgrounds (`'auto'`, `'transparent'`, `'opaque'`).
+
+**The main difference:**
+- **Free Users**: Use standard AI generation mode
+- **Paid Users**: Use premium AI generation mode with enhanced quality and better results
 
 ### Example Request
 
@@ -128,9 +133,9 @@ curl -X POST https://svgmaker.io/api/generate \
     "base64Png": true,
     "svgText": true,
     "styleParams": {
-      "style": "minimalist",
+      "style": "flat",
       "color_mode": "monochrome",
-      "composition": "center-object"
+      "composition": "centered_object"
     }
   }'
 ```
@@ -140,12 +145,13 @@ curl -X POST https://svgmaker.io/api/generate \
 ```json
 {
   "svgUrl": "https://storage.googleapis.com/your-bucket/generated-svg.svg",
-  "creditCost": 4,
+  "generationId": "gen_abc123xyz",
+  "creditCost": 3,
   "base64Png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
   "svgText": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\">...</svg>",
   "prompt": "A minimalist mountain landscape with geometric shapes",
   "quality": "high",
-  "revisedPrompt": "A minimalist mountain landscape featuring clean geometric mountain shapes..."
+  "message": "Files stored to cloud successfully"
 }
 ```
 
@@ -173,10 +179,17 @@ x-api-key: svgmaker-io{your-api-key}
 | `quality` | string | No | Quality level: "low", "medium", "high" (default: "medium") |
 | `aspectRatio` | string | No | Aspect ratio: "auto", "portrait", "landscape", "square" (default: "auto") |
 | `background` | string | No | Background: "auto", "transparent", "opaque" (default: "auto") |
-| `mask` | File | No | Optional mask file for targeted editing |
 | `stream` | boolean | No | Enable streaming response (default: false) |
 | `base64Png` | boolean | No | Include base64-encoded PNG preview in response (default: false) |
 | `svgText` | boolean | No | Include SVG source code as text in response (default: false) |
+
+### Premium Features (Free vs Paid Users)
+
+Both free and paid users have access to all quality levels (`'low'`, `'medium'`, `'high'`), aspect ratios (`'auto'`, `'portrait'`, `'landscape'`, `'square'`), and backgrounds (`'auto'`, `'transparent'`, `'opaque'`).
+
+**The main difference:**
+- **Free Users**: Use standard AI editing mode
+- **Paid Users**: Use premium AI editing mode with enhanced quality and better results
 
 ### Example Request
 
@@ -199,7 +212,7 @@ curl -X POST https://svgmaker.io/api/edit \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "image=@input-image.svg" \
   -F "prompt=Make this more cartoonish" \
-  -F 'styleParams={"style":"cartoon","color_mode":"3-colors","advanced":{"stroke_weight":"thick"}}' \
+  -F 'styleParams={"style":"cartoon","color_mode":"few_colors"}' \
   -F "quality=medium"
 ```
 
@@ -208,12 +221,13 @@ curl -X POST https://svgmaker.io/api/edit \
 ```json
 {
   "svgUrl": "https://storage.googleapis.com/your-bucket/edited-svg.svg",
-  "originalImageUrl": "https://storage.googleapis.com/your-bucket/original-image.png",
+  "generationId": "gen_def456uvw",
   "creditCost": 3,
   "base64Png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
   "svgText": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\">...</svg>",
   "prompt": "Add a golden frame around this image",
-  "quality": "high"
+  "quality": "high",
+  "message": "Files stored to cloud successfully"
 }
 ```
 
@@ -260,10 +274,11 @@ curl -X POST https://svgmaker.io/api/convert \
 ```json
 {
   "svgUrl": "https://storage.googleapis.com/bucket-name/converted-svg.svg",
-  "originalImageUrl": "https://storage.googleapis.com/bucket-name/original-image.png",
+  "generationId": "gen_ghi789rst",
   "creditCost": 1,
   "quality": "medium",
-  "svgText": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\">...</svg>"
+  "svgText": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\">...</svg>",
+  "message": "Files stored to cloud successfully"
 }
 ```
 
@@ -345,6 +360,7 @@ When `base64Png=true` is included in requests to [`/api/generate`](docs/api-docu
 ```json
 {
   "svgUrl": "https://storage.googleapis.com/bucket/file.svg",
+  "generationId": "gen_abc123xyz",
   "base64Png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
 }
 ```
@@ -364,6 +380,7 @@ When `svgText=true` is included in requests to any endpoint, the response will i
 ```json
 {
   "svgUrl": "https://storage.googleapis.com/bucket/file.svg",
+  "generationId": "gen_abc123xyz",
   "svgText": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\"><path d=\"M100,100 L200,200\" fill=\"blue\"/></svg>"
 }
 ```
@@ -389,50 +406,35 @@ When `svgText=true` is included in requests to any endpoint, the response will i
 ## Style Parameters Reference
 
 ### Style Options
-- `minimalist` - Clean, simple designs
-- `cartoon` - Cartoon-style illustrations
-- `realistic` - Photorealistic style
-- `abstract` - Abstract art style
 - `flat` - Flat design style
+- `line_art` - Outline/line art style
+- `engraving` - Engraving style
+- `linocut` - Linocut print style
+- `silhouette` - Silhouette style
 - `isometric` - Isometric perspective
+- `cartoon` - Cartoon-style illustrations
+- `ghibli` - Studio Ghibli inspired style
 
 ### Color Modes
+- `full_color` - Full color spectrum
 - `monochrome` - Single color
-- `2-colors` - Two-color palette
-- `3-colors` - Three-color palette
-- `full-color` - Full color spectrum
+- `few_colors` - Limited color palette (2-3 colors)
 
 ### Image Complexity
-- `simple` - Basic shapes and elements
-- `detailed` - Complex, detailed imagery
-
-### Categories
-- `icon` - Icon-style graphics
+- `icon` - Simple icon-style graphics
 - `illustration` - Detailed illustrations
-- `pattern` - Repeating patterns
-- `logo` - Logo designs
-- `scene` - Complete scenes
+- `scene` - Complete scenes with multiple elements
+
+### Text Options
+- `no_text` - No text in the image
+- `only_title` - Only title text included
+- `embedded_text` - Text embedded within the design
 
 ### Composition
-- `center-object` - Centered single object
-- `full-scene` - Complete scene composition
-
-### Advanced Parameters
-
-#### Stroke Weight
-- `thin` - Thin line weights
-- `medium` - Medium line weights  
-- `thick` - Thick line weights
-
-#### Corner Style
-- `none` - No special corner treatment
-- `rounded` - Rounded corners
-- `sharp` - Sharp, angular corners
-
-#### Shadow Effect
-- `none` - No shadows
-- `soft` - Soft shadow effects
-- `hard` - Hard shadow effects
+- `centered_object` - Single object centered in the frame
+- `repeating_pattern` - Tileable repeating pattern
+- `full_scene` - Complete scene composition
+- `objects_in_grid` - Multiple objects arranged in a grid layout
 
 ---
 
@@ -514,7 +516,10 @@ const api = new SVGMakerAPI('svgmaker-io{your-api-key}');
 const result = await api.generate({
   prompt: 'A geometric mountain landscape',
   quality: 'high',
-  style: 'minimalist',
+  styleParams: {
+    style: 'flat',
+    color_mode: 'monochrome'
+  },
   base64Png: true,
   svgText: true
 });
@@ -584,7 +589,7 @@ result = api.generate({
     'prompt': 'A geometric mountain landscape',
     'quality': 'high',
     'styleParams': {
-        'style': 'minimalist',
+        'style': 'flat',
         'color_mode': 'monochrome'
     },
     'base64Png': True,
