@@ -177,7 +177,7 @@ const result = await client.edit
 | `styleParams` | `StyleParams` | `{}` | Style parameters object (see StyleParams table above) |
 | `mask` | `string \| Buffer \| Readable` | `none` | Optional mask for targeted editing (file path, Buffer, or Readable stream) |
 | `quality` | `'low' \| 'medium' \| 'high'` | `'medium'` | Processing quality |
-| `aspectRatio` | `'auto' \| 'portrait' \| 'landscape' \| 'square' \| 'wide' \| 'tall'` | `'auto'` for low/medium, `'square'` for high | Output aspect ratio. **Note:** Low and medium quality only support `'auto'`, `'portrait'`, `'landscape'`, `'square'`. High quality supports all options except `'auto'` |
+| `aspectRatio` | `'auto' \| 'portrait' \| 'landscape' \| 'square'` | `'auto'` | Output aspect ratio |
 | `background` | `'auto' \| 'transparent' \| 'opaque'` | `'auto'` | Background handling |
 | `base64Png` | `boolean` | `false` | Include PNG preview in response |
 | `svgText` | `boolean` | `false` | Include SVG source code in response |
@@ -194,7 +194,6 @@ const result = await client.convert
   })
   .execute();
 
-console.log('Original:', result.originalImageUrl);
 console.log('SVG:', result.svgUrl);
 console.log('SVG source:', result.svgText);
 ```
@@ -385,8 +384,10 @@ import { SVGMakerClient, Types } from '@genwave/svgmaker-sdk';
 const generateParams: Types.GenerateParams = {
   prompt: 'A minimalist logo',
   quality: 'high',
-  style: 'minimalist',
-  color_mode: 'monochrome',
+  styleParams: {
+    style: 'minimalist',
+    color_mode: 'monochrome',
+  },
 };
 
 // Typed responses
@@ -419,7 +420,7 @@ console.log(result.pngImageData); // Buffer | undefined
 
 ## Browser Compatibility
 
-The SDK is designed for Node.js environments and requires Node.js 16.0.0 or higher. For browser usage, consider the potential limitations with file system operations and ensure proper bundling configuration.
+The SDK is designed for Node.js environments and requires Node.js 18.0.0 or higher. For browser usage, consider the potential limitations with file system operations and ensure proper bundling configuration.
 
 ## Contributing
 

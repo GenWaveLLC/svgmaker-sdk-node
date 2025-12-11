@@ -105,7 +105,7 @@ export class GenerateClient extends BaseClient {
     });
 
     // The interceptor already decodes base64Png to pngImageData
-    // Only decode svgText from base64 to string if needed
+    // Normalize svgText (API now sends raw SVG text, but we handle legacy base64 too)
     let svgText: string | undefined = undefined;
     if (rawResult.svgText && typeof rawResult.svgText === 'string') {
       svgText = decodeSvgContent(rawResult.svgText);
@@ -235,7 +235,7 @@ export class GenerateClient extends BaseClient {
               const event = JSON.parse(trimmedLine) as GenerateStreamEvent;
 
               // --- Begin: Normalize event fields to match non-streaming response ---
-              // Decode svgText from base64 if present and is a string
+              // Normalize svgText (API now sends raw SVG text, but we handle legacy base64 too)
               if (event.svgText && typeof event.svgText === 'string') {
                 event.svgText = decodeSvgContent(event.svgText);
               }

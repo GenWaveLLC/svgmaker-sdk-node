@@ -171,7 +171,7 @@ x-api-key: svgmaker-io{your-api-key}
 | `prompt` | string | Yes | Edit instructions as a simple text string |
 | `styleParams` | string | No | JSON string containing style parameters |
 | `quality` | string | No | Quality level: "low", "medium", "high" (default: "medium") |
-| `aspectRatio` | string | No | Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" (default: "auto") |
+| `aspectRatio` | string | No | Aspect ratio: "auto", "portrait", "landscape", "square" (default: "auto") |
 | `background` | string | No | Background: "auto", "transparent", "opaque" (default: "auto") |
 | `mask` | File | No | Optional mask file for targeted editing |
 | `stream` | boolean | No | Enable streaming response (default: false) |

@@ -33,7 +33,7 @@ const editParamsSchema = z.object({
     })
     .optional(),
   mask: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]).optional(),
-  quality: z.enum(['medium']).optional(), // Edit mode only supports medium quality
+  quality: z.enum(['low', 'medium', 'high']).optional(),
   aspectRatio: z.enum(['auto', 'portrait', 'landscape', 'square']).optional(), // Edit mode only supports these aspect ratios
   background: z.enum(['auto', 'transparent', 'opaque']).optional(),
   stream: z.boolean().optional(),
@@ -142,7 +142,7 @@ export class EditClient extends BaseClient {
       pngImageData = decodeBase64Png(rawResult.base64Png);
     }
 
-    // Only decode svgText from base64 to string if needed
+    // Normalize svgText (API now sends raw SVG text, but we handle legacy base64 too)
     let svgText: string | undefined = undefined;
     if (rawResult.svgText && typeof rawResult.svgText === 'string') {
       svgText = decodeSvgContent(rawResult.svgText);
@@ -305,7 +305,7 @@ export class EditClient extends BaseClient {
               const event = JSON.parse(trimmedLine) as EditStreamEvent;
 
               // --- Begin: Normalize event fields to match non-streaming response ---
-              // Decode svgText from base64 if present and is a string
+              // Normalize svgText (API now sends raw SVG text, but we handle legacy base64 too)
               if (event.svgText && typeof event.svgText === 'string') {
                 event.svgText = decodeSvgContent(event.svgText);
               }

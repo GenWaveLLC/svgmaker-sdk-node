@@ -80,7 +80,7 @@ export class ConvertClient extends BaseClient {
       hasSvgText: !!result.svgText,
     });
 
-    // Decode base64 SVG text if present
+    // Normalize svgText (API now sends raw SVG text, but we handle legacy base64 too)
     if (result.svgText && typeof result.svgText === 'string') {
       result.svgText = decodeSvgContent(result.svgText);
     }
@@ -179,7 +179,7 @@ export class ConvertClient extends BaseClient {
             try {
               // Parse the JSON chunk directly (no "data:" prefix like SSE)
               const event = JSON.parse(trimmedLine) as ConvertStreamEvent;
-              // Decode svgText from base64 if present and is a string
+              // Normalize svgText (API now sends raw SVG text, but we handle legacy base64 too)
               if (event.svgText && typeof event.svgText === 'string') {
                 event.svgText = decodeSvgContent(event.svgText);
               }

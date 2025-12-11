@@ -1,7 +1,8 @@
-// Utility functions for base64 decoding used in SVGMaker SDK
+// Utility functions for SVG content handling in SVGMaker SDK
 
 /**
  * Decode a base64-encoded SVG text to a UTF-8 string
+ * @deprecated The API now sends raw SVG text. This function is kept for backward compatibility.
  * @param base64 Base64-encoded SVG
  * @returns Decoded SVG string
  */
@@ -14,21 +15,24 @@ export function decodeBase64SvgText(base64: string): string {
 }
 
 /**
- * Detects if SVG content is base64 encoded and decodes it appropriately
- * @param svgContent The SVG content (either base64 or plain text)
- * @returns Decoded SVG text
+ * Normalizes SVG content - handles both raw SVG text (current API) and base64-encoded SVG (legacy).
+ * The API now sends raw SVG text in the svgText field, so this function primarily passes through
+ * the content unchanged. Base64 decoding is only attempted for backward compatibility with older
+ * API versions.
+ * @param svgContent The SVG content (raw text or base64-encoded)
+ * @returns SVG text
  */
 export function decodeSvgContent(svgContent: string): string {
   if (!svgContent || typeof svgContent !== 'string') {
     return svgContent;
   }
 
-  // Use isSvgContent to check if it's already plain SVG text
+  // API now sends raw SVG text - check if it's already plain SVG
   if (isSvgContent(svgContent)) {
     return svgContent;
   }
 
-  // Attempt to decode from base64
+  // Backward compatibility: attempt to decode from base64 for older API versions
   try {
     const decoded = Buffer.from(svgContent, 'base64').toString('utf-8');
 
@@ -40,8 +44,7 @@ export function decodeSvgContent(svgContent: string): string {
     // If decoded content doesn't look like SVG, return original
     return svgContent;
   } catch {
-    console.error('Failed to decode SVG content from base64:', svgContent);
-    // If decoding fails, return original
+    // If decoding fails, return original (may be malformed SVG)
     return svgContent;
   }
 }

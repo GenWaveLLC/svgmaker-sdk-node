@@ -219,7 +219,7 @@ const result = await client.edit
 | `styleParams` | `StyleParams` | `{}` | Style parameters object |
 | `mask` | `string \| Buffer \| Readable` | `none` | Optional mask for targeted editing |
 | `quality` | `'low' \| 'medium' \| 'high'` | `'medium'` | Processing quality |
-| `aspectRatio` | `'auto' \| 'portrait' \| 'landscape' \| 'square' \| 'wide' \| 'tall'` | `'auto'` | Output aspect ratio |
+| `aspectRatio` | `'auto' \| 'portrait' \| 'landscape' \| 'square'` | `'auto'` | Output aspect ratio |
 | `background` | `'auto' \| 'transparent' \| 'opaque'` | `'auto'` | Background handling |
 | `base64Png` | `boolean` | `false` | Include PNG preview in response |
 | `svgText` | `boolean` | `false` | Include SVG source code in response |
@@ -236,7 +236,6 @@ const result = await client.convert
   })
   .execute();
 
-console.log('Original:', result.originalImageUrl);
 console.log('SVG:', result.svgUrl);
 console.log('SVG source:', result.svgText);
 ```
