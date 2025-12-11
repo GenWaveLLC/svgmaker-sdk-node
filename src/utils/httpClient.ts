@@ -208,7 +208,7 @@ export class HttpClient {
       formData.append(fieldName, blob, filename);
     } else if (Buffer.isBuffer(file)) {
       // Buffer - convert to blob
-      const blob = new Blob([file]);
+      const blob = new Blob([new Uint8Array(file)]);
       formData.append(fieldName, blob, 'file');
     } else if (file instanceof Readable) {
       // Readable stream - convert to buffer then blob

@@ -245,7 +245,7 @@ export class ConvertClient extends BaseClient {
       formData.append(fieldName, blob, filename);
     } else if (Buffer.isBuffer(file)) {
       // Convert buffer to Blob
-      const blob = new Blob([file], { type: 'application/octet-stream' });
+      const blob = new Blob([new Uint8Array(file)], { type: 'application/octet-stream' });
       formData.append(fieldName, blob, 'file');
     } else if (file instanceof Readable) {
       // Convert stream to buffer then to Blob
