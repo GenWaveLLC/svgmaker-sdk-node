@@ -6,6 +6,7 @@ import { EditClient } from '../clients/EditClient';
 import { AIVectorizeClient } from '../clients/convert';
 import { GenerationsClient } from '../clients/GenerationsClient';
 import { GalleryClient } from '../clients/GalleryClient';
+import { AccountClient } from '../clients/AccountClient';
 import { createRetryWrapper } from '../utils/retry';
 import { createRateLimiter } from '../utils/rateLimit';
 import { Logger, createLogger } from '../utils/logger';
@@ -78,6 +79,11 @@ export class SVGMakerClient {
   public readonly gallery: GalleryClient;
 
   /**
+   * Account client for retrieving account info and usage statistics
+   */
+  public readonly account: AccountClient;
+
+  /**
    * Create a new SVGMaker client
    * @param apiKey API key for authentication
    * @param config Additional configuration options
@@ -117,6 +123,7 @@ export class SVGMakerClient {
     };
     this.generations = new GenerationsClient(this);
     this.gallery = new GalleryClient(this);
+    this.account = new AccountClient(this);
 
     this.logger.info('SVGMaker SDK initialized');
   }

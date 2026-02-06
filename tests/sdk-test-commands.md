@@ -389,3 +389,52 @@ const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'htt
 client.gallery.list({ limit: 200 }).then(r => { console.log('UNEXPECTED SUCCESS'); }).catch(e => console.log('EXPECTED ERROR:', e.message));
 "
 ```
+
+---
+
+## Account
+
+### 40. Get account information
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.account.getInfo().then(r => { console.log('Email:', r.email); console.log('Display Name:', r.displayName); console.log('Account Type:', r.accountType); console.log('Credits:', r.credits); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 41. Get all-time usage statistics
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.account.getUsage().then(r => { console.log('Period:', r.period); console.log('Summary:', r.summary); console.log('By Category:', JSON.stringify(r.byCategory, null, 2)); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 42. Get usage for last 7 days
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.account.getUsage({ days: 7 }).then(r => { console.log('Period:', r.period); console.log('Summary:', r.summary); console.log('Daily:', r.daily); console.log('All Time:', r.allTime); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 43. Get usage for date range
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.account.getUsage({ start: '2025-01-01', end: '2025-01-31' }).then(r => { console.log('Period:', r.period); console.log('Summary:', r.summary); console.log('Daily:', r.daily); console.log('All Time:', r.allTime); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 44. Get usage with both days and start/end (should fail validation)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.account.getUsage({ days: 7, start: '2025-01-01', end: '2025-01-31' }).then(r => { console.log('UNEXPECTED SUCCESS'); }).catch(e => console.log('EXPECTED ERROR:', e.message));
+"
+```

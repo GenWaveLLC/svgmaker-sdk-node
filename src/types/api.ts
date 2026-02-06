@@ -429,3 +429,75 @@ export type GalleryDownloadParams = GenerationDownloadParams;
 
 /** Gallery download response - same structure as GenerationDownloadResponse */
 export type GalleryDownloadResponse = GenerationDownloadResponse;
+
+// --- Account Types ---
+
+export interface AccountResponse {
+  /** User's email address */
+  email: string;
+  /** User's display name */
+  displayName: string;
+  /** Account type: "free" or "premium" */
+  accountType: string;
+  /** Current credit balance */
+  credits: number;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export interface AccountUsageParams {
+  /** Number of days to look back (must be positive integer). Cannot be used with start/end. */
+  days?: number;
+  /** Start date in YYYY-MM-DD format. Must be used with end. Cannot be used with days. */
+  start?: string;
+  /** End date in YYYY-MM-DD format. Must be used with start. Cannot be used with days. */
+  end?: string;
+}
+
+export interface UsagePeriod {
+  /** Period type: "all", "days", or "range" */
+  type: string;
+  /** Number of days (only present when type is "days") */
+  days?: number;
+  /** Start date in YYYY-MM-DD format */
+  from?: string;
+  /** End date in YYYY-MM-DD format */
+  to?: string;
+}
+
+export interface UsageSummary {
+  /** Total number of API requests */
+  requests: number;
+  /** Total credits used */
+  creditsUsed: number;
+  /** Number of successful requests */
+  successCount: number;
+  /** Number of failed requests */
+  errorCount: number;
+  /** Success rate (0-1) */
+  successRate: number;
+}
+
+export interface UsageDailyEntry {
+  /** Date in YYYY-MM-DD format */
+  date: string;
+  /** Number of requests on this date */
+  requests: number;
+  /** Credits used on this date */
+  credits: number;
+}
+
+export interface AccountUsageResponse {
+  /** Period information */
+  period: UsagePeriod;
+  /** Summary statistics */
+  summary: UsageSummary;
+  /** Usage statistics grouped by category */
+  byCategory: Record<string, any>;
+  /** Daily breakdown (only present when date range is specified) */
+  daily?: UsageDailyEntry[];
+  /** All-time totals (only present when date range is specified) */
+  allTime?: { requests: number; creditsUsed: number };
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
