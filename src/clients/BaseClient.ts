@@ -15,6 +15,9 @@ import {
 import { ResponseMetadata } from '../types/api';
 import { Logger } from '../utils/logger';
 import { z } from 'zod';
+import { Readable } from 'stream';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Base client for API endpoints
@@ -110,6 +113,61 @@ export abstract class BaseClient {
       });
       throw error;
     }
+  }
+
+  /**
+   * Add a file to the form data
+   * @param formData Form data
+   * @param fieldName Form field name
+   * @param file File path, buffer, or stream
+   */
+  protected async addFileToForm(
+    formData: FormData,
+    fieldName: string,
+    file: string | Buffer | Readable
+  ): Promise<void> {
+    if (typeof file === 'string') {
+      if (!fs.existsSync(file)) {
+        throw new ValidationError(`File not found: ${file}`);
+      }
+      const fileBuffer = fs.readFileSync(file);
+      const filename = path.basename(file);
+      const mimeType = this.getMimeType(filename);
+      const blob = new Blob([fileBuffer], { type: mimeType });
+      formData.append(fieldName, blob, filename);
+    } else if (Buffer.isBuffer(file)) {
+      const blob = new Blob([new Uint8Array(file)], { type: 'application/octet-stream' });
+      formData.append(fieldName, blob, 'file');
+    } else if (file instanceof Readable) {
+      const chunks: Buffer[] = [];
+      for await (const chunk of file) {
+        chunks.push(Buffer.from(chunk));
+      }
+      const buffer = Buffer.concat(chunks);
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
+      formData.append(fieldName, blob, 'file');
+    } else {
+      throw new ValidationError(`Invalid file type: ${typeof file}`);
+    }
+  }
+
+  /**
+   * Get MIME type from filename
+   * @param filename File name
+   * @returns MIME type
+   */
+  protected getMimeType(filename: string): string {
+    const ext = path.extname(filename).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+      '.webp': 'image/webp',
+      '.bmp': 'image/bmp',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
   }
 
   /**

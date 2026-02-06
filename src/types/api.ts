@@ -217,6 +217,32 @@ export interface AiVectorizeResponse extends BaseResponse {
  */
 export type ConvertResponse = AiVectorizeResponse;
 
+// --- Optimize SVG Types ---
+
+export interface OptimizeSvgParams {
+  /** Required: SVG file path to optimize */
+  file: string;
+  /** Optional: Compress to SVGZ format (default: false) */
+  compress?: boolean;
+}
+
+export interface OptimizeSvgResponse {
+  /** URL to download the optimized SVG (when compress=false) */
+  svgUrl?: string;
+  /** Expiration time for svgUrl */
+  svgUrlExpiresIn?: string;
+  /** URL to download the SVGZ file (when compress=true) */
+  svgzUrl?: string;
+  /** Expiration time for svgzUrl */
+  svgzUrlExpiresIn?: string;
+  /** Filename of the compressed file (when compress=true) */
+  filename?: string;
+  /** Size of the compressed file in bytes (when compress=true) */
+  compressedSize?: number;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
 /**
  * Stream event base type
  */

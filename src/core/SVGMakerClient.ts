@@ -7,6 +7,7 @@ import { AIVectorizeClient } from '../clients/convert';
 import { GenerationsClient } from '../clients/GenerationsClient';
 import { GalleryClient } from '../clients/GalleryClient';
 import { AccountClient } from '../clients/AccountClient';
+import { OptimizeSvgClient } from '../clients/OptimizeSvgClient';
 import { createRetryWrapper } from '../utils/retry';
 import { createRateLimiter } from '../utils/rateLimit';
 import { Logger, createLogger } from '../utils/logger';
@@ -84,6 +85,11 @@ export class SVGMakerClient {
   public readonly account: AccountClient;
 
   /**
+   * Optimize SVG client for optimizing SVG files using SVGO
+   */
+  public readonly optimizeSvg: OptimizeSvgClient;
+
+  /**
    * Create a new SVGMaker client
    * @param apiKey API key for authentication
    * @param config Additional configuration options
@@ -124,6 +130,7 @@ export class SVGMakerClient {
     this.generations = new GenerationsClient(this);
     this.gallery = new GalleryClient(this);
     this.account = new AccountClient(this);
+    this.optimizeSvg = new OptimizeSvgClient(this);
 
     this.logger.info('SVGMaker SDK initialized');
   }

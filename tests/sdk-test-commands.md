@@ -438,3 +438,25 @@ const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'htt
 client.account.getUsage({ days: 7, start: '2025-01-01', end: '2025-01-31' }).then(r => { console.log('UNEXPECTED SUCCESS'); }).catch(e => console.log('EXPECTED ERROR:', e.message));
 "
 ```
+
+---
+
+## Optimize SVG
+
+### 45. Optimize SVG (default, no compression)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.optimizeSvg.configure({ file: './tests/test-images/test-generated-ts-1765444182368.svg' }).execute().then(r => { console.log('Optimized SVG URL:', r.svgUrl); console.log('Expires in:', r.svgUrlExpiresIn); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 46. Optimize SVG with SVGZ compression
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.optimizeSvg.configure({ file: './tests/test-images/test-generated-ts-1765444182368.svg', compress: true }).execute().then(r => { console.log('SVGZ URL:', r.svgzUrl); console.log('Filename:', r.filename); console.log('Compressed size:', r.compressedSize); }).catch(e => console.error('ERROR:', e.message));
+"
+```

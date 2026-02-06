@@ -10,6 +10,7 @@ import { ConvertClient } from './clients/ConvertClient';
 import { GenerationsClient } from './clients/GenerationsClient';
 import { GalleryClient } from './clients/GalleryClient';
 import { AccountClient } from './clients/AccountClient';
+import { OptimizeSvgClient } from './clients/OptimizeSvgClient';
 
 // Export error classes
 import * as Errors from './errors/CustomErrors';
@@ -32,6 +33,7 @@ export {
   GenerationsClient,
   GalleryClient,
   AccountClient,
+  OptimizeSvgClient,
 
   // Utils
   HttpClient,
