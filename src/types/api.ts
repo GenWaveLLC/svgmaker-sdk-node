@@ -243,6 +243,101 @@ export interface OptimizeSvgResponse {
   metadata: ResponseMetadata;
 }
 
+// --- Convert Results Types (shared by trace, svg-to-vector, raster-to-raster, batch) ---
+
+export interface ConvertResultItem {
+  filename: string;
+  success: boolean;
+  url?: string;
+  urlExpiresIn?: string;
+  format?: string;
+  error?: string;
+}
+
+export interface ConvertSummary {
+  total: number;
+  successful: number;
+  failed: number;
+}
+
+export interface ConvertResultsResponse {
+  results: ConvertResultItem[];
+  summary: ConvertSummary;
+  metadata: ResponseMetadata;
+}
+
+// --- Trace Types ---
+
+export type TraceAlgorithm = 'vtracer';
+export type TracePreset = 'bw' | 'poster' | 'photo';
+export type TraceMode = 'pixel' | 'polygon' | 'spline';
+export type TraceHierarchical = 'stacked' | 'cutout';
+
+export interface TraceParams {
+  file: string;
+  algorithm?: TraceAlgorithm;
+  preset?: TracePreset;
+  mode?: TraceMode;
+  hierarchical?: TraceHierarchical;
+  detail?: number;
+  smoothness?: number;
+  corners?: number;
+  reduceNoise?: number;
+}
+
+// --- SVG to Vector Types ---
+
+export type VectorFormat = 'PDF' | 'EPS' | 'DXF' | 'AI' | 'PS';
+export type DxfVersion = 'R12' | 'R14';
+
+export interface SvgToVectorParams {
+  file: string;
+  toFormat: VectorFormat;
+  textToPath?: boolean;
+  dxfVersion?: DxfVersion;
+}
+
+// --- Raster to Raster Types ---
+
+export type RasterFormat = 'PNG' | 'JPG' | 'WEBP' | 'TIFF' | 'GIF' | 'AVIF';
+
+export interface RasterToRasterParams {
+  file: string;
+  toFormat: RasterFormat;
+  quality?: number;
+  width?: number;
+  height?: number;
+}
+
+// --- Batch Convert Types ---
+
+export interface BatchConvertParams {
+  files: string[];
+  toFormat: string;
+  preset?: TracePreset;
+  mode?: TraceMode;
+  hierarchical?: TraceHierarchical;
+  detail?: number;
+  smoothness?: number;
+  corners?: number;
+  textToPath?: boolean;
+  dxfVersion?: DxfVersion;
+  quality?: number;
+  width?: number;
+  height?: number;
+}
+
+// --- Enhance Prompt Types ---
+
+export interface EnhancePromptParams {
+  prompt: string;
+}
+
+export interface EnhancePromptResponse {
+  enhancedPrompt: string;
+  metadata: ResponseMetadata;
+}
+
 /**
  * Stream event base type
  */

@@ -3,9 +3,6 @@ import { EditParams, EditResponse, EditStreamEvent } from '../types/api';
 import { SVGMakerClient } from '../core/SVGMakerClient';
 import { z } from 'zod';
 import { Readable } from 'stream';
-import * as fs from 'fs';
-import * as path from 'path';
-import { ValidationError } from '../errors/CustomErrors';
 import { decodeSvgContent, decodeBase64Png } from '../utils/base64';
 
 /**
@@ -90,64 +87,21 @@ export class EditClient extends BaseClient {
     // Add image file
     await this.addFileToForm(formData, 'image', this.params.image!);
 
-    // Add prompt if present
-    if (this.params.prompt) {
-      formData.append('prompt', this.params.prompt);
-    }
-
-    // Add styleParams if present
+    // Add styleParams if present (requires JSON.stringify)
     if (this.params.styleParams) {
       formData.append('styleParams', JSON.stringify(this.params.styleParams));
     }
 
-    // Add options
-    if (this.params.quality) {
-      formData.append('quality', this.params.quality);
-    }
+    // Add optional parameters
+    this.appendOptionalParams(formData, this.params as Record<string, any>, [
+      'prompt', 'quality', 'aspectRatio', 'background', 'storage', 'stream', 'base64Png', 'svgText', 'model',
+    ]);
 
-    if (this.params.aspectRatio) {
-      formData.append('aspectRatio', this.params.aspectRatio);
-    }
-
-    if (this.params.background) {
-      formData.append('background', this.params.background);
-    }
-
-    if (this.params.stream) {
-      formData.append('stream', String(this.params.stream));
-    }
-
-    if (this.params.base64Png) {
-      formData.append('base64Png', String(this.params.base64Png));
-    }
-
-    if (this.params.svgText) {
-      formData.append('svgText', String(this.params.svgText));
-    }
-
-    if (this.params.storage !== undefined) {
-      formData.append('storage', String(this.params.storage));
-    }
-
-    if (this.params.model) {
-      formData.append('model', this.params.model);
-    }
-
-    // Execute request using native fetch (for FormData compatibility)
-    const response = await fetch(`${this.config.baseUrl}/v1/edit`, {
-      method: 'POST',
-      headers: {
-        'x-api-key': this.config.apiKey,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      await this.handleFetchErrorResponse(response);
-    }
-
-    const rawResult = await response.json();
-    const { data, metadata: responseMetadata } = this.unwrapEnvelope<any>(rawResult);
+    // Execute request
+    const { data, metadata: responseMetadata } = await this.executeFormDataRequest<any>(
+      '/v1/edit',
+      formData
+    );
 
     let pngImageData: Buffer | undefined = undefined;
     if (data.base64Png && typeof data.base64Png === 'string') {

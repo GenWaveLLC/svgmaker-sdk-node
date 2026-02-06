@@ -3,9 +3,6 @@ import { AiVectorizeParams, AiVectorizeResponse, AiVectorizeStreamEvent } from '
 import { SVGMakerClient } from '../../core/SVGMakerClient';
 import { z } from 'zod';
 import { Readable } from 'stream';
-import * as fs from 'fs';
-import * as path from 'path';
-import { ValidationError } from '../../errors/CustomErrors';
 import { decodeSvgContent } from '../../utils/base64';
 
 /**
@@ -51,35 +48,14 @@ export class AIVectorizeClient extends BaseClient {
     // Add file
     await this.addFileToForm(formData, 'file', this.params.file!);
 
-    // Add storage option if present
-    if (this.params.storage !== undefined) {
-      formData.append('storage', String(this.params.storage));
-    }
+    // Add optional parameters
+    this.appendOptionalParams(formData, this.params as Record<string, any>, ['storage', 'stream', 'svgText']);
 
-    // Add stream option if present
-    if (this.params.stream) {
-      formData.append('stream', String(this.params.stream));
-    }
-
-    if (this.params.svgText) {
-      formData.append('svgText', String(this.params.svgText));
-    }
-
-    // Execute request using native fetch
-    const response = await fetch(`${this.config.baseUrl}/v1/convert/ai-vectorize`, {
-      method: 'POST',
-      headers: {
-        'x-api-key': this.config.apiKey,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      await this.handleFetchErrorResponse(response);
-    }
-
-    const rawResult = await response.json();
-    const { data, metadata: responseMetadata } = this.unwrapEnvelope<any>(rawResult);
+    // Execute request
+    const { data, metadata: responseMetadata } = await this.executeFormDataRequest<any>(
+      '/v1/convert/ai-vectorize',
+      formData
+    );
 
     this.logger.debug('AI vectorize conversion completed', {
       creditCost: data.creditCost,

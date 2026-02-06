@@ -171,6 +171,50 @@ export abstract class BaseClient {
   }
 
   /**
+   * Execute a POST request with FormData body and unwrap the v1 API envelope
+   * @param endpoint API endpoint path (e.g., '/v1/convert/trace')
+   * @param formData FormData body
+   * @returns Unwrapped data and metadata
+   */
+  protected async executeFormDataRequest<T = any>(
+    endpoint: string,
+    formData: FormData
+  ): Promise<{ data: T; metadata: ResponseMetadata }> {
+    const response = await fetch(`${this.config.baseUrl}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'x-api-key': this.config.apiKey,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      await this.handleFetchErrorResponse(response);
+    }
+
+    const rawResult = await response.json();
+    return this.unwrapEnvelope<T>(rawResult);
+  }
+
+  /**
+   * Append optional parameters to FormData, converting values to strings
+   * @param formData FormData to append to
+   * @param params Parameters object
+   * @param fieldNames Array of field names to check and append
+   */
+  protected appendOptionalParams(
+    formData: FormData,
+    params: Record<string, any>,
+    fieldNames: string[]
+  ): void {
+    for (const field of fieldNames) {
+      if (params[field] !== undefined) {
+        formData.append(field, String(params[field]));
+      }
+    }
+  }
+
+  /**
    * Create a new instance of this client
    * This should be implemented by child classes to support method chaining
    * @returns New client instance

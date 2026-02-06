@@ -11,6 +11,11 @@ import { GenerationsClient } from './clients/GenerationsClient';
 import { GalleryClient } from './clients/GalleryClient';
 import { AccountClient } from './clients/AccountClient';
 import { OptimizeSvgClient } from './clients/OptimizeSvgClient';
+import { TraceClient } from './clients/convert/TraceClient';
+import { SvgToVectorClient } from './clients/convert/SvgToVectorClient';
+import { RasterToRasterClient } from './clients/convert/RasterToRasterClient';
+import { BatchConvertClient } from './clients/convert/BatchConvertClient';
+import { EnhancePromptClient } from './clients/EnhancePromptClient';
 
 // Export error classes
 import * as Errors from './errors/CustomErrors';
@@ -34,6 +39,11 @@ export {
   GalleryClient,
   AccountClient,
   OptimizeSvgClient,
+  TraceClient,
+  SvgToVectorClient,
+  RasterToRasterClient,
+  BatchConvertClient,
+  EnhancePromptClient,
 
   // Utils
   HttpClient,

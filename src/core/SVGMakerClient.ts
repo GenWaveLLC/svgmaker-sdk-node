@@ -4,6 +4,11 @@ import { ValidationError } from '../errors/CustomErrors';
 import { GenerateClient } from '../clients/GenerateClient';
 import { EditClient } from '../clients/EditClient';
 import { AIVectorizeClient } from '../clients/convert';
+import { TraceClient } from '../clients/convert/TraceClient';
+import { SvgToVectorClient } from '../clients/convert/SvgToVectorClient';
+import { RasterToRasterClient } from '../clients/convert/RasterToRasterClient';
+import { BatchConvertClient } from '../clients/convert/BatchConvertClient';
+import { EnhancePromptClient } from '../clients/EnhancePromptClient';
 import { GenerationsClient } from '../clients/GenerationsClient';
 import { GalleryClient } from '../clients/GalleryClient';
 import { AccountClient } from '../clients/AccountClient';
@@ -67,6 +72,14 @@ export class SVGMakerClient {
   public readonly convert: {
     /** AI-powered raster to SVG vectorization */
     aiVectorize: AIVectorizeClient;
+    /** Trace raster images to SVG using VTracer */
+    trace: TraceClient;
+    /** Convert SVG to vector formats (PDF, EPS, DXF, AI, PS) */
+    svgToVector: SvgToVectorClient;
+    /** Convert between raster image formats */
+    rasterToRaster: RasterToRasterClient;
+    /** Batch convert multiple files */
+    batch: BatchConvertClient;
   };
 
   /**
@@ -88,6 +101,11 @@ export class SVGMakerClient {
    * Optimize SVG client for optimizing SVG files using SVGO
    */
   public readonly optimizeSvg: OptimizeSvgClient;
+
+  /**
+   * Enhance prompt client for improving text prompts using AI
+   */
+  public readonly enhancePrompt: EnhancePromptClient;
 
   /**
    * Create a new SVGMaker client
@@ -126,7 +144,12 @@ export class SVGMakerClient {
     this.edit = new EditClient(this);
     this.convert = {
       aiVectorize: new AIVectorizeClient(this),
+      trace: new TraceClient(this),
+      svgToVector: new SvgToVectorClient(this),
+      rasterToRaster: new RasterToRasterClient(this),
+      batch: new BatchConvertClient(this),
     };
+    this.enhancePrompt = new EnhancePromptClient(this);
     this.generations = new GenerationsClient(this);
     this.gallery = new GalleryClient(this);
     this.account = new AccountClient(this);

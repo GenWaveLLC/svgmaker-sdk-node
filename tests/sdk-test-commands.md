@@ -460,3 +460,95 @@ const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'htt
 client.optimizeSvg.configure({ file: './tests/test-images/test-generated-ts-1765444182368.svg', compress: true }).execute().then(r => { console.log('SVGZ URL:', r.svgzUrl); console.log('Filename:', r.filename); console.log('Compressed size:', r.compressedSize); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
+
+---
+
+## Convert (Trace to SVG)
+
+### 47. Trace with default settings
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.convert.trace.configure({ file: './tests/test-images/test-image.png' }).execute().then(r => { console.log('Results:', JSON.stringify(r.results, null, 2)); console.log('Summary:', r.summary); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 48. Trace with custom params (preset, mode, detail, smoothness)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.convert.trace.configure({ file: './tests/test-images/test-image.png', preset: 'photo', mode: 'spline', detail: 60, smoothness: 70 }).execute().then(r => { console.log('Results:', JSON.stringify(r.results, null, 2)); console.log('Summary:', r.summary); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+---
+
+## Convert (SVG to Vector)
+
+### 49. Convert SVG to PDF
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.convert.svgToVector.configure({ file: './tests/test-images/test-generated-ts-1765444182368.svg', toFormat: 'PDF' }).execute().then(r => { console.log('Results:', JSON.stringify(r.results, null, 2)); console.log('Summary:', r.summary); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 50. Convert SVG to DXF with textToPath
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.convert.svgToVector.configure({ file: './tests/test-images/test-generated-ts-1765444182368.svg', toFormat: 'DXF', textToPath: true }).execute().then(r => { console.log('Results:', JSON.stringify(r.results, null, 2)); console.log('Summary:', r.summary); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+---
+
+## Convert (Raster to Raster)
+
+### 51. Convert PNG to JPG with quality
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.convert.rasterToRaster.configure({ file: './tests/test-images/test-image.png', toFormat: 'JPG', quality: 85 }).execute().then(r => { console.log('Results:', JSON.stringify(r.results, null, 2)); console.log('Summary:', r.summary); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 52. Convert PNG to WEBP with width resize
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.convert.rasterToRaster.configure({ file: './tests/test-images/test-image.png', toFormat: 'WEBP', width: 512 }).execute().then(r => { console.log('Results:', JSON.stringify(r.results, null, 2)); console.log('Summary:', r.summary); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+---
+
+## Convert (Batch)
+
+### 53. Batch convert multiple files to SVG
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.convert.batch.configure({ files: ['./tests/test-images/test-image.png', '/Users/vishalm.a/Desktop/cat.jpg'], toFormat: 'SVG' }).execute().then(r => { console.log('Results:', JSON.stringify(r.results, null, 2)); console.log('Summary:', r.summary); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+---
+
+## Enhance Prompt
+
+### 54. Basic prompt enhancement
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.enhancePrompt.configure({ prompt: 'a cat sitting on a fence' }).execute().then(r => { console.log('Enhanced Prompt:', r.enhancedPrompt); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```

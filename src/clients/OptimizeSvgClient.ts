@@ -41,26 +41,14 @@ export class OptimizeSvgClient extends BaseClient {
     // Add file
     await this.addFileToForm(formData, 'file', this.params.file!);
 
-    // Add compress option if present
-    if (this.params.compress !== undefined) {
-      formData.append('compress', String(this.params.compress));
-    }
+    // Add optional parameters
+    this.appendOptionalParams(formData, this.params as Record<string, any>, ['compress']);
 
-    // Execute request using native fetch
-    const response = await fetch(`${this.config.baseUrl}/v1/svg/optimize`, {
-      method: 'POST',
-      headers: {
-        'x-api-key': this.config.apiKey,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      await this.handleFetchErrorResponse(response);
-    }
-
-    const rawResult = await response.json();
-    const { data, metadata: responseMetadata } = this.unwrapEnvelope<any>(rawResult);
+    // Execute request
+    const { data, metadata: responseMetadata } = await this.executeFormDataRequest<any>(
+      '/v1/svg/optimize',
+      formData
+    );
 
     this.logger.debug('SVG optimization completed');
 
