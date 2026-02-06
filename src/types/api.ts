@@ -396,3 +396,36 @@ export interface GenerationDownloadResponse {
   /** Response metadata */
   metadata: ResponseMetadata;
 }
+
+// --- Gallery Types ---
+
+export interface GalleryListParams {
+  /** Page number (1-indexed) */
+  page?: number;
+  /** Number of items per page (1-100) */
+  limit?: number;
+  /** Filter by type. Can be a single type or array of types */
+  type?: string | string[];
+  /** Filter by hashtag. Can be a single hashtag or array */
+  hashtags?: string | string[];
+  /** Filter by category. Can be a single category or array */
+  categories?: string | string[];
+  /** Search query for prompt/description */
+  query?: string;
+  /** Filter for pro images. Pass "true" to filter. */
+  pro?: string;
+  /** Filter for gold images. Pass "true" to filter. */
+  gold?: string;
+}
+
+/** Gallery list response - same structure as GenerationsListResponse */
+export type GalleryListResponse = GenerationsListResponse;
+
+/** Gallery item response - same structure as GenerationResponse */
+export type GalleryItemResponse = GenerationResponse;
+
+/** Gallery download params - same structure as GenerationDownloadParams */
+export type GalleryDownloadParams = GenerationDownloadParams;
+
+/** Gallery download response - same structure as GenerationDownloadResponse */
+export type GalleryDownloadResponse = GenerationDownloadResponse;

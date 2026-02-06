@@ -1,7 +1,7 @@
 # SDK Test Commands
 
 Base URL: `http://localhost:3000/api`
-API Key: `svgmaker-ioa7eda109690877e6`
+API Key: `svgmaker-io7791b35175f510df`
 
 > Run `npm run build` first before testing.
 > Edit and Convert tests need a test image at `tests/test-images/test-image.png`
@@ -14,7 +14,7 @@ API Key: `svgmaker-ioa7eda109690877e6`
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generate.configure({ prompt: 'A minimalist mountain landscape', model: 'gpt-image-1-mini' }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Message:', r.message); console.log('Metadata:', r.metadata); console.log('Generation ID:', r.generationId); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -23,7 +23,7 @@ client.generate.configure({ prompt: 'A minimalist mountain landscape', model: 'g
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generate.configure({ prompt: 'A red sports car', quality: 'high' }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Message:', r.message); console.log('Metadata:', r.metadata); console.log('Generation ID:', r.generationId); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -32,7 +32,7 @@ client.generate.configure({ prompt: 'A red sports car', quality: 'high' }).execu
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generate.configure({ prompt: 'A cat on a fence', quality: 'high', model: 'gpt-image-1-mini' }).execute().then(r => { console.log('UNEXPECTED SUCCESS - should have failed'); }).catch(e => console.log('EXPECTED ERROR:', e.message));
 "
 ```
@@ -41,7 +41,7 @@ client.generate.configure({ prompt: 'A cat on a fence', quality: 'high', model: 
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generate.configure({ prompt: 'A simple house icon', quality: 'low', storage: false }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Generation ID:', r.generationId); console.log('URL expires in:', r.svgUrlExpiresIn); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -50,7 +50,7 @@ client.generate.configure({ prompt: 'A simple house icon', quality: 'low', stora
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generate.configure({ prompt: 'A golden trophy', quality: 'medium', storage: true }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Generation ID:', r.generationId); console.log('URL expires in:', r.svgUrlExpiresIn); console.log('Message:', r.message); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -59,7 +59,7 @@ client.generate.configure({ prompt: 'A golden trophy', quality: 'medium', storag
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 const stream = client.generate.configure({ prompt: 'A rocket launching into space', quality: 'low' }).stream();
 stream.on('data', (e) => { console.log('Event:', e.status, e.message || ''); if (e.status === 'complete') { console.log('SVG URL:', e.svgUrl); console.log('Credits:', e.creditCost); console.log('Generation ID:', e.generationId); } });
 stream.on('end', () => console.log('Stream ended'));
@@ -71,7 +71,7 @@ stream.on('error', (e) => console.error('ERROR:', e.message));
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generate.configure({ prompt: 'A forest with tall trees and a river', quality: 'low', aspectRatio: 'landscape', background: 'transparent', styleParams: { style: 'flat', color_mode: 'few_colors', image_complexity: 'scene', composition: 'full_scene' } }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Message:', r.message); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -84,7 +84,7 @@ client.generate.configure({ prompt: 'A forest with tall trees and a river', qual
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Add a golden frame around this image', model: 'gpt-image-1-mini' }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Message:', r.message); console.log('Metadata:', r.metadata); console.log('Generation ID:', r.generationId); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -93,7 +93,7 @@ client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Add 
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Make the background blue', quality: 'low' }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Message:', r.message); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -102,7 +102,7 @@ client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Make
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Add stars', quality: 'high', model: 'gpt-image-1-mini' }).execute().then(r => { console.log('UNEXPECTED SUCCESS - should have failed'); }).catch(e => console.log('EXPECTED ERROR:', e.message));
 "
 ```
@@ -111,7 +111,7 @@ client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Add 
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Convert to silhouette style', quality: 'low', storage: false }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Generation ID:', r.generationId); console.log('URL expires in:', r.svgUrlExpiresIn); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -120,7 +120,7 @@ client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Conv
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Add a sunset gradient', quality: 'low', storage: true }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Generation ID:', r.generationId); console.log('URL expires in:', r.svgUrlExpiresIn); console.log('Message:', r.message); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -129,7 +129,7 @@ client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Add 
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 const stream = client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Make it look like a cartoon', quality: 'low' }).stream();
 stream.on('data', (e) => { console.log('Event:', e.status, e.message || ''); if (e.status === 'complete') { console.log('SVG URL:', e.svgUrl); console.log('Credits:', e.creditCost); console.log('Generation ID:', e.generationId); } });
 stream.on('end', () => console.log('Stream ended'));
@@ -141,7 +141,7 @@ stream.on('error', (e) => console.error('ERROR:', e.message));
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Restyle this image', quality: 'low', aspectRatio: 'square', background: 'opaque', styleParams: { style: 'isometric', color_mode: 'monochrome', composition: 'centered_object' } }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Message:', r.message); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -154,7 +154,7 @@ client.edit.configure({ image: 'tests/test-images/test-image.png', prompt: 'Rest
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.convert.aiVectorize.configure({ file: 'tests/test-images/test-image.png' }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Message:', r.message); console.log('Generation ID:', r.generationId); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -163,7 +163,7 @@ client.convert.aiVectorize.configure({ file: 'tests/test-images/test-image.png' 
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 const stream = client.convert.aiVectorize.configure({ file: 'tests/test-images/test-image.png' }).stream();
 stream.on('data', (e) => { console.log('Event:', e.status, e.message || ''); if (e.status === 'complete') { console.log('SVG URL:', e.svgUrl); console.log('Credits:', e.creditCost); console.log('Generation ID:', e.generationId); } });
 stream.on('end', () => console.log('Stream ended'));
@@ -175,7 +175,7 @@ stream.on('error', (e) => console.error('ERROR:', e.message));
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.convert.aiVectorize.configure({ file: 'tests/test-images/test-image.png', storage: true }).execute().then(r => { console.log('SVG URL:', r.svgUrl); console.log('Credits:', r.creditCost); console.log('Message:', r.message); console.log('Generation ID:', r.generationId); console.log('URL expires in:', r.svgUrlExpiresIn); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -188,7 +188,7 @@ client.convert.aiVectorize.configure({ file: 'tests/test-images/test-image.png',
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generations.list().then(r => { console.log('Items:', r.items); console.log('Pagination:', r.pagination); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -197,7 +197,7 @@ client.generations.list().then(r => { console.log('Items:', r.items); console.lo
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generations.list({ page: 1, limit: 5, type: ['generate', 'edit'] }).then(r => { console.log('Items:', r.items); console.log('Pagination:', r.pagination); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -206,7 +206,7 @@ client.generations.list({ page: 1, limit: 5, type: ['generate', 'edit'] }).then(
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generations.list({ query: 'mountain', limit: 10 }).then(r => { console.log('Items:', r.items); console.log('Pagination:', r.pagination); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
@@ -215,8 +215,8 @@ client.generations.list({ query: 'mountain', limit: 10 }).then(r => { console.lo
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
-client.generations.get('jhn1KSCWlR07Xkd4Sc0d').then(r => { console.log('ID:', r.id); console.log('Prompt:', r.prompt); console.log('Type:', r.type); console.log('Quality:', r.quality); console.log('Is Public:', r.isPublic); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.generations.get('bIJsOodcweYs5PriL7Bl').then(r => { console.log('ID:', r.id); console.log('Prompt:', r.prompt); console.log('Type:', r.type); console.log('Quality:', r.quality); console.log('Is Public:', r.isPublic); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
 
@@ -224,8 +224,8 @@ client.generations.get('jhn1KSCWlR07Xkd4Sc0d').then(r => { console.log('ID:', r.
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
-client.generations.share('jhn1KSCWlR07Xkd4Sc0d').then(r => { console.log('Message:', r.message); console.log('Is Public:', r.isPublic); console.log('Share URL:', r.shareUrl); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.generations.share('bIJsOodcweYs5PriL7Bl').then(r => { console.log('Message:', r.message); console.log('Is Public:', r.isPublic); console.log('Share URL:', r.shareUrl); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
 
@@ -234,8 +234,8 @@ client.generations.share('jhn1KSCWlR07Xkd4Sc0d').then(r => { console.log('Messag
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
-client.generations.download('jhn1KSCWlR07Xkd4Sc0d', { format: 'svg' }).then(r => { console.log('ID:', r.id); console.log('URL:', r.url); console.log('URL Expires In:', r.urlExpiresIn); console.log('Format:', r.format); console.log('Filename:', r.filename); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.generations.download('bIJsOodcweYs5PriL7Bl', { format: 'svg' }).then(r => { console.log('ID:', r.id); console.log('URL:', r.url); console.log('URL Expires In:', r.urlExpiresIn); console.log('Format:', r.format); console.log('Filename:', r.filename); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
 
@@ -244,35 +244,148 @@ client.generations.download('jhn1KSCWlR07Xkd4Sc0d', { format: 'svg' }).then(r =>
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
-client.generations.download('jhn1KSCWlR07Xkd4Sc0d').then(r => { console.log('ID:', r.id); console.log('URL:', r.url); console.log('Format:', r.format); console.log('Filename:', r.filename); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.generations.download('bIJsOodcweYs5PriL7Bl').then(r => { console.log('ID:', r.id); console.log('URL:', r.url); console.log('Format:', r.format); console.log('Filename:', r.filename); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
 
-### 25. Delete generation
+### 25. Download generation (as SVGZ)
+> Paid users only.
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.generations.download('bIJsOodcweYs5PriL7Bl', { format: 'svgz' }).then(r => { console.log('ID:', r.id); console.log('URL:', r.url); console.log('URL Expires In:', r.urlExpiresIn); console.log('Format:', r.format); console.log('Filename:', r.filename); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 26. Delete generation
 > Paid users only. This is destructive!
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
-client.generations.delete('jhn1KSCWlR07Xkd4Sc0d').then(r => { console.log('Message:', r.message); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.generations.delete('bIJsOodcweYs5PriL7Bl').then(r => { console.log('Message:', r.message); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
 "
 ```
 
-### 26. Get generation (invalid ID — should fail)
+### 27. Get generation (invalid ID — should fail)
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generations.get('nonexistent-id-12345').then(r => { console.log('UNEXPECTED SUCCESS'); }).catch(e => console.log('EXPECTED ERROR:', e.message));
 "
 ```
 
-### 27. List generations (invalid limit — should fail validation)
+### 28. List generations (invalid limit — should fail validation)
 ```bash
 node -e "
 const { SVGMakerClient } = require('./dist/cjs/index.js');
-const client = new SVGMakerClient('svgmaker-ioa7eda109690877e6', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
 client.generations.list({ limit: 200 }).then(r => { console.log('UNEXPECTED SUCCESS'); }).catch(e => console.log('EXPECTED ERROR:', e.message));
+"
+```
+
+---
+
+## Gallery
+
+### 29. Browse gallery (default)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.list().then(r => { console.log('Items:', r.items); console.log('Pagination:', r.pagination); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 30. Browse gallery (with filters)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.list({ page: 1, limit: 5, type: ['generate', 'edit'] }).then(r => { console.log('Items:', r.items); console.log('Pagination:', r.pagination); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 31. Browse gallery (pro filter)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.list({ pro: 'true', limit: 10 }).then(r => { console.log('Items:', r.items); console.log('Pagination:', r.pagination); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 32. Browse gallery (gold filter)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.list({ gold: 'true', limit: 10 }).then(r => { console.log('Items:', r.items); console.log('Pagination:', r.pagination); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 33. Browse gallery (with query search)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.list({ query: 'mountain', limit: 10 }).then(r => { console.log('Items:', r.items); console.log('Pagination:', r.pagination); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 34. Get gallery item by ID
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.get('B5EMo3ORhHtpBEnraspx').then(r => { console.log('ID:', r.id); console.log('Prompt:', r.prompt); console.log('Type:', r.type); console.log('Quality:', r.quality); console.log('Is Public:', r.isPublic); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 35. Download gallery item (as SVG — costs 1 credit)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.download('B5EMo3ORhHtpBEnraspx', { format: 'svg' }).then(r => { console.log('ID:', r.id); console.log('URL:', r.url); console.log('URL Expires In:', r.urlExpiresIn); console.log('Format:', r.format); console.log('Filename:', r.filename); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 36. Download gallery item (as WebP — free)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.download('B5EMo3ORhHtpBEnraspx', { format: 'webp' }).then(r => { console.log('ID:', r.id); console.log('URL:', r.url); console.log('Format:', r.format); console.log('Filename:', r.filename); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 37. Download gallery item (default format)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.download('B5EMo3ORhHtpBEnraspx').then(r => { console.log('ID:', r.id); console.log('URL:', r.url); console.log('Format:', r.format); console.log('Filename:', r.filename); console.log('Metadata:', r.metadata); }).catch(e => console.error('ERROR:', e.message));
+"
+```
+
+### 38. Get gallery item (invalid ID — should fail)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.get('nonexistent-id-12345').then(r => { console.log('UNEXPECTED SUCCESS'); }).catch(e => console.log('EXPECTED ERROR:', e.message));
+"
+```
+
+### 39. Browse gallery (invalid limit — should fail validation)
+```bash
+node -e "
+const { SVGMakerClient } = require('./dist/cjs/index.js');
+const client = new SVGMakerClient('svgmaker-io7791b35175f510df', { baseUrl: 'http://localhost:3000/api', timeout: 300000 });
+client.gallery.list({ limit: 200 }).then(r => { console.log('UNEXPECTED SUCCESS'); }).catch(e => console.log('EXPECTED ERROR:', e.message));
 "
 ```

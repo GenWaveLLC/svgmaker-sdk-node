@@ -8,6 +8,7 @@ import { EditClient } from './clients/EditClient';
 import { AIVectorizeClient } from './clients/convert';
 import { ConvertClient } from './clients/ConvertClient';
 import { GenerationsClient } from './clients/GenerationsClient';
+import { GalleryClient } from './clients/GalleryClient';
 
 // Export error classes
 import * as Errors from './errors/CustomErrors';
@@ -28,6 +29,7 @@ export {
   AIVectorizeClient,
   ConvertClient, // backward compat
   GenerationsClient,
+  GalleryClient,
 
   // Utils
   HttpClient,
