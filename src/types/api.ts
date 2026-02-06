@@ -304,3 +304,95 @@ export type ConvertStreamEvent = StreamEvent;
  * AI Vectorize stream event
  */
 export type AiVectorizeStreamEvent = StreamEvent;
+
+// --- Generations Management Types ---
+
+export interface GenerationsListParams {
+  /** Page number (1-indexed) */
+  page?: number;
+  /** Number of items per page (1-100) */
+  limit?: number;
+  /** Filter by type. Can be a single type or array of types */
+  type?: string | string[];
+  /** Filter by hashtag. Can be a single hashtag or array */
+  hashtags?: string | string[];
+  /** Filter by category. Can be a single category or array */
+  categories?: string | string[];
+  /** Search query for prompt/description */
+  query?: string;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface GenerationsListResponse {
+  /** Array of generation IDs */
+  items: string[];
+  /** Pagination information */
+  pagination: Pagination;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export interface GenerationResponse {
+  /** Generation ID */
+  id: string;
+  /** The prompt used to generate the image */
+  prompt: string;
+  /** Generation type: generate, edit, convert, or crafted */
+  type: string;
+  /** Quality level used */
+  quality: string;
+  /** Whether the generation is public */
+  isPublic: boolean;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export interface GenerationDeleteResponse {
+  /** Status message */
+  message: string;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export interface GenerationShareResponse {
+  /** Status message */
+  message: string;
+  /** Whether the generation is now public */
+  isPublic: boolean;
+  /** The public share URL */
+  shareUrl: string;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export type DownloadFormat = 'svg' | 'webp' | 'png' | 'svg-optimized' | 'svgz';
+
+export interface GenerationDownloadParams {
+  /** Output format (default: webp) */
+  format?: DownloadFormat;
+  /** Optimize before compressing (only for svgz format) */
+  optimize?: boolean;
+}
+
+export interface GenerationDownloadResponse {
+  /** Generation ID */
+  id: string;
+  /** Download URL (expires after 12h) */
+  url: string;
+  /** URL expiration time */
+  urlExpiresIn: string;
+  /** File format */
+  format: string;
+  /** Suggested filename */
+  filename: string;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
