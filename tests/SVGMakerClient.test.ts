@@ -68,6 +68,7 @@ describe('SVGMakerClient', () => {
       expect(client.generate).toBeDefined();
       expect(client.edit).toBeDefined();
       expect(client.convert).toBeDefined();
+      expect(client.convert.aiVectorize).toBeDefined();
     });
 
     it('should accept new base64Png and svgText parameters for generate', () => {
@@ -97,12 +98,12 @@ describe('SVGMakerClient', () => {
       }).not.toThrow();
     });
 
-    it('should accept new svgText parameter for convert', () => {
+    it('should accept new svgText parameter for ai-vectorize', () => {
       const client = new SVGMakerClient('test-api-key');
 
       // Should not throw when configuring with new parameters
       expect(() => {
-        client.convert.configure({
+        client.convert.aiVectorize.configure({
           file: Buffer.from('test'),
           svgText: true,
         });

@@ -1,66 +1,31 @@
-import { BaseClient } from './BaseClient';
-import { EditParams, EditResponse, EditStreamEvent } from '../types/api';
-import { SVGMakerClient } from '../core/SVGMakerClient';
+import { BaseClient } from '../BaseClient';
+import { AiVectorizeParams, AiVectorizeResponse, AiVectorizeStreamEvent } from '../../types/api';
+import { SVGMakerClient } from '../../core/SVGMakerClient';
 import { z } from 'zod';
 import { Readable } from 'stream';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ValidationError } from '../errors/CustomErrors';
-import { decodeSvgContent, decodeBase64Png } from '../utils/base64';
+import { ValidationError } from '../../errors/CustomErrors';
+import { decodeSvgContent } from '../../utils/base64';
 
 /**
- * Schema for validating edit parameters
+ * Schema for validating AI vectorize parameters
  */
-const editParamsSchema = z
-  .object({
-    image: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]),
-    prompt: z.string().optional(),
-    styleParams: z
-      .object({
-        style: z
-          .enum([
-            'flat',
-            'line_art',
-            'engraving',
-            'linocut',
-            'silhouette',
-            'isometric',
-            'cartoon',
-            'ghibli',
-          ])
-          .optional(),
-        color_mode: z.enum(['full_color', 'monochrome', 'few_colors']).optional(),
-        image_complexity: z.enum(['icon', 'illustration', 'scene']).optional(),
-        text: z.enum(['only_title', 'embedded_text']).optional(),
-        composition: z
-          .enum(['centered_object', 'repeating_pattern', 'full_scene', 'objects_in_grid'])
-          .optional(),
-      })
-      .optional(),
-    quality: z.enum(['low', 'medium', 'high']).optional(),
-    aspectRatio: z.enum(['auto', 'portrait', 'landscape', 'square']).optional(),
-    background: z.enum(['auto', 'transparent', 'opaque']).optional(),
-    storage: z.boolean().optional(),
-    stream: z.boolean().optional(),
-    base64Png: z.boolean().optional(),
-    svgText: z.boolean().optional(),
-    model: z.string().optional(),
-  })
-  .refine(data => data.prompt || data.styleParams, {
-    message: 'Either prompt or styleParams must be provided',
-  })
-  .refine(data => !(data.model && data.quality), {
-    message: "Cannot specify both 'model' and 'quality'. Use one or the other.",
-  });
+const aiVectorizeParamsSchema = z.object({
+  file: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]),
+  storage: z.boolean().optional(),
+  stream: z.boolean().optional(),
+  svgText: z.boolean().optional(),
+});
 
 /**
- * Client for the Edit SVG/Image API
+ * Client for the AI Vectorize (Convert Image to SVG) API
  */
-export class EditClient extends BaseClient {
-  private params: Partial<EditParams> = {};
+export class AIVectorizeClient extends BaseClient {
+  private params: Partial<AiVectorizeParams> = {};
 
   /**
-   * Create a new Edit client
+   * Create a new AI Vectorize client
    * @param client Parent SVGMaker client
    */
   constructor(client: SVGMakerClient) {
@@ -68,73 +33,40 @@ export class EditClient extends BaseClient {
   }
 
   /**
-   * Execute the Edit SVG/Image request
-   * @returns Edit response
+   * Execute the AI Vectorize request
+   * @returns AI Vectorize response
    */
-  public async execute(): Promise<EditResponse> {
-    this.logger.debug('Starting image/SVG edit', {
-      prompt: this.params.prompt,
-      quality: this.params.quality,
-      hasImage: !!this.params.image,
+  public async execute(): Promise<AiVectorizeResponse> {
+    this.logger.debug('Starting AI vectorize conversion', {
+      hasFile: !!this.params.file,
+      svgTextRequested: !!this.params.svgText,
     });
 
-    // Apply defaults before validation
-    this.applyDefaults();
-
     // Validate parameters
-    this.validateRequest(this.params, editParamsSchema);
+    this.validateRequest(this.params, aiVectorizeParamsSchema);
 
     // Prepare form data
     const formData = new FormData();
 
-    // Add image file
-    await this.addFileToForm(formData, 'image', this.params.image!);
+    // Add file
+    await this.addFileToForm(formData, 'file', this.params.file!);
 
-    // Add prompt if present
-    if (this.params.prompt) {
-      formData.append('prompt', this.params.prompt);
+    // Add storage option if present
+    if (this.params.storage !== undefined) {
+      formData.append('storage', String(this.params.storage));
     }
 
-    // Add styleParams if present
-    if (this.params.styleParams) {
-      formData.append('styleParams', JSON.stringify(this.params.styleParams));
-    }
-
-    // Add options
-    if (this.params.quality) {
-      formData.append('quality', this.params.quality);
-    }
-
-    if (this.params.aspectRatio) {
-      formData.append('aspectRatio', this.params.aspectRatio);
-    }
-
-    if (this.params.background) {
-      formData.append('background', this.params.background);
-    }
-
+    // Add stream option if present
     if (this.params.stream) {
       formData.append('stream', String(this.params.stream));
-    }
-
-    if (this.params.base64Png) {
-      formData.append('base64Png', String(this.params.base64Png));
     }
 
     if (this.params.svgText) {
       formData.append('svgText', String(this.params.svgText));
     }
 
-    if (this.params.storage !== undefined) {
-      formData.append('storage', String(this.params.storage));
-    }
-
-    if (this.params.model) {
-      formData.append('model', this.params.model);
-    }
-
-    // Execute request using native fetch (for FormData compatibility)
-    const response = await fetch(`${this.config.baseUrl}/v1/edit`, {
+    // Execute request using native fetch
+    const response = await fetch(`${this.config.baseUrl}/v1/convert/ai-vectorize`, {
       method: 'POST',
       headers: {
         'x-api-key': this.config.apiKey,
@@ -149,66 +81,43 @@ export class EditClient extends BaseClient {
     const rawResult = await response.json();
     const { data, metadata: responseMetadata } = this.unwrapEnvelope<any>(rawResult);
 
-    let pngImageData: Buffer | undefined = undefined;
-    if (data.base64Png && typeof data.base64Png === 'string') {
-      pngImageData = decodeBase64Png(data.base64Png);
-    }
+    this.logger.debug('AI vectorize conversion completed', {
+      creditCost: data.creditCost,
+      hasSvgText: !!data.svgText,
+    });
 
+    // Normalize svgText (API now sends raw SVG text, but we handle legacy base64 too)
     let svgText: string | undefined = undefined;
     if (data.svgText && typeof data.svgText === 'string') {
       svgText = decodeSvgContent(data.svgText);
     }
 
-    const result: EditResponse = {
+    return {
       svgUrl: data.svgUrl,
       creditCost: data.creditCost,
       message: data.message ?? '',
       svgUrlExpiresIn: data.svgUrlExpiresIn,
       generationId: data.generationId,
       metadata: responseMetadata,
-      pngImageData,
       svgText,
-    };
-
-    this.logger.debug('Image/SVG edit completed', {
-      creditCost: result.creditCost,
-      hasSvgText: !!result.svgText,
-      hasPngData: !!result.pngImageData,
-    });
-
-    return result;
+    } as AiVectorizeResponse;
   }
 
   /**
-   * Configure the edit parameters
-   * @param config Configuration object with edit parameters
+   * Configure the AI vectorize parameters
+   * @param config Configuration object with AI vectorize parameters
    * @returns New client instance
    */
-  public configure(config: Partial<EditParams>): EditClient {
-    this.logger.debug('Configuring edit parameters', { config });
+  public configure(config: Partial<AiVectorizeParams>): AIVectorizeClient {
+    this.logger.debug('Configuring AI vectorize parameters', { config });
 
     const client = this.clone();
     client.params = { ...client.params, ...config };
-
-    // Apply default values for edit mode
-    client.applyDefaults();
-
     return client;
   }
 
   /**
-   * Apply default values for edit mode
-   * @private
-   */
-  private applyDefaults(): void {
-    // Set default quality to medium if not specified (but not when model is used)
-    if (!this.params.quality && !this.params.model) {
-      this.params.quality = 'medium';
-    }
-  }
-
-  /**
-   * Stream the edit response
+   * Stream the AI vectorize response
    * @returns Readable stream of events
    */
   public stream(): Readable {
@@ -216,11 +125,8 @@ export class EditClient extends BaseClient {
     const client = this.clone();
     client.params.stream = true;
 
-    // Apply defaults before validation
-    client.applyDefaults();
-
     // Validate parameters
-    this.validateRequest(client.params, editParamsSchema);
+    this.validateRequest(client.params, aiVectorizeParamsSchema);
 
     // Create a readable stream for the events
     const stream = new Readable({
@@ -234,52 +140,23 @@ export class EditClient extends BaseClient {
         // Prepare form data
         const formData = new FormData();
 
-        // Add image file
-        await this.addFileToForm(formData, 'image', client.params.image!);
+        // Add file
+        await this.addFileToForm(formData, 'file', client.params.file!);
 
-        // Add prompt if present
-        if (client.params.prompt) {
-          formData.append('prompt', client.params.prompt);
+        // Add storage option if present
+        if (client.params.storage !== undefined) {
+          formData.append('storage', String(client.params.storage));
         }
 
-        // Add styleParams if present
-        if (client.params.styleParams) {
-          formData.append('styleParams', JSON.stringify(client.params.styleParams));
-        }
-
-        // Add options
-        if (client.params.quality) {
-          formData.append('quality', client.params.quality);
-        }
-
-        if (client.params.aspectRatio) {
-          formData.append('aspectRatio', client.params.aspectRatio);
-        }
-
-        if (client.params.background) {
-          formData.append('background', client.params.background);
-        }
-
+        // Add stream option
         formData.append('stream', 'true');
-
-        if (client.params.base64Png) {
-          formData.append('base64Png', String(client.params.base64Png));
-        }
 
         if (client.params.svgText) {
           formData.append('svgText', String(client.params.svgText));
         }
 
-        if (client.params.storage !== undefined) {
-          formData.append('storage', String(client.params.storage));
-        }
-
-        if (client.params.model) {
-          formData.append('model', client.params.model);
-        }
-
         // Make request to the streaming endpoint using native fetch
-        const response = await fetch(`${this.config.baseUrl}/v1/edit`, {
+        const response = await fetch(`${this.config.baseUrl}/v1/convert/ai-vectorize`, {
           method: 'POST',
           headers: {
             Accept: 'text/event-stream',
@@ -321,23 +198,11 @@ export class EditClient extends BaseClient {
 
             try {
               // Parse the JSON chunk directly (no "data:" prefix like SSE)
-              const event = JSON.parse(trimmedLine) as EditStreamEvent;
-
-              // --- Begin: Normalize event fields to match non-streaming response ---
+              const event = JSON.parse(trimmedLine) as AiVectorizeStreamEvent;
               // Normalize svgText (API now sends raw SVG text, but we handle legacy base64 too)
               if (event.svgText && typeof event.svgText === 'string') {
                 event.svgText = decodeSvgContent(event.svgText);
               }
-              // Convert base64Png to pngImageData (Buffer) if present
-              if (event.base64Png && typeof event.base64Png === 'string') {
-                try {
-                  event.pngImageData = decodeBase64Png(event.base64Png);
-                } catch {
-                  event.pngImageData = undefined;
-                }
-              }
-              // --- End: Normalize event fields ---
-
               // Accumulate fields from all events
               for (const [key, value] of Object.entries(event)) {
                 if (value !== undefined && key !== 'status' && key !== 'message') {
@@ -364,7 +229,7 @@ export class EditClient extends BaseClient {
         // Process any remaining data in buffer
         if (buffer.trim()) {
           try {
-            const event = JSON.parse(buffer.trim()) as EditStreamEvent;
+            const event = JSON.parse(buffer.trim()) as AiVectorizeStreamEvent;
             stream.push(event);
           } catch (e) {
             console.error('Error parsing final chunk:', e);
@@ -448,8 +313,8 @@ export class EditClient extends BaseClient {
    * Create a clone of this client
    * @returns New client instance
    */
-  protected clone(): EditClient {
-    const client = new EditClient(this.client);
+  protected clone(): AIVectorizeClient {
+    const client = new AIVectorizeClient(this.client);
     this.copyTo(client);
     client.params = { ...this.params };
     return client;

@@ -5,6 +5,7 @@ import { HttpClient } from './utils/httpClient';
 // Export client classes
 import { GenerateClient } from './clients/GenerateClient';
 import { EditClient } from './clients/EditClient';
+import { AIVectorizeClient } from './clients/convert';
 import { ConvertClient } from './clients/ConvertClient';
 
 // Export error classes
@@ -23,7 +24,8 @@ export {
   SVGMakerClient,
   GenerateClient,
   EditClient,
-  ConvertClient,
+  AIVectorizeClient,
+  ConvertClient, // backward compat
 
   // Utils
   HttpClient,

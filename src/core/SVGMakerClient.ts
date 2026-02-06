@@ -3,7 +3,7 @@ import { HttpClient, RequestOptions } from '../utils/httpClient';
 import { ValidationError } from '../errors/CustomErrors';
 import { GenerateClient } from '../clients/GenerateClient';
 import { EditClient } from '../clients/EditClient';
-import { ConvertClient } from '../clients/ConvertClient';
+import { AIVectorizeClient } from '../clients/convert';
 import { createRetryWrapper } from '../utils/retry';
 import { createRateLimiter } from '../utils/rateLimit';
 import { Logger, createLogger } from '../utils/logger';
@@ -58,9 +58,12 @@ export class SVGMakerClient {
   public readonly edit: EditClient;
 
   /**
-   * Convert Image to SVG client
+   * Convert namespace — contains AI vectorize and future conversion clients
    */
-  public readonly convert: ConvertClient;
+  public readonly convert: {
+    /** AI-powered raster to SVG vectorization */
+    aiVectorize: AIVectorizeClient;
+  };
 
   /**
    * Create a new SVGMaker client
@@ -97,7 +100,9 @@ export class SVGMakerClient {
     // Create API clients
     this.generate = new GenerateClient(this);
     this.edit = new EditClient(this);
-    this.convert = new ConvertClient(this);
+    this.convert = {
+      aiVectorize: new AIVectorizeClient(this),
+    };
 
     this.logger.info('SVGMaker SDK initialized');
   }

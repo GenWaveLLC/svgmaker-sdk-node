@@ -1,7 +1,18 @@
 import { SVGMakerClient } from '../core/SVGMakerClient';
 import { HttpClient, RequestOptions } from '../utils/httpClient';
 import { SVGMakerConfig } from '../types/config';
-import { ValidationError } from '../errors/CustomErrors';
+import {
+  ValidationError,
+  APIError,
+  AuthError,
+  RateLimitError,
+  InsufficientCreditsError,
+  ContentSafetyError,
+  FileSizeError,
+  FileFormatError,
+  EndpointDisabledError,
+} from '../errors/CustomErrors';
+import { ResponseMetadata } from '../types/api';
 import { Logger } from '../utils/logger';
 import { z } from 'zod';
 
@@ -117,5 +128,105 @@ export abstract class BaseClient {
     target.httpClient = this.httpClient;
     target.config = this.config;
     target.logger = this.logger;
+  }
+
+  /**
+   * Map a v1 API error object to the appropriate SDK error class
+   */
+  protected mapApiError(
+    errorObj: {
+      code?: string;
+      status?: number;
+      message?: string;
+      details?: Record<string, unknown>;
+    },
+    requestId?: string
+  ): Error {
+    const message = errorObj.message || 'Unknown API error';
+    const code = errorObj.code || '';
+    const status = errorObj.status || 500;
+
+    switch (code) {
+      case 'INVALID_API_KEY':
+        return new AuthError(message);
+      case 'INSUFFICIENT_CREDITS':
+        return new InsufficientCreditsError(
+          message,
+          (errorObj.details?.creditsRequired as number) ?? undefined
+        );
+      case 'RATE_LIMIT_EXCEEDED':
+        return new RateLimitError(message);
+      case 'CONTENT_POLICY':
+        return new ContentSafetyError(message);
+      case 'ENDPOINT_DISABLED':
+        return new EndpointDisabledError(message);
+    }
+
+    // Fallback on HTTP status
+    switch (status) {
+      case 401:
+        return new AuthError(message);
+      case 402:
+        return new InsufficientCreditsError(
+          message,
+          (errorObj.details?.creditsRequired as number) ?? undefined
+        );
+      case 413:
+        return new FileSizeError(message);
+      case 429:
+        return new RateLimitError(message);
+    }
+
+    if (message.includes('file format') || message.includes('already in vector format')) {
+      return new FileFormatError(message);
+    }
+
+    return new APIError(message, status, code, errorObj.details, requestId);
+  }
+
+  /**
+   * Unwrap a v1 API response envelope. Throws on error envelope.
+   * @returns Object with data and metadata
+   */
+  protected unwrapEnvelope<T>(raw: any): { data: T; metadata: ResponseMetadata } {
+    if (raw.success === true && raw.data !== undefined) {
+      return { data: raw.data as T, metadata: raw.metadata };
+    }
+    if (raw.success === false) {
+      throw this.mapApiError(raw.error || {}, raw.metadata?.requestId);
+    }
+    // Legacy fallback for non-envelope responses
+    return {
+      data: raw as T,
+      metadata: { requestId: '', creditsUsed: 0, creditsRemaining: 0 },
+    };
+  }
+
+  /**
+   * Handle an error response from raw fetch calls by parsing the v1 error envelope
+   */
+  protected async handleFetchErrorResponse(response: globalThis.Response): Promise<never> {
+    let errorData: any = {};
+    try {
+      const contentType = response.headers.get('Content-Type');
+      if (contentType?.includes('application/json')) {
+        errorData = await response.json();
+      } else {
+        errorData = { error: { message: await response.text() } };
+      }
+    } catch {
+      errorData = { error: { message: `HTTP Error ${response.status}` } };
+    }
+
+    if (errorData.success === false && errorData.error) {
+      throw this.mapApiError(errorData.error, errorData.metadata?.requestId);
+    }
+
+    // Fallback
+    const message = errorData.error?.message || errorData.error || `HTTP Error ${response.status}`;
+    throw new APIError(
+      typeof message === 'string' ? message : `HTTP Error ${response.status}`,
+      response.status
+    );
   }
 }

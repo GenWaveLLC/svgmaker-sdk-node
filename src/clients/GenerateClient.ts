@@ -12,56 +12,39 @@ const generateParamsSchema = z
   .object({
     prompt: z.string().min(1, 'Prompt is required'),
     quality: z.enum(['low', 'medium', 'high']).optional(),
-    aspectRatio: z.enum(['auto', 'portrait', 'landscape', 'square', 'wide', 'tall']).optional(),
+    aspectRatio: z.enum(['auto', 'portrait', 'landscape', 'square']).optional(),
     background: z.enum(['auto', 'transparent', 'opaque']).optional(),
+    storage: z.boolean().optional(),
     stream: z.boolean().optional(),
     base64Png: z.boolean().optional(),
     svgText: z.boolean().optional(),
+    model: z.string().optional(),
     styleParams: z
       .object({
         style: z
-          .enum(['minimalist', 'cartoon', 'realistic', 'abstract', 'flat', 'isometric'])
+          .enum([
+            'flat',
+            'line_art',
+            'engraving',
+            'linocut',
+            'silhouette',
+            'isometric',
+            'cartoon',
+            'ghibli',
+          ])
           .optional(),
-        color_mode: z.enum(['monochrome', '2-colors', '3-colors', 'full-color']).optional(),
-        image_complexity: z.enum(['simple', 'detailed']).optional(),
-        category: z.enum(['icon', 'illustration', 'pattern', 'logo', 'scene']).optional(),
-        composition: z.enum(['center-object', 'full-scene']).optional(),
-        advanced: z
-          .object({
-            stroke_weight: z.enum(['thin', 'medium', 'thick']).optional(),
-            corner_style: z.enum(['none', 'rounded', 'sharp']).optional(),
-            shadow_effect: z.enum(['none', 'soft', 'hard']).optional(),
-          })
+        color_mode: z.enum(['full_color', 'monochrome', 'few_colors']).optional(),
+        image_complexity: z.enum(['icon', 'illustration', 'scene']).optional(),
+        text: z.enum(['only_title', 'embedded_text']).optional(),
+        composition: z
+          .enum(['centered_object', 'repeating_pattern', 'full_scene', 'objects_in_grid'])
           .optional(),
       })
       .optional(),
   })
-  .refine(
-    data => {
-      // Validate quality and aspect ratio combinations
-      if (data.quality && data.aspectRatio) {
-        const quality = data.quality;
-        const aspectRatio = data.aspectRatio;
-
-        if (
-          (quality === 'low' || quality === 'medium') &&
-          !['auto', 'portrait', 'landscape', 'square'].includes(aspectRatio)
-        ) {
-          return false;
-        }
-
-        if (quality === 'high' && aspectRatio === 'auto') {
-          return false;
-        }
-      }
-
-      return true;
-    },
-    {
-      message:
-        'Invalid quality and aspect ratio combination. Low/medium quality supports auto, portrait, landscape, square only. High quality supports all except auto.',
-    }
-  );
+  .refine(data => !(data.model && data.quality), {
+    message: "Cannot specify both 'model' and 'quality'. Use one or the other.",
+  });
 
 /**
  * Client for the Generate SVG API
@@ -96,7 +79,7 @@ export class GenerateClient extends BaseClient {
     this.validateRequest(this.params, generateParamsSchema);
 
     // Execute request
-    const rawResult = await this.handleRequest<any>('/generate', {
+    const rawResult = await this.handleRequest<any>('/v1/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -115,11 +98,13 @@ export class GenerateClient extends BaseClient {
     const result: GenerateResponse = {
       svgUrl: rawResult.svgUrl,
       creditCost: rawResult.creditCost,
-      pngImageData: rawResult.pngImageData, // Provided by interceptor
+      message: rawResult.message ?? '',
+      svgUrlExpiresIn: rawResult.svgUrlExpiresIn,
+      generationId: rawResult.generationId,
+      metadata: rawResult.metadata,
+      pngImageData: rawResult.pngImageData,
       svgText,
-      prompt: rawResult.prompt ?? this.params.prompt,
       quality: rawResult.quality ?? this.params.quality ?? 'medium',
-      revisedPrompt: rawResult.revisedPrompt ?? '',
     };
 
     this.logger.debug('SVG generation completed', {
@@ -153,15 +138,7 @@ export class GenerateClient extends BaseClient {
    * @private
    */
   private applyDefaults(): void {
-    // Set default aspect ratio based on quality if not already set
-    if (this.params.quality && !this.params.aspectRatio) {
-      if (this.params.quality === 'high') {
-        this.params.aspectRatio = 'square';
-      } else {
-        // low or medium quality
-        this.params.aspectRatio = 'auto';
-      }
-    }
+    // No quality-specific defaults in v1 API
   }
 
   /**
@@ -189,7 +166,7 @@ export class GenerateClient extends BaseClient {
     (async () => {
       try {
         // Make request to the streaming endpoint using native fetch
-        const response = await fetch(`${this.config.baseUrl}/generate`, {
+        const response = await fetch(`${this.config.baseUrl}/v1/generate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -200,8 +177,7 @@ export class GenerateClient extends BaseClient {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP error ${response.status}: ${errorText}`);
+          await this.handleFetchErrorResponse(response);
         }
 
         const reader = response.body?.getReader();
@@ -211,6 +187,7 @@ export class GenerateClient extends BaseClient {
 
         const decoder = new TextDecoder();
         let buffer = '';
+        const accumulated: Record<string, unknown> = {};
 
         while (true) {
           const { done, value } = await reader.read();
@@ -252,13 +229,22 @@ export class GenerateClient extends BaseClient {
               }
               // --- End: Normalize event fields ---
 
-              stream.push(event);
+              // Accumulate fields from all events
+              for (const [key, value] of Object.entries(event)) {
+                if (value !== undefined && key !== 'status' && key !== 'message') {
+                  accumulated[key] = value;
+                }
+              }
 
-              // End the stream when we get a complete or error status
+              // When complete, merge accumulated fields into the event
               if (event.status === 'complete' || event.status === 'error') {
+                const mergedEvent = { ...accumulated, ...event };
+                stream.push(mergedEvent);
                 stream.push(null);
                 return;
               }
+
+              stream.push(event);
             } catch (e) {
               console.error('Error parsing streaming chunk:', e);
               console.error('Problematic line:', trimmedLine);

@@ -7,6 +7,7 @@ import {
   RateLimitError,
   InsufficientCreditsError,
   ContentSafetyError,
+  EndpointDisabledError,
   FileSizeError,
   FileFormatError,
 } from '../errors/CustomErrors';
@@ -102,12 +103,45 @@ export class HttpClient {
       if (response.headers.get('Content-Type')?.includes('application/json')) {
         const jsonResponse = await response.json();
 
-        // Process base64Png field if present
+        // Handle v1 envelope response
+        if (jsonResponse.success === true && jsonResponse.data !== undefined) {
+          // Unwrap the v1 envelope
+          const unwrapped = { ...jsonResponse.data, metadata: jsonResponse.metadata };
+
+          // Process base64Png field if present
+          if (unwrapped.base64Png && typeof unwrapped.base64Png === 'string') {
+            const base64Data = unwrapped.base64Png.replace(/^data:image\/png;base64,/, '');
+            unwrapped.pngImageData = Buffer.from(base64Data, 'base64');
+          }
+
+          return unwrapped as T;
+        } else if (jsonResponse.success === false) {
+          // v1 error envelope that came with a 2xx status (unlikely but handle it)
+          const errorCode = jsonResponse.error?.code;
+          const errorMessage = jsonResponse.error?.message || `API Error`;
+          const errorDetails = jsonResponse.error?.details;
+          const requestId = jsonResponse.metadata?.requestId;
+
+          if (errorCode === 'INVALID_API_KEY') throw new AuthError(errorMessage);
+          if (errorCode === 'INSUFFICIENT_CREDITS')
+            throw new InsufficientCreditsError(errorMessage, errorDetails?.creditsRequired);
+          if (errorCode === 'RATE_LIMIT_EXCEEDED') throw new RateLimitError(errorMessage, 60);
+          if (errorCode === 'CONTENT_POLICY') throw new ContentSafetyError(errorMessage);
+          if (errorCode === 'ENDPOINT_DISABLED') throw new EndpointDisabledError(errorMessage);
+
+          throw new APIError(
+            errorMessage,
+            jsonResponse.error?.status,
+            errorCode,
+            errorDetails,
+            requestId
+          );
+        }
+
+        // Legacy non-envelope response
         if (jsonResponse.base64Png && typeof jsonResponse.base64Png === 'string') {
-          // Convert base64 PNG to Buffer for consistent API
           const base64Data = jsonResponse.base64Png.replace(/^data:image\/png;base64,/, '');
           jsonResponse.pngImageData = Buffer.from(base64Data, 'base64');
-          // Keep the original base64 string as well for compatibility
         }
 
         return jsonResponse as T;
@@ -274,57 +308,80 @@ export class HttpClient {
    * @returns Error object
    */
   private async handleErrorResponse(response: globalThis.Response): Promise<Error> {
-    let errorData: any = {};
+    let body: any = {};
 
     try {
       if (response.headers.get('Content-Type')?.includes('application/json')) {
-        errorData = await response.json();
+        body = await response.json();
       } else {
-        errorData = { error: await response.text() };
+        body = { error: await response.text() };
       }
     } catch {
-      errorData = { error: `HTTP Error ${response.status}` };
+      body = { error: `HTTP Error ${response.status}` };
     }
 
-    const message = errorData.error || errorData.details || `HTTP Error ${response.status}`;
+    // Extract v1 error envelope fields
+    const errorCode = body.error?.code;
+    const errorStatus = body.error?.status || response.status;
+    const errorMessage =
+      body.error?.message || body.error || body.details || `HTTP Error ${response.status}`;
+    const errorDetails = body.error?.details;
+    const requestId = body.metadata?.requestId;
 
-    // Handle specific error types
+    // Map by v1 error code first
+    if (errorCode) {
+      switch (errorCode) {
+        case 'INVALID_API_KEY':
+          return new AuthError(errorMessage);
+
+        case 'INSUFFICIENT_CREDITS':
+          return new InsufficientCreditsError(errorMessage, errorDetails?.creditsRequired);
+
+        case 'RATE_LIMIT_EXCEEDED': {
+          const retryAfter = parseInt(
+            response.headers.get('x-ratelimit-reset-requests') ||
+              response.headers.get('Retry-After') ||
+              '60',
+            10
+          );
+          return new RateLimitError(errorMessage, retryAfter);
+        }
+
+        case 'CONTENT_POLICY':
+          return new ContentSafetyError(errorMessage);
+
+        case 'ENDPOINT_DISABLED':
+          return new EndpointDisabledError(errorMessage);
+      }
+    }
+
+    // Fallback to HTTP status code mapping
     switch (response.status) {
       case 401:
-        return new AuthError(message);
+        return new AuthError(errorMessage);
 
       case 402:
-        return new InsufficientCreditsError(message, errorData.creditsRequired);
+        return new InsufficientCreditsError(errorMessage, errorDetails?.creditsRequired);
 
       case 413:
-        return new FileSizeError(message);
+        return new FileSizeError(errorMessage);
 
       case 429:
         return new RateLimitError(
-          message,
+          errorMessage,
           parseInt(response.headers.get('Retry-After') || '60', 10)
         );
     }
 
-    // Handle content safety errors
-    if (errorData.errorType === 'content_safety') {
-      return new ContentSafetyError(message);
-    }
-
-    // Handle file format errors
+    // Handle file format errors by message content
     if (
-      message.includes('file format') ||
-      message.includes('SVG files are already in vector format')
+      errorMessage.includes('file format') ||
+      errorMessage.includes('SVG files are already in vector format')
     ) {
-      return new FileFormatError(message);
+      return new FileFormatError(errorMessage);
     }
 
-    // Generic API error
-    return new APIError(
-      message,
-      response.status,
-      errorData.errorType || errorData.error_type,
-      errorData.details
-    );
+    // Generic API error with all extracted fields
+    return new APIError(errorMessage, errorStatus, errorCode, errorDetails, requestId);
   }
 }

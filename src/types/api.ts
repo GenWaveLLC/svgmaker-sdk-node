@@ -1,28 +1,42 @@
 /**
- * Common types for the SVGMaker API
+ * Common types for the SVGMaker v1 API
  */
 
 import { Readable } from 'stream';
 
 export type Quality = 'low' | 'medium' | 'high';
-export type AspectRatio = 'auto' | 'portrait' | 'landscape' | 'square' | 'wide' | 'tall';
+export type AspectRatio = 'auto' | 'portrait' | 'landscape' | 'square';
 export type Background = 'auto' | 'transparent' | 'opaque';
-export type Style = 'minimalist' | 'cartoon' | 'realistic' | 'abstract' | 'flat' | 'isometric';
-export type ColorMode = 'monochrome' | '2-colors' | '3-colors' | 'full-color';
-export type ImageComplexity = 'simple' | 'detailed';
-export type Category = 'icon' | 'illustration' | 'pattern' | 'logo' | 'scene';
-export type Composition = 'center-object' | 'full-scene';
-export type StrokeWeight = 'thin' | 'medium' | 'thick';
-export type CornerStyle = 'none' | 'rounded' | 'sharp';
-export type ShadowEffect = 'none' | 'soft' | 'hard';
+export type Style =
+  | 'flat'
+  | 'line_art'
+  | 'engraving'
+  | 'linocut'
+  | 'silhouette'
+  | 'isometric'
+  | 'cartoon'
+  | 'ghibli';
+export type ColorMode = 'full_color' | 'monochrome' | 'few_colors';
+export type ImageComplexity = 'icon' | 'illustration' | 'scene';
+export type Composition =
+  | 'centered_object'
+  | 'repeating_pattern'
+  | 'full_scene'
+  | 'objects_in_grid';
+export type TextStyle = 'only_title' | 'embedded_text';
 
 /**
- * Advanced style parameters
+ * Response metadata included in all v1 API responses
  */
-export interface AdvancedStyleParams {
-  stroke_weight?: StrokeWeight;
-  corner_style?: CornerStyle;
-  shadow_effect?: ShadowEffect;
+export interface ResponseMetadata {
+  /** Unique identifier for the request */
+  requestId: string;
+
+  /** Number of credits consumed by this request */
+  creditsUsed: number;
+
+  /** Number of credits remaining on the account */
+  creditsRemaining: number;
 }
 
 /**
@@ -38,14 +52,11 @@ export interface StyleParams {
   /** Optional: Complexity level */
   image_complexity?: ImageComplexity;
 
-  /** Optional: Content category */
-  category?: Category;
-
   /** Optional: Layout composition */
   composition?: Composition;
 
-  /** Optional: Advanced styling parameters */
-  advanced?: AdvancedStyleParams;
+  /** Optional: Text style for the generated SVG */
+  text?: TextStyle;
 }
 
 /**
@@ -58,7 +69,7 @@ export interface GenerateParams {
   /** Optional: Generation quality: "low", "medium", "high" */
   quality?: Quality;
 
-  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" */
+  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square" */
   aspectRatio?: AspectRatio;
 
   /** Optional: Background type: "auto", "transparent", "opaque" */
@@ -73,8 +84,14 @@ export interface GenerateParams {
   /** Optional: Include SVG source code as text in response (default: false) */
   svgText?: boolean;
 
-  /** Optional: Style parameters object containing style, color_mode, image_complexity, category, composition, and advanced options */
+  /** Optional: Style parameters object containing style, color_mode, image_complexity, composition, and text options */
   styleParams?: StyleParams;
+
+  /** Optional: Store the generated SVG on SVGMaker servers (default: false) */
+  storage?: boolean;
+
+  /** Optional: Specific AI model ID to use. Cannot be combined with quality. Credits are charged based on the model. */
+  model?: string;
 }
 
 /**
@@ -84,19 +101,16 @@ export interface EditParams {
   /** Required: Image file to edit */
   image: string | Buffer | Readable;
 
-  /** Required: Edit instructions as a simple text string */
-  prompt: string;
+  /** Optional: Edit instructions as a simple text string */
+  prompt?: string;
 
   /** Optional: Style parameters as JSON object */
   styleParams?: StyleParams;
 
-  /** Optional: Mask file for targeted editing */
-  mask?: string | Buffer | Readable;
-
   /** Optional: Quality level: "low", "medium", "high" (default: "medium") */
   quality?: Quality;
 
-  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" (default: "auto") */
+  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square" (default: "auto") */
   aspectRatio?: AspectRatio;
 
   /** Optional: Background: "auto", "transparent", "opaque" (default: "auto") */
@@ -110,12 +124,18 @@ export interface EditParams {
 
   /** Optional: Include SVG source code as text in response (default: false) */
   svgText?: boolean;
+
+  /** Optional: Store the edited SVG on SVGMaker servers (default: false) */
+  storage?: boolean;
+
+  /** Optional: Specific AI model ID to use. Cannot be combined with quality. Credits are charged based on the model. */
+  model?: string;
 }
 
 /**
- * Convert Image to SVG request parameters
+ * AI Vectorize (Convert Image to SVG) request parameters
  */
-export interface ConvertParams {
+export interface AiVectorizeParams {
   /** Required: File to convert to SVG */
   file: string | Buffer | Readable;
 
@@ -124,7 +144,16 @@ export interface ConvertParams {
 
   /** Optional: Include SVG source code as text in response (default: false) */
   svgText?: boolean;
+
+  /** Optional: Store the converted SVG on SVGMaker servers (default: false) */
+  storage?: boolean;
 }
+
+/**
+ * Convert Image to SVG request parameters
+ * @deprecated Use AiVectorizeParams instead
+ */
+export type ConvertParams = AiVectorizeParams;
 
 /**
  * Base SVGMaker API response
@@ -135,6 +164,18 @@ export interface BaseResponse {
 
   /** Number of credits consumed by the operation */
   creditCost: number;
+
+  /** Response metadata with requestId, creditsUsed, and creditsRemaining */
+  metadata: ResponseMetadata;
+
+  /** Human-readable message about the operation result */
+  message: string;
+
+  /** Expiration time for the SVG URL (e.g., "24h") */
+  svgUrlExpiresIn?: string;
+
+  /** Unique identifier for this generation */
+  generationId?: string;
 }
 
 /**
@@ -147,14 +188,8 @@ export interface GenerateResponse extends BaseResponse {
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
 
-  /** The prompt used for generation */
-  prompt: string;
-
   /** The quality level used */
   quality: Quality;
-
-  /** The revised prompt used by the AI */
-  revisedPrompt: string;
 }
 
 /**
@@ -169,19 +204,25 @@ export interface EditResponse extends BaseResponse {
 }
 
 /**
- * Convert Image to SVG response
+ * AI Vectorize (Convert Image to SVG) response
  */
-export interface ConvertResponse extends BaseResponse {
+export interface AiVectorizeResponse extends BaseResponse {
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
 }
+
+/**
+ * Convert Image to SVG response
+ * @deprecated Use AiVectorizeResponse instead
+ */
+export type ConvertResponse = AiVectorizeResponse;
 
 /**
  * Stream event base type
  */
 export interface StreamEventBase {
   /** Status of the streaming response */
-  status: 'processing' | 'complete' | 'error';
+  status: 'processing' | 'generated' | 'storing' | 'complete' | 'error';
   /** SVG source code as text (decoded, only when svgText=true and available) */
   svgText?: string;
   /** Base64-encoded PNG preview (only when base64Png=true and available) */
@@ -194,9 +235,17 @@ export interface StreamEventBase {
  * Processing stream event
  */
 export interface ProcessingStreamEvent extends StreamEventBase {
-  status: 'processing';
+  status: 'processing' | 'generated' | 'storing';
   /** Progress message */
   message: string;
+  /** URL to the generated/edited/converted SVG (may appear in generated event) */
+  svgUrl?: string;
+  /** Number of credits consumed by the operation (may appear in generated event) */
+  creditCost?: number;
+  /** Expiration time for the SVG URL (may appear in generated event) */
+  svgUrlExpiresIn?: string;
+  /** The quality level used (may appear in generated event) */
+  quality?: string;
 }
 
 /**
@@ -206,10 +255,18 @@ export interface CompleteStreamEvent extends StreamEventBase {
   status: 'complete';
   /** URL to the generated/edited/converted SVG */
   svgUrl: string;
-  /** Simulation mode flag */
-  simulationMode: boolean;
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
+  /** Expiration time for the SVG URL */
+  svgUrlExpiresIn?: string;
+  /** Unique identifier for this generation */
+  generationId?: string;
+  /** Number of credits consumed by the operation */
+  creditCost?: number;
+  /** Human-readable message about the operation result */
+  message?: string;
+  /** Response metadata */
+  metadata?: ResponseMetadata;
 }
 
 /**
@@ -242,3 +299,8 @@ export type EditStreamEvent = StreamEvent;
  * Convert stream event
  */
 export type ConvertStreamEvent = StreamEvent;
+
+/**
+ * AI Vectorize stream event
+ */
+export type AiVectorizeStreamEvent = StreamEvent;
