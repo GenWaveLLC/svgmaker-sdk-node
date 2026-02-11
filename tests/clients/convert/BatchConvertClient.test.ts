@@ -121,6 +121,7 @@ describe('BatchConvertClient', () => {
           preset: 'poster',
           mode: 'spline',
           detail: 50,
+          reduceNoise: 4,
           textToPath: true,
           quality: 90,
         })
@@ -131,6 +132,7 @@ describe('BatchConvertClient', () => {
       expect(formData.get('preset')).toBe('poster');
       expect(formData.get('mode')).toBe('spline');
       expect(formData.get('detail')).toBe('50');
+      expect(formData.get('reduceNoise')).toBe('4');
       expect(formData.get('textToPath')).toBe('true');
       expect(formData.get('quality')).toBe('90');
     });

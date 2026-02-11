@@ -173,6 +173,7 @@ describe('EditClient', () => {
       expect(result.svgUrl).toBe(mockData.svgUrl);
       expect(result.creditCost).toBe(mockData.creditCost);
       expect(result.message).toBe(mockData.message);
+      expect(result.quality).toBe(mockData.quality);
       expect(result.generationId).toBe(mockData.generationId);
       expect(result.metadata).toBeDefined();
     });

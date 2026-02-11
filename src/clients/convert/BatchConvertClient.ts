@@ -15,6 +15,7 @@ const batchConvertParamsSchema = z.object({
   detail: z.number().optional(),
   smoothness: z.number().optional(),
   corners: z.number().optional(),
+  reduceNoise: z.number().optional(),
   textToPath: z.boolean().optional(),
   dxfVersion: z.enum(['R12', 'R14']).optional(),
   quality: z.number().optional(),
@@ -62,7 +63,7 @@ export class BatchConvertClient extends BaseClient {
 
     // Add optional parameters
     this.appendOptionalParams(formData, this.params as Record<string, any>, [
-      'preset', 'mode', 'hierarchical', 'detail', 'smoothness', 'corners',
+      'preset', 'mode', 'hierarchical', 'detail', 'smoothness', 'corners', 'reduceNoise',
       'textToPath', 'dxfVersion', 'quality', 'width', 'height',
     ]);
 

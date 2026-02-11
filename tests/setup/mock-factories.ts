@@ -45,6 +45,7 @@ export function createMockEditResponse(
     svgUrl: 'https://storage.example.com/test-edit.svg',
     creditCost: 2,
     message: 'Image edited successfully',
+    quality: 'medium',
     svgUrlExpiresIn: '24h',
     generationId: 'edit-test-123',
     ...overrides,
@@ -203,6 +204,10 @@ export function createMockGenerationData(
     type: 'generate',
     quality: 'medium',
     isPublic: false,
+    metadata: {
+      hashTags: ['svg', 'landscape', 'mountain'],
+      category: ['flat', 'illustration'],
+    },
     ...overrides,
   };
 }

@@ -201,6 +201,9 @@ export interface EditResponse extends BaseResponse {
 
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
+
+  /** The quality level used */
+  quality?: Quality;
 }
 
 /**
@@ -320,6 +323,7 @@ export interface BatchConvertParams {
   detail?: number;
   smoothness?: number;
   corners?: number;
+  reduceNoise?: number;
   textToPath?: boolean;
   dxfVersion?: DxfVersion;
   quality?: number;
@@ -472,6 +476,10 @@ export interface GenerationResponse {
   quality: string;
   /** Whether the generation is public */
   isPublic: boolean;
+  /** Array of hashtags for this generation */
+  hashTags: string[];
+  /** Array of categories for this generation */
+  categories: string[];
   /** Response metadata */
   metadata: ResponseMetadata;
 }

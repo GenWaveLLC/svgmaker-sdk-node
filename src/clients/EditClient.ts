@@ -122,6 +122,7 @@ export class EditClient extends BaseClient {
       metadata: responseMetadata,
       pngImageData,
       svgText,
+      quality: data.quality,
     };
 
     this.logger.debug('Image/SVG edit completed', {

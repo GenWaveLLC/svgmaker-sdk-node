@@ -166,6 +166,8 @@ describe('GalleryClient', () => {
       expect(result.type).toBe(mockData.type);
       expect(result.quality).toBe(mockData.quality);
       expect(result.isPublic).toBe(mockData.isPublic);
+      expect(result.hashTags).toEqual(mockData.metadata.hashTags);
+      expect(result.categories).toEqual(mockData.metadata.category);
       expect(result.metadata).toBeDefined();
     });
   });

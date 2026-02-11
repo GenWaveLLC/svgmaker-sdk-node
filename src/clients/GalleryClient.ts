@@ -104,9 +104,32 @@ export class GalleryClient extends BaseClient {
 
     this.validateRequest(id, idSchema);
 
-    return this.handleRequest<GalleryItemResponse>(`/v1/gallery/${encodeURIComponent(id)}`, {
+    const url = `${this.config.baseUrl}/v1/gallery/${encodeURIComponent(id)}`;
+    const response = await fetch(url, {
       method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'x-api-key': this.config.apiKey,
+      },
     });
+
+    if (!response.ok) {
+      await this.handleFetchErrorResponse(response);
+    }
+
+    const rawResult = await response.json();
+    const { data, metadata } = this.unwrapEnvelope<any>(rawResult);
+
+    return {
+      id: data.id,
+      prompt: data.prompt,
+      type: data.type,
+      quality: data.quality,
+      isPublic: data.isPublic,
+      hashTags: data.metadata?.hashTags ?? [],
+      categories: data.metadata?.category ?? [],
+      metadata,
+    };
   }
 
   /**
