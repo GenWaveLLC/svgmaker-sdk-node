@@ -9,7 +9,7 @@ export interface SVGMakerConfig {
 
   /**
    * Base URL for the SVGMaker API
-   * @default "https://svgmaker.io/api"
+   * @default "https://api.svgmaker.io"
    */
   baseUrl: string;
 
@@ -73,7 +73,7 @@ export interface SVGMakerConfig {
  */
 export const DEFAULT_CONFIG: SVGMakerConfig = {
   apiKey: '',
-  baseUrl: 'https://svgmaker.io/api',
+  baseUrl: 'https://api.svgmaker.io',
   timeout: 30000,
   maxRetries: 3,
   retryBackoffFactor: 300,

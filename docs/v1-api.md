@@ -4,7 +4,7 @@
 
 The SVGMaker API v1 provides a RESTful interface for generating, editing, and converting images to SVG format using advanced AI technology. All endpoints require authentication via API key and use a consistent response format.
 
-**Base URL:** `https://svgmaker.io/api`
+**Base URL:** `https://api.svgmaker.io`
 
 **API Version:** v1
 
@@ -177,7 +177,7 @@ The `styleParams` object can include:
 #### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/generate \
+curl -X POST https://api.svgmaker.io/v1/generate \
   -H "Content-Type: application/json" \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -d '{
@@ -199,7 +199,7 @@ curl -X POST https://svgmaker.io/api/v1/generate \
 #### Example Request (with model)
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/generate \
+curl -X POST https://api.svgmaker.io/v1/generate \
   -H "Content-Type: application/json" \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -d '{
@@ -308,7 +308,7 @@ x-api-key: svgmaker-io{your-api-key}
 #### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/edit \
+curl -X POST https://api.svgmaker.io/v1/edit \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "image=@input-image.png" \
   -F "prompt=Add a golden frame around this image" \
@@ -324,7 +324,7 @@ curl -X POST https://svgmaker.io/api/v1/edit \
 #### Example Request (with model)
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/edit \
+curl -X POST https://api.svgmaker.io/v1/edit \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "image=@input-image.png" \
   -F "prompt=Add a golden frame around this image" \
@@ -410,7 +410,7 @@ x-api-key: svgmaker-io{your-api-key}
 #### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/enhance-prompt \
+curl -X POST https://api.svgmaker.io/v1/enhance-prompt \
   -H "Content-Type: application/json" \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -d '{
@@ -505,7 +505,7 @@ x-api-key: svgmaker-io{your-api-key}
 #### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/convert/ai-vectorize \
+curl -X POST https://api.svgmaker.io/v1/convert/ai-vectorize \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image-to-convert.png" \
   -F "storage=false" \
@@ -651,7 +651,7 @@ x-api-key: svgmaker-io{your-api-key}
 
 ```bash
 # Using vtracer (default)
-curl -X POST https://svgmaker.io/api/v1/convert/trace \
+curl -X POST https://api.svgmaker.io/v1/convert/trace \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image.png" \
   -F "preset=poster" \
@@ -661,13 +661,13 @@ curl -X POST https://svgmaker.io/api/v1/convert/trace \
   -F "corners=50"
 
 # Explicitly specifying algorithm as query parameter
-curl -X POST "https://svgmaker.io/api/v1/convert/trace?algorithm=vtracer" \
+curl -X POST "https://api.svgmaker.io/v1/convert/trace?algorithm=vtracer" \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image.png" \
   -F "preset=poster"
 
 # Or as form data field
-curl -X POST https://svgmaker.io/api/v1/convert/trace \
+curl -X POST https://api.svgmaker.io/v1/convert/trace \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image.png" \
   -F "algorithm=vtracer" \
@@ -784,7 +784,7 @@ x-api-key: svgmaker-io{your-api-key}
 #### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/convert/svg-to-vector \
+curl -X POST https://api.svgmaker.io/v1/convert/svg-to-vector \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image.svg" \
   -F "toFormat=PDF" \
@@ -858,7 +858,7 @@ x-api-key: svgmaker-io{your-api-key}
 #### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/convert/raster-to-raster \
+curl -X POST https://api.svgmaker.io/v1/convert/raster-to-raster \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image.png" \
   -F "toFormat=JPG" \
@@ -941,7 +941,7 @@ x-api-key: svgmaker-io{your-api-key}
 #### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/convert/batch \
+curl -X POST https://api.svgmaker.io/v1/convert/batch \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image1.png" \
   -F "file=@image2.jpg" \
@@ -1081,12 +1081,12 @@ x-api-key: svgmaker-io{your-api-key}
 
 ```bash
 # Optimize only
-curl -X POST https://svgmaker.io/api/v1/svg/optimize \
+curl -X POST https://api.svgmaker.io/v1/svg/optimize \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image.svg"
 
 # Optimize and compress to SVGZ
-curl -X POST https://svgmaker.io/api/v1/svg/optimize \
+curl -X POST https://api.svgmaker.io/v1/svg/optimize \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image.svg" \
   -F "compress=true"
@@ -1215,31 +1215,31 @@ x-api-key: svgmaker-io{your-api-key}
 
 ```bash
 # Basic pagination
-curl -X GET "https://svgmaker.io/api/v1/generations?page=1&limit=20" \
+curl -X GET "https://api.svgmaker.io/v1/generations?page=1&limit=20" \
   -H "x-api-key: svgmaker-io{your-api-key}" | jq
 
 # Filter by type
-curl -X GET "https://svgmaker.io/api/v1/generations?type=generate&limit=10" \
+curl -X GET "https://api.svgmaker.io/v1/generations?type=generate&limit=10" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Multiple types (OR condition)
-curl -X GET "https://svgmaker.io/api/v1/generations?type=generate&type=edit" \
+curl -X GET "https://api.svgmaker.io/v1/generations?type=generate&type=edit" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Search by query (searches prompt/description)
-curl -X GET "https://svgmaker.io/api/v1/generations?query=mountain%20landscape" \
+curl -X GET "https://api.svgmaker.io/v1/generations?query=mountain%20landscape" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Filter by hashtags
-curl -X GET "https://svgmaker.io/api/v1/generations?hashtags=vector&hashtags=logo" \
+curl -X GET "https://api.svgmaker.io/v1/generations?hashtags=vector&hashtags=logo" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Filter by categories (AND condition - all must match)
-curl -X GET "https://svgmaker.io/api/v1/generations?categories=flat&categories=icon" \
+curl -X GET "https://api.svgmaker.io/v1/generations?categories=flat&categories=icon" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Combined search: query + type + hashtags
-curl -X GET "https://svgmaker.io/api/v1/generations?query=minimalist&type=generate&hashtags=vector&page=1&limit=20" \
+curl -X GET "https://api.svgmaker.io/v1/generations?query=minimalist&type=generate&hashtags=vector&page=1&limit=20" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 ```
 
@@ -1312,7 +1312,7 @@ x-api-key: svgmaker-io{your-api-key}
 Replace `{generation_id}` with your actual generation ID.
 
 ```bash
-curl -X GET https://svgmaker.io/api/v1/generations/{generation_id} \
+curl -X GET https://api.svgmaker.io/v1/generations/{generation_id} \
   -H "x-api-key: svgmaker-io{your-api-key}"
 ```
 
@@ -1413,7 +1413,7 @@ x-api-key: svgmaker-io{your-api-key}
 Replace `{generation_id}` with your actual generation ID.
 
 ```bash
-curl -X DELETE https://svgmaker.io/api/v1/generations/{generation_id} \
+curl -X DELETE https://api.svgmaker.io/v1/generations/{generation_id} \
   -H "x-api-key: svgmaker-io{your-api-key}"
 ```
 
@@ -1479,7 +1479,7 @@ x-api-key: svgmaker-io{your-api-key}
 Replace `{generation_id}` with your actual generation ID.
 
 ```bash
-curl -X POST https://svgmaker.io/api/v1/generations/{generation_id}/share \
+curl -X POST https://api.svgmaker.io/v1/generations/{generation_id}/share \
   -H "x-api-key: svgmaker-io{your-api-key}"
 ```
 
@@ -1581,11 +1581,11 @@ Replace `{generation_id}` with your actual generation ID.
 
 ```bash
 # Download as SVG
-curl -X GET "https://svgmaker.io/api/v1/generations/{generation_id}/download?format=svg" \
+curl -X GET "https://api.svgmaker.io/v1/generations/{generation_id}/download?format=svg" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Download as SVGZ with optimization
-curl -X GET "https://svgmaker.io/api/v1/generations/{generation_id}/download?format=svgz&optimize=true" \
+curl -X GET "https://api.svgmaker.io/v1/generations/{generation_id}/download?format=svgz&optimize=true" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 ```
 
@@ -1690,47 +1690,47 @@ x-api-key: svgmaker-io{your-api-key}
 
 ```bash
 # Basic pagination
-curl -X GET "https://svgmaker.io/api/v1/gallery?page=1&limit=20" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?page=1&limit=20" \
   -H "x-api-key: svgmaker-io{your-api-key}" | jq
 
 # Filter by type
-curl -X GET "https://svgmaker.io/api/v1/gallery?type=generate&limit=10" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?type=generate&limit=10" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Multiple types (OR condition)
-curl -X GET "https://svgmaker.io/api/v1/gallery?type=generate&type=edit" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?type=generate&type=edit" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Search by query (searches prompt/description)
-curl -X GET "https://svgmaker.io/api/v1/gallery?query=mountain%20landscape" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?query=mountain%20landscape" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Filter by hashtags
-curl -X GET "https://svgmaker.io/api/v1/gallery?hashtags=vector&hashtags=logo" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?hashtags=vector&hashtags=logo" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Filter by categories (AND condition - all must match)
-curl -X GET "https://svgmaker.io/api/v1/gallery?categories=flat&categories=icon" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?categories=flat&categories=icon" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Filter for pro images only
-curl -X GET "https://svgmaker.io/api/v1/gallery?pro=true&limit=20" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?pro=true&limit=20" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Filter for gold images only
-curl -X GET "https://svgmaker.io/api/v1/gallery?gold=true&limit=20" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?gold=true&limit=20" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Combined search: query + type + pro filter
-curl -X GET "https://svgmaker.io/api/v1/gallery?query=minimalist&type=generate&pro=true&page=1&limit=20" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?query=minimalist&type=generate&pro=true&page=1&limit=20" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Combined search: gold images with specific hashtags
-curl -X GET "https://svgmaker.io/api/v1/gallery?gold=true&hashtags=vector&hashtags=premium&page=1" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?gold=true&hashtags=vector&hashtags=premium&page=1" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Complex search: pro images, specific type, query, and categories
-curl -X GET "https://svgmaker.io/api/v1/gallery?pro=true&type=generate&query=landscape&categories=illustration&page=1&limit=30" \
+curl -X GET "https://api.svgmaker.io/v1/gallery?pro=true&type=generate&query=landscape&categories=illustration&page=1&limit=30" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 ```
 
@@ -1767,7 +1767,7 @@ x-api-key: svgmaker-io{your-api-key}
 Replace `{generation_id}` with your actual gallery item ID.
 
 ```bash
-curl -X GET https://svgmaker.io/api/v1/gallery/{generation_id} \
+curl -X GET https://api.svgmaker.io/v1/gallery/{generation_id} \
   -H "x-api-key: svgmaker-io{your-api-key}"
 ```
 
@@ -1812,11 +1812,11 @@ Replace `{generation_id}` with your actual gallery item ID.
 
 ```bash
 # Download as SVG
-curl -X GET "https://svgmaker.io/api/v1/gallery/{generation_id}/download?format=svg" \
+curl -X GET "https://api.svgmaker.io/v1/gallery/{generation_id}/download?format=svg" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 
 # Download as SVGZ with optimization
-curl -X GET "https://svgmaker.io/api/v1/gallery/{generation_id}/download?format=svgz&optimize=true" \
+curl -X GET "https://api.svgmaker.io/v1/gallery/{generation_id}/download?format=svgz&optimize=true" \
   -H "x-api-key: svgmaker-io{your-api-key}"
 ```
 
@@ -1889,7 +1889,7 @@ x-api-key: svgmaker-io{your-api-key}
 #### Example Request
 
 ```bash
-curl -X GET https://svgmaker.io/api/v1/account \
+curl -X GET https://api.svgmaker.io/v1/account \
   -H "x-api-key: svgmaker-io{your-api-key}" | jq
 ```
 
@@ -1970,15 +1970,15 @@ x-api-key: svgmaker-io{your-api-key}
 
 ```bash
 # Get all-time usage statistics
-curl -X GET https://svgmaker.io/api/v1/account/usage \
+curl -X GET https://api.svgmaker.io/v1/account/usage \
   -H "x-api-key: svgmaker-io{your-api-key}" | jq
 
 # Get usage for last 7 days
-curl -X GET "https://svgmaker.io/api/v1/account/usage?days=7" \
+curl -X GET "https://api.svgmaker.io/v1/account/usage?days=7" \
   -H "x-api-key: svgmaker-io{your-api-key}" | jq
 
 # Get usage for a date range
-curl -X GET "https://svgmaker.io/api/v1/account/usage?start=2024-01-01&end=2024-01-31" \
+curl -X GET "https://api.svgmaker.io/v1/account/usage?start=2024-01-01&end=2024-01-31" \
   -H "x-api-key: svgmaker-io{your-api-key}" | jq
 ```
 

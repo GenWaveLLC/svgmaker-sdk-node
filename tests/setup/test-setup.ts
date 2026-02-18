@@ -6,7 +6,7 @@ import { SVGMakerClient } from '../../src/core/SVGMakerClient';
 // ============================================================================
 
 export const TEST_API_KEY = 'test-api-key-123';
-export const TEST_BASE_URL = 'https://svgmaker.io/api';
+export const TEST_BASE_URL = 'https://api.svgmaker.io';
 
 /**
  * Default test configuration with retries disabled

@@ -19,7 +19,7 @@ describe('SVGMakerClient', () => {
 
       const config = client.getConfig();
       expect(config.apiKey).toBe('test-api-key');
-      expect(config.baseUrl).toBe('https://svgmaker.io/api');
+      expect(config.baseUrl).toBe('https://api.svgmaker.io');
       expect(config.timeout).toBe(30000);
     });
 
@@ -50,7 +50,7 @@ describe('SVGMakerClient', () => {
       const config = client.getConfig();
       expect(config.timeout).toBe(60000);
       expect(config.maxRetries).toBe(5);
-      expect(config.baseUrl).toBe('https://svgmaker.io/api');
+      expect(config.baseUrl).toBe('https://api.svgmaker.io');
     });
 
     it('should return the client instance for chaining', () => {
