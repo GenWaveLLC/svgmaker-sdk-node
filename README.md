@@ -5,6 +5,17 @@ Official Node.js SDK for the [SVGMaker](https://svgmaker.io) API, providing a cl
 [![npm version](https://img.shields.io/npm/v/@genwave/svgmaker-sdk.svg)](https://www.npmjs.com/package/@genwave/svgmaker-sdk)
 [![License](https://img.shields.io/npm/l/@genwave/svgmaker-sdk.svg)](https://github.com/GenWaveLLC/svgmaker-sdk-node/blob/main/LICENSE)
 
+## Upgrading to v1.0.0
+
+v1.0.0 includes breaking changes. If you're upgrading from v0.x, see the **[Migration Guide](docs/migration-guide-v1.md)** for full details. Top breaking changes:
+
+- **Base URL changed** — now targets `api.svgmaker.io` (automatic if using defaults)
+- **`client.convert` restructured** — old `client.convert.configure(...)` is now `client.convert.aiVectorize.configure(...)`, plus new sub-clients for tracing, format conversion, and batch operations
+- **`styleParams` redesigned** — new style values (`flat`, `line_art`, `engraving`, `ghibli`, ...), `advanced` block removed, new `text` field added
+- **Aspect ratio `wide`/`tall` removed** — only `auto`, `portrait`, `landscape`, `square` remain
+- **`model` parameter**: New option on generate and edit — mutually exclusive with `quality`
+- **Cloud storage no longer default** — generate, edit, and AI vectorize no longer store results to cloud by default; pass `storage: true` to persist
+
 ## Features
 
 - **Complete API Coverage**: Generate, edit, convert, optimize, and manage SVGs
@@ -110,6 +121,7 @@ See the [SDK Documentation](docs/sdk-documentation.md) for the full list of erro
 
 ## Documentation
 
+- **[Migration Guide](docs/migration-guide-v1.md)** - Upgrading from v0.x to v1.0.0
 - **[SDK Documentation](docs/sdk-documentation.md)** - Full SDK reference with detailed examples for every client
 - **[API Documentation](docs/v1-api-documentation.md)** - REST API reference with endpoint details and credit costs
 - **[Legacy API Documentation](docs/legacy-api-documentation.md)** - Pre-v1 API reference
