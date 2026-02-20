@@ -3,43 +3,52 @@ import { EditParams, EditResponse, EditStreamEvent } from '../types/api';
 import { SVGMakerClient } from '../core/SVGMakerClient';
 import { z } from 'zod';
 import { Readable } from 'stream';
-import * as fs from 'fs';
-import * as path from 'path';
-import { ValidationError } from '../errors/CustomErrors';
 import { decodeSvgContent, decodeBase64Png } from '../utils/base64';
 
 /**
  * Schema for validating edit parameters
  */
-const editParamsSchema = z.object({
-  image: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]),
-  prompt: z.string(),
-  styleParams: z
-    .object({
-      style: z
-        .enum(['minimalist', 'cartoon', 'realistic', 'abstract', 'flat', 'isometric'])
-        .optional(),
-      color_mode: z.enum(['monochrome', '2-colors', '3-colors', 'full-color']).optional(),
-      image_complexity: z.enum(['simple', 'detailed']).optional(),
-      category: z.enum(['icon', 'illustration', 'pattern', 'logo', 'scene']).optional(),
-      composition: z.enum(['center-object', 'full-scene']).optional(),
-      advanced: z
-        .object({
-          stroke_weight: z.enum(['thin', 'medium', 'thick']).optional(),
-          corner_style: z.enum(['none', 'rounded', 'sharp']).optional(),
-          shadow_effect: z.enum(['none', 'soft', 'hard']).optional(),
-        })
-        .optional(),
-    })
-    .optional(),
-  mask: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]).optional(),
-  quality: z.enum(['low', 'medium', 'high']).optional(),
-  aspectRatio: z.enum(['auto', 'portrait', 'landscape', 'square']).optional(), // Edit mode only supports these aspect ratios
-  background: z.enum(['auto', 'transparent', 'opaque']).optional(),
-  stream: z.boolean().optional(),
-  base64Png: z.boolean().optional(),
-  svgText: z.boolean().optional(),
-});
+const editParamsSchema = z
+  .object({
+    image: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]),
+    prompt: z.string().optional(),
+    styleParams: z
+      .object({
+        style: z
+          .enum([
+            'flat',
+            'line_art',
+            'engraving',
+            'linocut',
+            'silhouette',
+            'isometric',
+            'cartoon',
+            'ghibli',
+          ])
+          .optional(),
+        color_mode: z.enum(['full_color', 'monochrome', 'few_colors']).optional(),
+        image_complexity: z.enum(['icon', 'illustration', 'scene']).optional(),
+        text: z.enum(['only_title', 'embedded_text']).optional(),
+        composition: z
+          .enum(['centered_object', 'repeating_pattern', 'full_scene', 'objects_in_grid'])
+          .optional(),
+      })
+      .optional(),
+    quality: z.enum(['low', 'medium', 'high']).optional(),
+    aspectRatio: z.enum(['auto', 'portrait', 'landscape', 'square']).optional(),
+    background: z.enum(['auto', 'transparent', 'opaque']).optional(),
+    storage: z.boolean().optional(),
+    stream: z.boolean().optional(),
+    base64Png: z.boolean().optional(),
+    svgText: z.boolean().optional(),
+    model: z.string().optional(),
+  })
+  .refine(data => data.prompt || data.styleParams, {
+    message: 'Either prompt or styleParams must be provided',
+  })
+  .refine(data => !(data.model && data.quality), {
+    message: "Cannot specify both 'model' and 'quality'. Use one or the other.",
+  });
 
 /**
  * Client for the Edit SVG/Image API
@@ -64,7 +73,6 @@ export class EditClient extends BaseClient {
       prompt: this.params.prompt,
       quality: this.params.quality,
       hasImage: !!this.params.image,
-      hasMask: !!this.params.mask,
     });
 
     // Apply defaults before validation
@@ -79,81 +87,50 @@ export class EditClient extends BaseClient {
     // Add image file
     await this.addFileToForm(formData, 'image', this.params.image!);
 
-    // Add prompt
-    formData.append('prompt', this.params.prompt!);
-
-    // Add styleParams if present
+    // Add styleParams if present (requires JSON.stringify)
     if (this.params.styleParams) {
       formData.append('styleParams', JSON.stringify(this.params.styleParams));
     }
 
-    // Add mask if present
-    if (this.params.mask) {
-      await this.addFileToForm(formData, 'mask', this.params.mask);
-    }
+    // Add optional parameters
+    this.appendOptionalParams(formData, this.params as Record<string, any>, [
+      'prompt',
+      'quality',
+      'aspectRatio',
+      'background',
+      'storage',
+      'stream',
+      'base64Png',
+      'svgText',
+      'model',
+    ]);
 
-    // Add options
-    if (this.params.quality) {
-      formData.append('quality', this.params.quality);
-    }
+    // Execute request
+    const { data, metadata: responseMetadata } = await this.executeFormDataRequest<any>(
+      '/v1/edit',
+      formData
+    );
 
-    if (this.params.aspectRatio) {
-      formData.append('aspectRatio', this.params.aspectRatio);
-    }
-
-    if (this.params.background) {
-      formData.append('background', this.params.background);
-    }
-
-    if (this.params.stream) {
-      formData.append('stream', String(this.params.stream));
-    }
-
-    if (this.params.base64Png) {
-      formData.append('base64Png', String(this.params.base64Png));
-    }
-
-    if (this.params.svgText) {
-      formData.append('svgText', String(this.params.svgText));
-    }
-
-    // Execute request using native fetch (for FormData compatibility)
-    const response = await fetch(`${this.config.baseUrl}/edit`, {
-      method: 'POST',
-      headers: {
-        'x-api-key': this.config.apiKey,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      this.logger.error('Edit request failed', { status: response.status, error: errorText });
-      throw new Error(`HTTP error ${response.status}: ${errorText}`);
-    }
-
-    const rawResult = await response.json();
-    // Only log the base64Png field for debugging PNG issues
-    console.log('base64Png from /edit API:', rawResult.base64Png);
-
-    // Manually decode base64Png to pngImageData (like the interceptor)
     let pngImageData: Buffer | undefined = undefined;
-    if (rawResult.base64Png && typeof rawResult.base64Png === 'string') {
-      pngImageData = decodeBase64Png(rawResult.base64Png);
+    if (data.base64Png && typeof data.base64Png === 'string') {
+      pngImageData = decodeBase64Png(data.base64Png);
     }
 
-    // Normalize svgText (API now sends raw SVG text, but we handle legacy base64 too)
     let svgText: string | undefined = undefined;
-    if (rawResult.svgText && typeof rawResult.svgText === 'string') {
-      svgText = decodeSvgContent(rawResult.svgText);
+    if (data.svgText && typeof data.svgText === 'string') {
+      svgText = decodeSvgContent(data.svgText);
     }
 
-    // Compose the response to match EditResponse (only fields present in backend response)
     const result: EditResponse = {
-      svgUrl: rawResult.svgUrl,
-      creditCost: rawResult.creditCost,
+      svgUrl: data.svgUrl,
+      creditCost: data.creditCost,
+      message: data.message ?? '',
+      svgUrlExpiresIn: data.svgUrlExpiresIn,
+      generationId: data.generationId,
+      metadata: responseMetadata,
       pngImageData,
       svgText,
+      quality: data.quality,
     };
 
     this.logger.debug('Image/SVG edit completed', {
@@ -187,8 +164,8 @@ export class EditClient extends BaseClient {
    * @private
    */
   private applyDefaults(): void {
-    // Set default quality to medium if not specified
-    if (!this.params.quality) {
+    // Set default quality to medium if not specified (but not when model is used)
+    if (!this.params.quality && !this.params.model) {
       this.params.quality = 'medium';
     }
   }
@@ -223,17 +200,14 @@ export class EditClient extends BaseClient {
         // Add image file
         await this.addFileToForm(formData, 'image', client.params.image!);
 
-        // Add prompt
-        formData.append('prompt', client.params.prompt!);
+        // Add prompt if present
+        if (client.params.prompt) {
+          formData.append('prompt', client.params.prompt);
+        }
 
         // Add styleParams if present
         if (client.params.styleParams) {
           formData.append('styleParams', JSON.stringify(client.params.styleParams));
-        }
-
-        // Add mask if present
-        if (client.params.mask) {
-          await this.addFileToForm(formData, 'mask', client.params.mask);
         }
 
         // Add options
@@ -259,8 +233,16 @@ export class EditClient extends BaseClient {
           formData.append('svgText', String(client.params.svgText));
         }
 
+        if (client.params.storage !== undefined) {
+          formData.append('storage', String(client.params.storage));
+        }
+
+        if (client.params.model) {
+          formData.append('model', client.params.model);
+        }
+
         // Make request to the streaming endpoint using native fetch
-        const response = await fetch(`${this.config.baseUrl}/edit`, {
+        const response = await fetch(`${this.config.baseUrl}/v1/edit`, {
           method: 'POST',
           headers: {
             Accept: 'text/event-stream',
@@ -270,8 +252,7 @@ export class EditClient extends BaseClient {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP error ${response.status}: ${errorText}`);
+          await this.handleFetchErrorResponse(response);
         }
 
         const reader = response.body?.getReader();
@@ -281,6 +262,7 @@ export class EditClient extends BaseClient {
 
         const decoder = new TextDecoder();
         let buffer = '';
+        const accumulated: Record<string, unknown> = {};
 
         while (true) {
           const { done, value } = await reader.read();
@@ -319,13 +301,22 @@ export class EditClient extends BaseClient {
               }
               // --- End: Normalize event fields ---
 
-              stream.push(event);
+              // Accumulate fields from all events
+              for (const [key, value] of Object.entries(event)) {
+                if (value !== undefined && key !== 'status' && key !== 'message') {
+                  accumulated[key] = value;
+                }
+              }
 
-              // End the stream when we get a complete or error status
+              // When complete, merge accumulated fields into the event
               if (event.status === 'complete' || event.status === 'error') {
+                const mergedEvent = { ...accumulated, ...event };
+                stream.push(mergedEvent);
                 stream.push(null);
                 return;
               }
+
+              stream.push(event);
             } catch (e) {
               console.error('Error parsing streaming chunk:', e);
               console.error('Problematic line:', trimmedLine);
@@ -353,67 +344,6 @@ export class EditClient extends BaseClient {
     })();
 
     return stream;
-  }
-
-  /**
-   * Add a file to the form data
-   * @param formData Form data
-   * @param fieldName Form field name
-   * @param file File path, buffer, or stream
-   */
-  private async addFileToForm(
-    formData: FormData,
-    fieldName: string,
-    file: string | Buffer | Readable
-  ): Promise<void> {
-    if (typeof file === 'string') {
-      // Check if the file exists
-      if (!fs.existsSync(file)) {
-        throw new ValidationError(`File not found: ${file}`);
-      }
-
-      // Read file and create a Blob
-      const fileBuffer = fs.readFileSync(file);
-      const filename = path.basename(file);
-      const mimeType = this.getMimeType(filename);
-
-      const blob = new Blob([fileBuffer], { type: mimeType });
-      formData.append(fieldName, blob, filename);
-    } else if (Buffer.isBuffer(file)) {
-      // Convert buffer to Blob
-      const blob = new Blob([new Uint8Array(file)], { type: 'application/octet-stream' });
-      formData.append(fieldName, blob, 'file');
-    } else if (file instanceof Readable) {
-      // Convert stream to buffer then to Blob
-      const chunks: Buffer[] = [];
-      for await (const chunk of file) {
-        chunks.push(Buffer.from(chunk));
-      }
-      const buffer = Buffer.concat(chunks);
-      const blob = new Blob([buffer], { type: 'application/octet-stream' });
-      formData.append(fieldName, blob, 'file');
-    } else {
-      throw new ValidationError(`Invalid file type: ${typeof file}`);
-    }
-  }
-
-  /**
-   * Get MIME type from filename
-   * @param filename File name
-   * @returns MIME type
-   */
-  private getMimeType(filename: string): string {
-    const ext = path.extname(filename).toLowerCase();
-    const mimeTypes: Record<string, string> = {
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.gif': 'image/gif',
-      '.svg': 'image/svg+xml',
-      '.webp': 'image/webp',
-      '.bmp': 'image/bmp',
-    };
-    return mimeTypes[ext] || 'application/octet-stream';
   }
 
   /**

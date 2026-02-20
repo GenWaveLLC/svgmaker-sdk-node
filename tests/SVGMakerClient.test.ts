@@ -19,7 +19,7 @@ describe('SVGMakerClient', () => {
 
       const config = client.getConfig();
       expect(config.apiKey).toBe('test-api-key');
-      expect(config.baseUrl).toBe('https://svgmaker.io/api');
+      expect(config.baseUrl).toBe('https://api.svgmaker.io');
       expect(config.timeout).toBe(30000);
     });
 
@@ -50,7 +50,7 @@ describe('SVGMakerClient', () => {
       const config = client.getConfig();
       expect(config.timeout).toBe(60000);
       expect(config.maxRetries).toBe(5);
-      expect(config.baseUrl).toBe('https://svgmaker.io/api');
+      expect(config.baseUrl).toBe('https://api.svgmaker.io');
     });
 
     it('should return the client instance for chaining', () => {
@@ -68,6 +68,7 @@ describe('SVGMakerClient', () => {
       expect(client.generate).toBeDefined();
       expect(client.edit).toBeDefined();
       expect(client.convert).toBeDefined();
+      expect(client.convert.aiVectorize).toBeDefined();
     });
 
     it('should accept new base64Png and svgText parameters for generate', () => {
@@ -97,12 +98,12 @@ describe('SVGMakerClient', () => {
       }).not.toThrow();
     });
 
-    it('should accept new svgText parameter for convert', () => {
+    it('should accept new svgText parameter for ai-vectorize', () => {
       const client = new SVGMakerClient('test-api-key');
 
       // Should not throw when configuring with new parameters
       expect(() => {
-        client.convert.configure({
+        client.convert.aiVectorize.configure({
           file: Buffer.from('test'),
           svgText: true,
         });

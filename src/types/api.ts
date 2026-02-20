@@ -1,28 +1,42 @@
 /**
- * Common types for the SVGMaker API
+ * Common types for the SVGMaker v1 API
  */
 
 import { Readable } from 'stream';
 
 export type Quality = 'low' | 'medium' | 'high';
-export type AspectRatio = 'auto' | 'portrait' | 'landscape' | 'square' | 'wide' | 'tall';
+export type AspectRatio = 'auto' | 'portrait' | 'landscape' | 'square';
 export type Background = 'auto' | 'transparent' | 'opaque';
-export type Style = 'minimalist' | 'cartoon' | 'realistic' | 'abstract' | 'flat' | 'isometric';
-export type ColorMode = 'monochrome' | '2-colors' | '3-colors' | 'full-color';
-export type ImageComplexity = 'simple' | 'detailed';
-export type Category = 'icon' | 'illustration' | 'pattern' | 'logo' | 'scene';
-export type Composition = 'center-object' | 'full-scene';
-export type StrokeWeight = 'thin' | 'medium' | 'thick';
-export type CornerStyle = 'none' | 'rounded' | 'sharp';
-export type ShadowEffect = 'none' | 'soft' | 'hard';
+export type Style =
+  | 'flat'
+  | 'line_art'
+  | 'engraving'
+  | 'linocut'
+  | 'silhouette'
+  | 'isometric'
+  | 'cartoon'
+  | 'ghibli';
+export type ColorMode = 'full_color' | 'monochrome' | 'few_colors';
+export type ImageComplexity = 'icon' | 'illustration' | 'scene';
+export type Composition =
+  | 'centered_object'
+  | 'repeating_pattern'
+  | 'full_scene'
+  | 'objects_in_grid';
+export type TextStyle = 'only_title' | 'embedded_text';
 
 /**
- * Advanced style parameters
+ * Response metadata included in all v1 API responses
  */
-export interface AdvancedStyleParams {
-  stroke_weight?: StrokeWeight;
-  corner_style?: CornerStyle;
-  shadow_effect?: ShadowEffect;
+export interface ResponseMetadata {
+  /** Unique identifier for the request */
+  requestId: string;
+
+  /** Number of credits consumed by this request */
+  creditsUsed: number;
+
+  /** Number of credits remaining on the account */
+  creditsRemaining: number;
 }
 
 /**
@@ -38,14 +52,11 @@ export interface StyleParams {
   /** Optional: Complexity level */
   image_complexity?: ImageComplexity;
 
-  /** Optional: Content category */
-  category?: Category;
-
   /** Optional: Layout composition */
   composition?: Composition;
 
-  /** Optional: Advanced styling parameters */
-  advanced?: AdvancedStyleParams;
+  /** Optional: Text style for the generated SVG */
+  text?: TextStyle;
 }
 
 /**
@@ -58,7 +69,7 @@ export interface GenerateParams {
   /** Optional: Generation quality: "low", "medium", "high" */
   quality?: Quality;
 
-  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" */
+  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square" */
   aspectRatio?: AspectRatio;
 
   /** Optional: Background type: "auto", "transparent", "opaque" */
@@ -73,8 +84,14 @@ export interface GenerateParams {
   /** Optional: Include SVG source code as text in response (default: false) */
   svgText?: boolean;
 
-  /** Optional: Style parameters object containing style, color_mode, image_complexity, category, composition, and advanced options */
+  /** Optional: Style parameters object containing style, color_mode, image_complexity, composition, and text options */
   styleParams?: StyleParams;
+
+  /** Optional: Store the generated SVG on SVGMaker servers (default: false) */
+  storage?: boolean;
+
+  /** Optional: Specific AI model ID to use. Cannot be combined with quality. Credits are charged based on the model. */
+  model?: string;
 }
 
 /**
@@ -84,19 +101,16 @@ export interface EditParams {
   /** Required: Image file to edit */
   image: string | Buffer | Readable;
 
-  /** Required: Edit instructions as a simple text string */
-  prompt: string;
+  /** Optional: Edit instructions as a simple text string */
+  prompt?: string;
 
   /** Optional: Style parameters as JSON object */
   styleParams?: StyleParams;
 
-  /** Optional: Mask file for targeted editing */
-  mask?: string | Buffer | Readable;
-
   /** Optional: Quality level: "low", "medium", "high" (default: "medium") */
   quality?: Quality;
 
-  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square", "wide", "tall" (default: "auto") */
+  /** Optional: Aspect ratio: "auto", "portrait", "landscape", "square" (default: "auto") */
   aspectRatio?: AspectRatio;
 
   /** Optional: Background: "auto", "transparent", "opaque" (default: "auto") */
@@ -110,12 +124,18 @@ export interface EditParams {
 
   /** Optional: Include SVG source code as text in response (default: false) */
   svgText?: boolean;
+
+  /** Optional: Store the edited SVG on SVGMaker servers (default: false) */
+  storage?: boolean;
+
+  /** Optional: Specific AI model ID to use. Cannot be combined with quality. Credits are charged based on the model. */
+  model?: string;
 }
 
 /**
- * Convert Image to SVG request parameters
+ * AI Vectorize (Convert Image to SVG) request parameters
  */
-export interface ConvertParams {
+export interface AiVectorizeParams {
   /** Required: File to convert to SVG */
   file: string | Buffer | Readable;
 
@@ -124,7 +144,16 @@ export interface ConvertParams {
 
   /** Optional: Include SVG source code as text in response (default: false) */
   svgText?: boolean;
+
+  /** Optional: Store the converted SVG on SVGMaker servers (default: false) */
+  storage?: boolean;
 }
+
+/**
+ * Convert Image to SVG request parameters
+ * @deprecated Use AiVectorizeParams instead
+ */
+export type ConvertParams = AiVectorizeParams;
 
 /**
  * Base SVGMaker API response
@@ -135,6 +164,18 @@ export interface BaseResponse {
 
   /** Number of credits consumed by the operation */
   creditCost: number;
+
+  /** Response metadata with requestId, creditsUsed, and creditsRemaining */
+  metadata: ResponseMetadata;
+
+  /** Human-readable message about the operation result */
+  message: string;
+
+  /** Expiration time for the SVG URL (e.g., "24h") */
+  svgUrlExpiresIn?: string;
+
+  /** Unique identifier for this generation */
+  generationId?: string;
 }
 
 /**
@@ -147,14 +188,8 @@ export interface GenerateResponse extends BaseResponse {
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
 
-  /** The prompt used for generation */
-  prompt: string;
-
   /** The quality level used */
   quality: Quality;
-
-  /** The revised prompt used by the AI */
-  revisedPrompt: string;
 }
 
 /**
@@ -166,14 +201,145 @@ export interface EditResponse extends BaseResponse {
 
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
+
+  /** The quality level used */
+  quality?: Quality;
+}
+
+/**
+ * AI Vectorize (Convert Image to SVG) response
+ */
+export interface AiVectorizeResponse extends BaseResponse {
+  /** SVG source code as text - only when svgText=true */
+  svgText?: string;
 }
 
 /**
  * Convert Image to SVG response
+ * @deprecated Use AiVectorizeResponse instead
  */
-export interface ConvertResponse extends BaseResponse {
-  /** SVG source code as text - only when svgText=true */
-  svgText?: string;
+export type ConvertResponse = AiVectorizeResponse;
+
+// --- Optimize SVG Types ---
+
+export interface OptimizeSvgParams {
+  /** Required: SVG file path to optimize */
+  file: string;
+  /** Optional: Compress to SVGZ format (default: false) */
+  compress?: boolean;
+}
+
+export interface OptimizeSvgResponse {
+  /** URL to download the optimized SVG (when compress=false) */
+  svgUrl?: string;
+  /** Expiration time for svgUrl */
+  svgUrlExpiresIn?: string;
+  /** URL to download the SVGZ file (when compress=true) */
+  svgzUrl?: string;
+  /** Expiration time for svgzUrl */
+  svgzUrlExpiresIn?: string;
+  /** Filename of the compressed file (when compress=true) */
+  filename?: string;
+  /** Size of the compressed file in bytes (when compress=true) */
+  compressedSize?: number;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+// --- Convert Results Types (shared by trace, svg-to-vector, raster-to-raster, batch) ---
+
+export interface ConvertResultItem {
+  filename: string;
+  success: boolean;
+  url?: string;
+  urlExpiresIn?: string;
+  format?: string;
+  error?: string;
+}
+
+export interface ConvertSummary {
+  total: number;
+  successful: number;
+  failed: number;
+}
+
+export interface ConvertResultsResponse {
+  results: ConvertResultItem[];
+  summary: ConvertSummary;
+  metadata: ResponseMetadata;
+}
+
+// --- Trace Types ---
+
+export type TraceAlgorithm = 'vtracer';
+export type TracePreset = 'bw' | 'poster' | 'photo';
+export type TraceMode = 'pixel' | 'polygon' | 'spline';
+export type TraceHierarchical = 'stacked' | 'cutout';
+
+export interface TraceParams {
+  file: string;
+  algorithm?: TraceAlgorithm;
+  preset?: TracePreset;
+  mode?: TraceMode;
+  hierarchical?: TraceHierarchical;
+  detail?: number;
+  smoothness?: number;
+  corners?: number;
+  reduceNoise?: number;
+}
+
+// --- SVG to Vector Types ---
+
+export type VectorFormat = 'PDF' | 'EPS' | 'DXF' | 'AI' | 'PS';
+export type DxfVersion = 'R12' | 'R14';
+
+export interface SvgToVectorParams {
+  file: string;
+  toFormat: VectorFormat;
+  textToPath?: boolean;
+  dxfVersion?: DxfVersion;
+}
+
+// --- Raster to Raster Types ---
+
+export type RasterFormat = 'PNG' | 'JPG' | 'WEBP' | 'TIFF' | 'GIF' | 'AVIF';
+
+export interface RasterToRasterParams {
+  file: string;
+  toFormat: RasterFormat;
+  quality?: number;
+  width?: number;
+  height?: number;
+}
+
+// --- Batch Convert Types ---
+
+export interface BatchConvertParams {
+  files: string[];
+  toFormat: string;
+  preset?: TracePreset;
+  mode?: TraceMode;
+  hierarchical?: TraceHierarchical;
+  detail?: number;
+  smoothness?: number;
+  corners?: number;
+  reduceNoise?: number;
+  textToPath?: boolean;
+  dxfVersion?: DxfVersion;
+  quality?: number;
+  width?: number;
+  height?: number;
+}
+
+// --- Enhance Prompt Types ---
+
+export interface EnhancePromptParams {
+  prompt: string;
+}
+
+export interface EnhancePromptResponse {
+  enhancedPrompt: string;
+  metadata: ResponseMetadata;
 }
 
 /**
@@ -181,7 +347,7 @@ export interface ConvertResponse extends BaseResponse {
  */
 export interface StreamEventBase {
   /** Status of the streaming response */
-  status: 'processing' | 'complete' | 'error';
+  status: 'processing' | 'generated' | 'storing' | 'complete' | 'error';
   /** SVG source code as text (decoded, only when svgText=true and available) */
   svgText?: string;
   /** Base64-encoded PNG preview (only when base64Png=true and available) */
@@ -194,9 +360,17 @@ export interface StreamEventBase {
  * Processing stream event
  */
 export interface ProcessingStreamEvent extends StreamEventBase {
-  status: 'processing';
+  status: 'processing' | 'generated' | 'storing';
   /** Progress message */
   message: string;
+  /** URL to the generated/edited/converted SVG (may appear in generated event) */
+  svgUrl?: string;
+  /** Number of credits consumed by the operation (may appear in generated event) */
+  creditCost?: number;
+  /** Expiration time for the SVG URL (may appear in generated event) */
+  svgUrlExpiresIn?: string;
+  /** The quality level used (may appear in generated event) */
+  quality?: string;
 }
 
 /**
@@ -206,10 +380,18 @@ export interface CompleteStreamEvent extends StreamEventBase {
   status: 'complete';
   /** URL to the generated/edited/converted SVG */
   svgUrl: string;
-  /** Simulation mode flag */
-  simulationMode: boolean;
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
+  /** Expiration time for the SVG URL */
+  svgUrlExpiresIn?: string;
+  /** Unique identifier for this generation */
+  generationId?: string;
+  /** Number of credits consumed by the operation */
+  creditCost?: number;
+  /** Human-readable message about the operation result */
+  message?: string;
+  /** Response metadata */
+  metadata?: ResponseMetadata;
 }
 
 /**
@@ -242,3 +424,209 @@ export type EditStreamEvent = StreamEvent;
  * Convert stream event
  */
 export type ConvertStreamEvent = StreamEvent;
+
+/**
+ * AI Vectorize stream event
+ */
+export type AiVectorizeStreamEvent = StreamEvent;
+
+// --- Generations Management Types ---
+
+export interface GenerationsListParams {
+  /** Page number (1-indexed) */
+  page?: number;
+  /** Number of items per page (1-100) */
+  limit?: number;
+  /** Filter by type. Can be a single type or array of types */
+  type?: string | string[];
+  /** Filter by hashtag. Can be a single hashtag or array */
+  hashtags?: string | string[];
+  /** Filter by category. Can be a single category or array */
+  categories?: string | string[];
+  /** Search query for prompt/description */
+  query?: string;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface GenerationsListResponse {
+  /** Array of generation IDs */
+  items: string[];
+  /** Pagination information */
+  pagination: Pagination;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export interface GenerationResponse {
+  /** Generation ID */
+  id: string;
+  /** The prompt used to generate the image */
+  prompt: string;
+  /** Generation type: generate, edit, convert, or crafted */
+  type: string;
+  /** Quality level used */
+  quality: string;
+  /** Whether the generation is public */
+  isPublic: boolean;
+  /** Array of hashtags for this generation */
+  hashTags: string[];
+  /** Array of categories for this generation */
+  categories: string[];
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export interface GenerationDeleteResponse {
+  /** Status message */
+  message: string;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export interface GenerationShareResponse {
+  /** Status message */
+  message: string;
+  /** Whether the generation is now public */
+  isPublic: boolean;
+  /** The public share URL */
+  shareUrl: string;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export type DownloadFormat = 'svg' | 'webp' | 'png' | 'svg-optimized' | 'svgz';
+
+export interface GenerationDownloadParams {
+  /** Output format (default: webp) */
+  format?: DownloadFormat;
+  /** Optimize before compressing (only for svgz format) */
+  optimize?: boolean;
+}
+
+export interface GenerationDownloadResponse {
+  /** Generation ID */
+  id: string;
+  /** Download URL (expires after 12h) */
+  url: string;
+  /** URL expiration time */
+  urlExpiresIn: string;
+  /** File format */
+  format: string;
+  /** Suggested filename */
+  filename: string;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+// --- Gallery Types ---
+
+export interface GalleryListParams {
+  /** Page number (1-indexed) */
+  page?: number;
+  /** Number of items per page (1-100) */
+  limit?: number;
+  /** Filter by type. Can be a single type or array of types */
+  type?: string | string[];
+  /** Filter by hashtag. Can be a single hashtag or array */
+  hashtags?: string | string[];
+  /** Filter by category. Can be a single category or array */
+  categories?: string | string[];
+  /** Search query for prompt/description */
+  query?: string;
+  /** Filter for pro images. Pass "true" to filter. */
+  pro?: string;
+  /** Filter for gold images. Pass "true" to filter. */
+  gold?: string;
+}
+
+/** Gallery list response - same structure as GenerationsListResponse */
+export type GalleryListResponse = GenerationsListResponse;
+
+/** Gallery item response - same structure as GenerationResponse */
+export type GalleryItemResponse = GenerationResponse;
+
+/** Gallery download params - same structure as GenerationDownloadParams */
+export type GalleryDownloadParams = GenerationDownloadParams;
+
+/** Gallery download response - same structure as GenerationDownloadResponse */
+export type GalleryDownloadResponse = GenerationDownloadResponse;
+
+// --- Account Types ---
+
+export interface AccountResponse {
+  /** User's email address */
+  email: string;
+  /** User's display name */
+  displayName: string;
+  /** Account type: "free" or "premium" */
+  accountType: string;
+  /** Current credit balance */
+  credits: number;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+export interface AccountUsageParams {
+  /** Number of days to look back (must be positive integer). Cannot be used with start/end. */
+  days?: number;
+  /** Start date in YYYY-MM-DD format. Must be used with end. Cannot be used with days. */
+  start?: string;
+  /** End date in YYYY-MM-DD format. Must be used with start. Cannot be used with days. */
+  end?: string;
+}
+
+export interface UsagePeriod {
+  /** Period type: "all", "days", or "range" */
+  type: string;
+  /** Number of days (only present when type is "days") */
+  days?: number;
+  /** Start date in YYYY-MM-DD format */
+  from?: string;
+  /** End date in YYYY-MM-DD format */
+  to?: string;
+}
+
+export interface UsageSummary {
+  /** Total number of API requests */
+  requests: number;
+  /** Total credits used */
+  creditsUsed: number;
+  /** Number of successful requests */
+  successCount: number;
+  /** Number of failed requests */
+  errorCount: number;
+  /** Success rate (0-1) */
+  successRate: number;
+}
+
+export interface UsageDailyEntry {
+  /** Date in YYYY-MM-DD format */
+  date: string;
+  /** Number of requests on this date */
+  requests: number;
+  /** Credits used on this date */
+  credits: number;
+}
+
+export interface AccountUsageResponse {
+  /** Period information */
+  period: UsagePeriod;
+  /** Summary statistics */
+  summary: UsageSummary;
+  /** Usage statistics grouped by category */
+  byCategory: Record<string, any>;
+  /** Daily breakdown (only present when date range is specified) */
+  daily?: UsageDailyEntry[];
+  /** All-time totals (only present when date range is specified) */
+  allTime?: { requests: number; creditsUsed: number };
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}

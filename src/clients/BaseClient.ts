@@ -1,9 +1,23 @@
 import { SVGMakerClient } from '../core/SVGMakerClient';
 import { HttpClient, RequestOptions } from '../utils/httpClient';
 import { SVGMakerConfig } from '../types/config';
-import { ValidationError } from '../errors/CustomErrors';
+import {
+  ValidationError,
+  APIError,
+  AuthError,
+  RateLimitError,
+  InsufficientCreditsError,
+  ContentSafetyError,
+  FileSizeError,
+  FileFormatError,
+  EndpointDisabledError,
+} from '../errors/CustomErrors';
+import { ResponseMetadata } from '../types/api';
 import { Logger } from '../utils/logger';
 import { z } from 'zod';
+import { Readable } from 'stream';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Base client for API endpoints
@@ -102,6 +116,105 @@ export abstract class BaseClient {
   }
 
   /**
+   * Add a file to the form data
+   * @param formData Form data
+   * @param fieldName Form field name
+   * @param file File path, buffer, or stream
+   */
+  protected async addFileToForm(
+    formData: FormData,
+    fieldName: string,
+    file: string | Buffer | Readable
+  ): Promise<void> {
+    if (typeof file === 'string') {
+      if (!fs.existsSync(file)) {
+        throw new ValidationError(`File not found: ${file}`);
+      }
+      const fileBuffer = fs.readFileSync(file);
+      const filename = path.basename(file);
+      const mimeType = this.getMimeType(filename);
+      const blob = new Blob([fileBuffer], { type: mimeType });
+      formData.append(fieldName, blob, filename);
+    } else if (Buffer.isBuffer(file)) {
+      const blob = new Blob([new Uint8Array(file)], { type: 'application/octet-stream' });
+      formData.append(fieldName, blob, 'file');
+    } else if (file instanceof Readable) {
+      const chunks: Buffer[] = [];
+      for await (const chunk of file) {
+        chunks.push(Buffer.from(chunk));
+      }
+      const buffer = Buffer.concat(chunks);
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
+      formData.append(fieldName, blob, 'file');
+    } else {
+      throw new ValidationError(`Invalid file type: ${typeof file}`);
+    }
+  }
+
+  /**
+   * Get MIME type from filename
+   * @param filename File name
+   * @returns MIME type
+   */
+  protected getMimeType(filename: string): string {
+    const ext = path.extname(filename).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+      '.webp': 'image/webp',
+      '.bmp': 'image/bmp',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
+  }
+
+  /**
+   * Execute a POST request with FormData body and unwrap the v1 API envelope
+   * @param endpoint API endpoint path (e.g., '/v1/convert/trace')
+   * @param formData FormData body
+   * @returns Unwrapped data and metadata
+   */
+  protected async executeFormDataRequest<T = any>(
+    endpoint: string,
+    formData: FormData
+  ): Promise<{ data: T; metadata: ResponseMetadata }> {
+    const response = await fetch(`${this.config.baseUrl}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'x-api-key': this.config.apiKey,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      await this.handleFetchErrorResponse(response);
+    }
+
+    const rawResult = await response.json();
+    return this.unwrapEnvelope<T>(rawResult);
+  }
+
+  /**
+   * Append optional parameters to FormData, converting values to strings
+   * @param formData FormData to append to
+   * @param params Parameters object
+   * @param fieldNames Array of field names to check and append
+   */
+  protected appendOptionalParams(
+    formData: FormData,
+    params: Record<string, any>,
+    fieldNames: string[]
+  ): void {
+    for (const field of fieldNames) {
+      if (params[field] !== undefined) {
+        formData.append(field, String(params[field]));
+      }
+    }
+  }
+
+  /**
    * Create a new instance of this client
    * This should be implemented by child classes to support method chaining
    * @returns New client instance
@@ -117,5 +230,105 @@ export abstract class BaseClient {
     target.httpClient = this.httpClient;
     target.config = this.config;
     target.logger = this.logger;
+  }
+
+  /**
+   * Map a v1 API error object to the appropriate SDK error class
+   */
+  protected mapApiError(
+    errorObj: {
+      code?: string;
+      status?: number;
+      message?: string;
+      details?: Record<string, unknown>;
+    },
+    requestId?: string
+  ): Error {
+    const message = errorObj.message || 'Unknown API error';
+    const code = errorObj.code || '';
+    const status = errorObj.status || 500;
+
+    switch (code) {
+      case 'INVALID_API_KEY':
+        return new AuthError(message);
+      case 'INSUFFICIENT_CREDITS':
+        return new InsufficientCreditsError(
+          message,
+          (errorObj.details?.creditsRequired as number) ?? undefined
+        );
+      case 'RATE_LIMIT_EXCEEDED':
+        return new RateLimitError(message);
+      case 'CONTENT_POLICY':
+        return new ContentSafetyError(message);
+      case 'ENDPOINT_DISABLED':
+        return new EndpointDisabledError(message);
+    }
+
+    // Fallback on HTTP status
+    switch (status) {
+      case 401:
+        return new AuthError(message);
+      case 402:
+        return new InsufficientCreditsError(
+          message,
+          (errorObj.details?.creditsRequired as number) ?? undefined
+        );
+      case 413:
+        return new FileSizeError(message);
+      case 429:
+        return new RateLimitError(message);
+    }
+
+    if (message.includes('file format') || message.includes('already in vector format')) {
+      return new FileFormatError(message);
+    }
+
+    return new APIError(message, status, code, errorObj.details, requestId);
+  }
+
+  /**
+   * Unwrap a v1 API response envelope. Throws on error envelope.
+   * @returns Object with data and metadata
+   */
+  protected unwrapEnvelope<T>(raw: any): { data: T; metadata: ResponseMetadata } {
+    if (raw.success === true && raw.data !== undefined) {
+      return { data: raw.data as T, metadata: raw.metadata };
+    }
+    if (raw.success === false) {
+      throw this.mapApiError(raw.error || {}, raw.metadata?.requestId);
+    }
+    // Legacy fallback for non-envelope responses
+    return {
+      data: raw as T,
+      metadata: { requestId: '', creditsUsed: 0, creditsRemaining: 0 },
+    };
+  }
+
+  /**
+   * Handle an error response from raw fetch calls by parsing the v1 error envelope
+   */
+  protected async handleFetchErrorResponse(response: globalThis.Response): Promise<never> {
+    let errorData: any = {};
+    try {
+      const contentType = response.headers.get('Content-Type');
+      if (contentType?.includes('application/json')) {
+        errorData = await response.json();
+      } else {
+        errorData = { error: { message: await response.text() } };
+      }
+    } catch {
+      errorData = { error: { message: `HTTP Error ${response.status}` } };
+    }
+
+    if (errorData.success === false && errorData.error) {
+      throw this.mapApiError(errorData.error, errorData.metadata?.requestId);
+    }
+
+    // Fallback
+    const message = errorData.error?.message || errorData.error || `HTTP Error ${response.status}`;
+    throw new APIError(
+      typeof message === 'string' ? message : `HTTP Error ${response.status}`,
+      response.status
+    );
   }
 }

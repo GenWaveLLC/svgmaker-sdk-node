@@ -142,6 +142,12 @@ test-generated-*.svg
 test-*.png
 test-*.svg
 
+# Test config (contains API keys)
+tests/test-config.js
+
+# Test output assets
+tests/assets/
+
 # Temporary files
 tmp/
 temp/

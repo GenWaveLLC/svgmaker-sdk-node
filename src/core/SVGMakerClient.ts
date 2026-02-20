@@ -3,7 +3,16 @@ import { HttpClient, RequestOptions } from '../utils/httpClient';
 import { ValidationError } from '../errors/CustomErrors';
 import { GenerateClient } from '../clients/GenerateClient';
 import { EditClient } from '../clients/EditClient';
-import { ConvertClient } from '../clients/ConvertClient';
+import { AIVectorizeClient } from '../clients/convert';
+import { TraceClient } from '../clients/convert/TraceClient';
+import { SvgToVectorClient } from '../clients/convert/SvgToVectorClient';
+import { RasterToRasterClient } from '../clients/convert/RasterToRasterClient';
+import { BatchConvertClient } from '../clients/convert/BatchConvertClient';
+import { EnhancePromptClient } from '../clients/EnhancePromptClient';
+import { GenerationsClient } from '../clients/GenerationsClient';
+import { GalleryClient } from '../clients/GalleryClient';
+import { AccountClient } from '../clients/AccountClient';
+import { OptimizeSvgClient } from '../clients/OptimizeSvgClient';
 import { createRetryWrapper } from '../utils/retry';
 import { createRateLimiter } from '../utils/rateLimit';
 import { Logger, createLogger } from '../utils/logger';
@@ -58,9 +67,45 @@ export class SVGMakerClient {
   public readonly edit: EditClient;
 
   /**
-   * Convert Image to SVG client
+   * Convert namespace — contains AI vectorize and future conversion clients
    */
-  public readonly convert: ConvertClient;
+  public readonly convert: {
+    /** AI-powered raster to SVG vectorization */
+    aiVectorize: AIVectorizeClient;
+    /** Trace raster images to SVG using VTracer */
+    trace: TraceClient;
+    /** Convert SVG to vector formats (PDF, EPS, DXF, AI, PS) */
+    svgToVector: SvgToVectorClient;
+    /** Convert between raster image formats */
+    rasterToRaster: RasterToRasterClient;
+    /** Batch convert multiple files */
+    batch: BatchConvertClient;
+  };
+
+  /**
+   * Generations management client
+   */
+  public readonly generations: GenerationsClient;
+
+  /**
+   * Gallery client for browsing and downloading public gallery items
+   */
+  public readonly gallery: GalleryClient;
+
+  /**
+   * Account client for retrieving account info and usage statistics
+   */
+  public readonly account: AccountClient;
+
+  /**
+   * Optimize SVG client for optimizing SVG files using SVGO
+   */
+  public readonly optimizeSvg: OptimizeSvgClient;
+
+  /**
+   * Enhance prompt client for improving text prompts using AI
+   */
+  public readonly enhancePrompt: EnhancePromptClient;
 
   /**
    * Create a new SVGMaker client
@@ -97,7 +142,18 @@ export class SVGMakerClient {
     // Create API clients
     this.generate = new GenerateClient(this);
     this.edit = new EditClient(this);
-    this.convert = new ConvertClient(this);
+    this.convert = {
+      aiVectorize: new AIVectorizeClient(this),
+      trace: new TraceClient(this),
+      svgToVector: new SvgToVectorClient(this),
+      rasterToRaster: new RasterToRasterClient(this),
+      batch: new BatchConvertClient(this),
+    };
+    this.enhancePrompt = new EnhancePromptClient(this);
+    this.generations = new GenerationsClient(this);
+    this.gallery = new GalleryClient(this);
+    this.account = new AccountClient(this);
+    this.optimizeSvg = new OptimizeSvgClient(this);
 
     this.logger.info('SVGMaker SDK initialized');
   }

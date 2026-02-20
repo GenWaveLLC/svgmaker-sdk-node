@@ -43,20 +43,33 @@ export class APIError extends SVGMakerError {
   /**
    * Error details returned by the API
    */
-  public details?: string;
+  public details?: unknown;
+
+  /**
+   * Request ID from the API response metadata
+   */
+  public requestId?: string;
 
   /**
    * @param message Error message
    * @param statusCode HTTP status code
    * @param code Error code
    * @param details Error details
+   * @param requestId Request ID from the API response metadata
    */
-  constructor(message: string, statusCode?: number, code?: string, details?: string) {
+  constructor(
+    message: string,
+    statusCode?: number,
+    code?: string,
+    details?: unknown,
+    requestId?: string
+  ) {
     super(message);
     this.name = 'APIError';
     this.statusCode = statusCode;
     this.code = code;
     this.details = details;
+    this.requestId = requestId;
     Object.setPrototypeOf(this, APIError.prototype);
   }
 }
@@ -167,9 +180,23 @@ export class ContentSafetyError extends APIError {
    * @param message Error message
    */
   constructor(message: string) {
-    super(message, 400, 'content_safety');
+    super(message, 422, 'CONTENT_POLICY');
     this.name = 'ContentSafetyError';
     Object.setPrototypeOf(this, ContentSafetyError.prototype);
+  }
+}
+
+/**
+ * Error for disabled endpoint
+ */
+export class EndpointDisabledError extends APIError {
+  /**
+   * @param message Error message
+   */
+  constructor(message: string) {
+    super(message, 503, 'ENDPOINT_DISABLED');
+    this.name = 'EndpointDisabledError';
+    Object.setPrototypeOf(this, EndpointDisabledError.prototype);
   }
 }
 

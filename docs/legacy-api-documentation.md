@@ -1,4 +1,6 @@
-# SVGMaker API Documentation
+# SVGMaker API Documentation (Legacy)
+
+> **This document covers the legacy (pre-v1) API.** For the current v1 API, see [v1-api-documentation.md](v1-api-documentation.md).
 
 This documentation covers the three main API endpoints for SVG generation, editing, and conversion using API keys.
 
@@ -13,7 +15,7 @@ x-api-key: svgmaker-io{your-api-key}
 ## Base URL
 
 ```
-https://svgmaker.io/api
+https://api.svgmaker.io
 ```
 
 ## Credit System
@@ -122,7 +124,7 @@ Both free and paid users have access to all quality levels (`'low'`, `'medium'`,
 ### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/generate \
+curl -X POST https://api.svgmaker.io/generate \
   -H "Content-Type: application/json" \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -d '{
@@ -194,7 +196,7 @@ Both free and paid users have access to all quality levels (`'low'`, `'medium'`,
 ### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/edit \
+curl -X POST https://api.svgmaker.io/edit \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "image=@input-image.png" \
   -F "prompt=Add a golden frame around this image" \
@@ -208,7 +210,7 @@ curl -X POST https://svgmaker.io/api/edit \
 ### Example Request with Style Parameters
 
 ```bash
-curl -X POST https://svgmaker.io/api/edit \
+curl -X POST https://api.svgmaker.io/edit \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "image=@input-image.svg" \
   -F "prompt=Make this more cartoonish" \
@@ -262,7 +264,7 @@ x-api-key: svgmaker-io{your-api-key}
 ### Example Request
 
 ```bash
-curl -X POST https://svgmaker.io/api/convert \
+curl -X POST https://api.svgmaker.io/convert \
   -H "x-api-key: svgmaker-io{your-api-key}" \
   -F "file=@image-to-convert.png" \
   -F "stream=false" \
@@ -450,7 +452,7 @@ const fs = require('fs');
 class SVGMakerAPI {
   constructor(apiKey) {
     this.apiKey = apiKey;
-    this.baseUrl = 'https://svgmaker.io/api';
+    this.baseUrl = 'https://api.svgmaker.io';
   }
 
   async generate(params) {
@@ -544,7 +546,7 @@ import json
 class SVGMakerAPI:
     def __init__(self, api_key):
         self.api_key = api_key
-        self.base_url = 'https://svgmaker.io/api'
+        self.base_url = 'https://api.svgmaker.io'
         
     def _headers(self):
         return {'x-api-key': self.api_key}
