@@ -7,21 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fix AI-enhanced release notes failing silently due to missing `models: read` permission in release job
+- Add test workflow for verifying GitHub Models API access
+
+## [1.0.0] - 2026-02-19
+
+### Breaking Changes
+- Migrated SDK base URL from `svgmaker.io/api` to `api.svgmaker.io`
+- Updated response types to match v1 API
+
 ### Added
-- GitHub Actions CI/CD pipeline
-- Automated release workflow
-- Security and dependency monitoring
-- Dependabot configuration for automated updates
-- Comprehensive release documentation
-- Release issue templates
+- v1 API support with model parameter and stream field accumulation
+- Gallery endpoint
+- Account endpoint
+- SVG optimize route
+- Convert and enhance API endpoints
+- Integration test runner (58 tests) migrated from bash to Node.js with streaming test suite
+- Automated release flow with AI-generated changelog
+- `prepare-release` slash command for automated version bump workflow
+- v1.0.0 migration guide and breaking changes documentation in README
 
 ### Changed
-- Enhanced package.json scripts for release management
-- Improved build process with automated cleanup
+- Updated `actions/setup-node` from v4 to v6 in all workflows
 
-### Security
-- Added automated security auditing
-- Weekly dependency vulnerability checks
+## [0.3.1] - 2025-12-11
+
+### Fixed
+- Fix TypeScript error for Buffer to Blob conversion
+- Update Edit API to support all quality levels and fix docs
+
+### Changed
+- Update release workflow for npm OIDC trusted publishing
+- Updated SDK documentation
+
+## [0.3.0] - 2025-07-14
+
+### Added
+- Smart SVG content decoder utility
+
+### Fixed
+- Fixed base64 decoding
+- Edit/convert working for streaming and non-streaming
+- Streaming response change for generate
+- Edit/convert/generate synced and working
+
+## [0.2.2] - 2025-06-02
+
+### Changed
+- Changed official npm package name to `@genwave/svgmaker-sdk`
+
+### Fixed
+- Fixed issues with ESM modules
+
+## [0.2.1] - 2025-06-01
+
+### Fixed
+- Fixed issues with ESM modules
 
 ## [0.2.0] - 2025-06-01
 
@@ -57,9 +99,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Jest testing framework setup
 - ESLint and Prettier configuration
 - Dual package distribution (CommonJS and ESM)
-- Complete documentation and examples
-
-### Features
 - API key authentication
 - Streaming response support
 - File path and Buffer/Stream input support
