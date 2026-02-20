@@ -28,21 +28,22 @@ The project uses automated GitHub Actions workflows for continuous integration, 
 #### 2. Release Workflow (`.github/workflows/release.yml`)
 
 **Triggers**:
-- Git tags matching `v*.*.*` pattern (e.g., `v1.2.3`)
+- Push to `main` branch (detects version changes in `package.json`)
 
-**Features**:
-- **Version validation**: Ensures package.json version matches git tag
-- **npm existence check**: Verifies version doesn't already exist on npm
-- **Quality gates**: Runs tests and linting before release
-- **Automated publishing**: Publishes to npm automatically
-- **GitHub releases**: Creates GitHub releases with changelog
+**How it works**:
+1. `detect-release` job compares the current `package.json` version against the previous commit
+2. If the version changed and doesn't already exist on npm, the `release` job runs
+3. Runs quality gates (tests, linting, build)
+4. Generates release notes via the GitHub API, then enhances them with AI (GitHub Models inference API)
+5. Creates a git tag, publishes to npm with provenance, and creates a GitHub Release
 
-**Process**:
-1. Validates that git tag version matches package.json version
-2. Checks if version already exists on npm (skips if exists)
-3. Runs code quality checks (tests, linting, build)
-4. Publishes to npm registry
-5. Creates GitHub release with changelog
+**Permissions**:
+- `contents: write` — create tags and GitHub releases
+- `id-token: write` — npm provenance (OIDC trusted publishing)
+- `models: read` — call the GitHub Models inference API for AI-enhanced release notes
+
+**AI-Enhanced Release Notes**:
+The workflow uses GitHub Models (`openai/gpt-4.1` via `models.github.ai`) to rewrite raw GitHub-generated release notes into polished, user-facing notes with sections for What's New, Bug Fixes, Migration Guide, etc. If the AI call fails, it falls back to the raw GitHub-generated notes.
 
 #### 3. Security Workflow (`.github/workflows/security.yml`)
 
@@ -62,6 +63,13 @@ The project uses automated GitHub Actions workflows for continuous integration, 
 2. `dependency-check` - Monitors outdated dependencies
 3. `license-check` - Verifies license compliance
 
+#### 4. Test AI Release Notes (`.github/workflows/test-ai-notes.yml`)
+
+**Triggers**:
+- Manual `workflow_dispatch` only
+
+**Purpose**: Verify that the GitHub Models inference API is accessible with the `models: read` permission before a real release. Sends a simple prompt and asserts a non-empty response.
+
 ### Dependabot Configuration
 
 **File**: `.github/dependabot.yml`
@@ -73,8 +81,6 @@ The project uses automated GitHub Actions workflows for continuous integration, 
 - **GitHub Actions updates**: Also updates GitHub Actions versions
 
 ## Release Process
-
-Choose between automated (recommended) or manual release process based on your workflow preferences.
 
 ### Automated Release Process (Recommended)
 
@@ -95,7 +101,7 @@ For most releases, follow this automated process:
    git commit -m "docs: update changelog and documentation for release"
    ```
 
-3. **Run the Appropriate Release Command**
+3. **Bump the Version**
    ```bash
    npm run release:patch    # For bug fixes
    npm run release:minor    # For new features
@@ -105,20 +111,21 @@ For most releases, follow this automated process:
    This command:
    - Bumps version in `package.json`
    - Commits the version change
-   - Creates and pushes a Git tag (e.g., `v1.2.3`)
-   - Triggers the GitHub release workflow
+   - Pushes to `main`
 
-4. **Automated CI/CD Workflow**
+4. **Automated CI/CD Workflow** (triggered on push to `main`)
+   - Detects the version change in `package.json`
    - Runs tests, linting, and build
-   - Validates version/tag match
-   - Publishes to npm if version doesn't already exist
-   - Creates a GitHub release with changelog
+   - Generates and AI-enhances release notes
+   - Creates a git tag and pushes it
+   - Publishes to npm with provenance
+   - Creates a GitHub Release with polished release notes
 
 **Note**:
 - `npm run version:*`: Local version bump only (manual push required)
 - `npm run release:*`: Version bump + git push (recommended)
 
-### 2. Manual Release Process
+### Manual Release Process
 
 If you prefer manual control over releases:
 
@@ -132,14 +139,11 @@ npm version [patch|minor|major] --no-git-tag-version
 git add .
 git commit -m "chore: prepare release v$(node -p 'require("./package.json").version')"
 
-# 4. Create and push tag
-VERSION=$(node -p 'require("./package.json").version')
-git tag -a "v$VERSION" -m "Release v$VERSION"
-git push origin main --tags
+# 4. Push to main (the workflow will create the tag automatically)
+git push origin main
 ```
 
-
-### 4. Emergency Releases
+### Emergency Releases
 
 For critical bug fixes that need immediate release:
 
@@ -173,7 +177,7 @@ npm run release:patch  # This will push automatically
 ## Post-Release Checklist
 
 - [ ] Verify package is published on [npm](https://www.npmjs.com/package/@genwave/svgmaker-sdk)
-- [ ] GitHub release is created with proper changelog
+- [ ] GitHub release is created with AI-enhanced release notes
 - [ ] CI/CD pipeline completed successfully
 - [ ] Documentation website is updated (if applicable)
 - [ ] Announcement made to relevant channels
@@ -215,9 +219,9 @@ npm run release:patch  # Includes automatic push
 
 **Important**: Always test thoroughly before any rollback action.
 
-## Required Secrets
+## Required Secrets and Permissions
 
-The following secrets need to be configured in GitHub repository settings:
+The following need to be configured in GitHub repository settings:
 
 ### NPM_TOKEN
 - **Purpose**: Authenticate with npm for publishing
@@ -234,6 +238,11 @@ The following secrets need to be configured in GitHub repository settings:
   2. Connect your GitHub repository
   3. Copy the token from repository settings
   4. Add to GitHub repository secrets
+
+### GitHub Models Access
+- **Purpose**: AI-enhanced release notes via the GitHub Models inference API
+- **Requirement**: The `release` job must have `models: read` permission so that `GITHUB_TOKEN` can call `models.github.ai`
+- **Fallback**: If the API is unavailable or returns an empty response, the workflow falls back to raw GitHub-generated release notes
 
 ## Monitoring and Troubleshooting
 
@@ -274,12 +283,19 @@ Monitor your releases through:
 #### 4. GitHub Release Creation Failures
 **Symptoms**: Release workflow fails to create GitHub release
 **Solutions**:
-- Verify `GITHUB_TOKEN` has sufficient permissions
-- Ensure tag format matches `v*.*.*` pattern exactly
-- Check that CHANGELOG.md has proper formatting for extraction
+- Verify `GITHUB_TOKEN` has sufficient permissions (`contents: write`)
+- Check workflow logs for tag creation errors
 - Verify repository settings allow release creation
 
-#### 5. Git Working Directory Not Clean
+#### 5. AI Release Notes Empty/Fallback
+**Symptoms**: GitHub release uses raw notes instead of AI-enhanced notes
+**Solutions**:
+- Verify the `release` job has `models: read` permission
+- Run the Test AI Release Notes workflow (`workflow_dispatch`) to check API access
+- Check workflow logs for the curl response from `models.github.ai`
+- The AI step is non-blocking — raw notes are used as fallback
+
+#### 6. Git Working Directory Not Clean
 **Symptoms**: `npm version` fails with "Git working directory not clean"
 **Solutions**:
 ```bash
@@ -299,7 +315,7 @@ git stash pop
 npm version patch --force
 ```
 
-#### 6. Build Failures
+#### 7. Build Failures
 **Symptoms**: Package build fails during release
 **Solutions**:
 - Run `npm run build` locally to reproduce
@@ -322,52 +338,24 @@ To customize workflows:
 - Review the [npm package page](https://www.npmjs.com/package/@genwave/svgmaker-sdk)
 - Open an issue in the repository for support
 
-## Benefits of This Release Process
-
-| Benefit | Description | Impact |
-|---------|-------------|---------|
-| **Automated Quality Assurance** | Every change tested across multiple Node.js versions | Reduces production bugs |
-| **Consistent Release Process** | Standardized workflow reduces human error | Reliable deployments |
-| **Security First** | Proactive vulnerability detection and monitoring | Enhanced security posture |
-| **Dependency Management** | Automated updates with smart grouping | Keeps dependencies current |
-| **Audit Trail** | Complete history of releases and changes | Compliance and debugging |
-| **Rollback Support** | Quick recovery from problematic releases | Minimizes downtime |
-
-## Getting Started Checklist
-
-### Initial Setup
-- [ ] Configure `NPM_TOKEN` in repository secrets
-- [ ] Configure `CODECOV_TOKEN` for coverage reports (optional)
-- [ ] Test CI workflow with a draft PR
-- [ ] Verify all workflow files are present and correctly configured
-
-### First Release
-- [ ] Ensure git working directory is clean (`git status`)
-- [ ] Update CHANGELOG.md with initial release notes
-- [ ] Commit all changes before version bump
-- [ ] Run `npm run release:minor` for first minor release (includes push)
-- [ ] Verify automated release completes successfully
-- [ ] Check package appears on npm registry
-- [ ] Validate GitHub release is created
-
-### Ongoing Maintenance
-- [ ] Monitor weekly Dependabot PRs and merge when appropriate
-- [ ] Review security audit results regularly
-- [ ] Keep documentation updated with new features
-- [ ] Follow semantic versioning principles consistently
-
 ## Version History
 
 | Version | Release Date | Type | Description |
 |---------|-------------|------|-------------|
+| 1.0.0   | 2026-02-19  | Major | v1 API support, new endpoints, breaking URL change |
+| 0.3.1   | 2025-12-11  | Patch | TypeScript fix, Edit API quality levels, OIDC publishing |
+| 0.3.0   | 2025-07-14  | Minor | SVG content decoder, base64 fix, streaming fixes |
+| 0.2.2   | 2025-06-02  | Patch | npm package rename to @genwave/svgmaker-sdk |
+| 0.2.1   | 2025-06-01  | Patch | ESM module fix |
+| 0.2.0   | 2025-06-01  | Minor | Retry logic, rate limiting, error handling, interceptors |
 | 0.1.0   | 2025-05-31  | Initial | Initial release with core functionality |
 
 ## Additional Resources
 
-- **Development Guide**: [`CONTRIBUTING.md`](../CONTRIBUTING.md) - Development workflow and contribution guidelines
-- **Testing Guide**: [`TESTING.md`](../TESTING.md) - Testing strategies and quality assurance
+- **Development Guide**: [`CONTRIBUTING.md`](./CONTRIBUTING.md) - Development workflow and contribution guidelines
+- **Testing Guide**: [`TESTING.md`](./TESTING.md) - Testing strategies and quality assurance
 - **API Documentation**: [`docs/api-documentation.md`](./docs/api-documentation.md) - Comprehensive API reference
-- **GitHub Actions**: [Workflow files](../.github/workflows/) - View and customize CI/CD workflows
+- **GitHub Actions**: [Workflow files](./.github/workflows/) - View and customize CI/CD workflows
 
 ---
 
