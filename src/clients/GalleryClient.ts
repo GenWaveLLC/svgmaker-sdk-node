@@ -138,10 +138,7 @@ export class GalleryClient extends BaseClient {
    * @param params Optional download parameters (format, optimize)
    * @returns Download URL and file metadata
    */
-  async download(
-    id: string,
-    params?: GalleryDownloadParams
-  ): Promise<GalleryDownloadResponse> {
+  async download(id: string, params?: GalleryDownloadParams): Promise<GalleryDownloadResponse> {
     this.logger.debug('Downloading gallery item', { id, params });
 
     this.validateRequest(id, idSchema);

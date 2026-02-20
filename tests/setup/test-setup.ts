@@ -68,7 +68,7 @@ export function cleanupMocks(): void {
  */
 export function mockFetchJsonResponse(
   data: Record<string, any>,
-  metadata?: Record<string, any>,
+  metadata?: Record<string, any>
 ): void {
   const responseBody = {
     success: true,
@@ -92,11 +92,7 @@ export function mockFetchJsonResponse(
 /**
  * Configure the global fetch mock to return an error response
  */
-export function mockFetchErrorResponse(
-  errorCode: string,
-  status: number,
-  message?: string,
-): void {
+export function mockFetchErrorResponse(errorCode: string, status: number, message?: string): void {
   const responseBody = {
     success: false,
     error: {

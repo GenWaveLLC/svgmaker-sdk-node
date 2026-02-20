@@ -49,7 +49,11 @@ export class AIVectorizeClient extends BaseClient {
     await this.addFileToForm(formData, 'file', this.params.file!);
 
     // Add optional parameters
-    this.appendOptionalParams(formData, this.params as Record<string, any>, ['storage', 'stream', 'svgText']);
+    this.appendOptionalParams(formData, this.params as Record<string, any>, [
+      'storage',
+      'stream',
+      'svgText',
+    ]);
 
     // Execute request
     const { data, metadata: responseMetadata } = await this.executeFormDataRequest<any>(

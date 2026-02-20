@@ -1,11 +1,7 @@
 import { BaseClient } from './BaseClient';
 import { SVGMakerClient } from '../core/SVGMakerClient';
 import { z } from 'zod';
-import {
-  AccountResponse,
-  AccountUsageParams,
-  AccountUsageResponse,
-} from '../types/api';
+import { AccountResponse, AccountUsageParams, AccountUsageResponse } from '../types/api';
 
 /**
  * Schema for validating usage parameters
@@ -18,11 +14,11 @@ const usageParamsSchema = z
   })
   .strict()
   .refine(
-    (data) => !(data.days !== undefined && (data.start !== undefined || data.end !== undefined)),
+    data => !(data.days !== undefined && (data.start !== undefined || data.end !== undefined)),
     { message: 'Use either days or start/end, not both.' }
   )
   .refine(
-    (data) => {
+    data => {
       if (data.start !== undefined || data.end !== undefined) {
         return data.start !== undefined && data.end !== undefined;
       }

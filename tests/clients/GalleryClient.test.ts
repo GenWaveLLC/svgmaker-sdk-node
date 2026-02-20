@@ -8,11 +8,7 @@ import {
   createMockGenerationData,
   createMockGenerationDownloadData,
 } from '../setup';
-import {
-  ValidationError,
-  RateLimitError,
-  APIError,
-} from '../../src/errors/CustomErrors';
+import { ValidationError, RateLimitError, APIError } from '../../src/errors/CustomErrors';
 
 describe('GalleryClient', () => {
   let fetchMock: jest.Mock;
@@ -115,25 +111,19 @@ describe('GalleryClient', () => {
     it('throws ValidationError when page is 0', async () => {
       const client = createTestClient();
 
-      await expect(
-        client.gallery.list({ page: 0 }),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.gallery.list({ page: 0 })).rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when limit exceeds 100', async () => {
       const client = createTestClient();
 
-      await expect(
-        client.gallery.list({ limit: 101 }),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.gallery.list({ limit: 101 })).rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError on unknown property due to .strict()', async () => {
       const client = createTestClient();
 
-      await expect(
-        client.gallery.list({ foo: 'bar' } as any),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.gallery.list({ foo: 'bar' } as any)).rejects.toThrow(ValidationError);
     });
   });
 
@@ -180,9 +170,7 @@ describe('GalleryClient', () => {
     it('throws ValidationError when id is empty string', async () => {
       const client = createTestClient();
 
-      await expect(
-        client.gallery.get(''),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.gallery.get('')).rejects.toThrow(ValidationError);
     });
   });
 
@@ -238,9 +226,7 @@ describe('GalleryClient', () => {
     it('throws ValidationError when id is empty string', async () => {
       const client = createTestClient();
 
-      await expect(
-        client.gallery.download(''),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.gallery.download('')).rejects.toThrow(ValidationError);
     });
   });
 
@@ -258,45 +244,35 @@ describe('GalleryClient', () => {
       const client = createTestClient();
       mockFetchErrorResponse('INVALID_API_KEY', 401, 'Invalid API key');
 
-      await expect(
-        client.gallery.list(),
-      ).rejects.toThrow('Invalid API key');
+      await expect(client.gallery.list()).rejects.toThrow('Invalid API key');
     });
 
     it('throws on INSUFFICIENT_CREDITS (402)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402, 'Not enough credits');
 
-      await expect(
-        client.gallery.list(),
-      ).rejects.toThrow('Not enough credits');
+      await expect(client.gallery.list()).rejects.toThrow('Not enough credits');
     });
 
     it('throws RateLimitError on RATE_LIMIT_EXCEEDED (429)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
 
-      await expect(
-        client.gallery.list(),
-      ).rejects.toThrow(RateLimitError);
+      await expect(client.gallery.list()).rejects.toThrow(RateLimitError);
     });
 
     it('throws on ENDPOINT_DISABLED (503)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503, 'This endpoint is disabled');
 
-      await expect(
-        client.gallery.list(),
-      ).rejects.toThrow('This endpoint is disabled');
+      await expect(client.gallery.list()).rejects.toThrow('This endpoint is disabled');
     });
 
     it('throws APIError on generic server error (500)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('SERVER_ERROR', 500, 'Internal server error');
 
-      await expect(
-        client.gallery.list(),
-      ).rejects.toThrow(APIError);
+      await expect(client.gallery.list()).rejects.toThrow(APIError);
     });
   });
 });

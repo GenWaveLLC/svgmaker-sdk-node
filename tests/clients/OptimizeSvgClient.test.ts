@@ -1,3 +1,4 @@
+import fs from 'fs';
 import {
   createTestClient,
   setupFetchMock,
@@ -22,7 +23,7 @@ describe('OptimizeSvgClient', () => {
 
   beforeEach(() => {
     fetchMock = setupFetchMock();
-    const fs = require('fs');
+
     originalExistsSync = fs.existsSync;
     originalReadFileSync = fs.readFileSync;
     fs.existsSync = jest.fn().mockReturnValue(true);
@@ -31,7 +32,7 @@ describe('OptimizeSvgClient', () => {
 
   afterEach(() => {
     cleanupMocks();
-    const fs = require('fs');
+
     fs.existsSync = originalExistsSync;
     fs.readFileSync = originalReadFileSync;
   });
@@ -81,9 +82,7 @@ describe('OptimizeSvgClient', () => {
     it('appends file and optional compress param to FormData', async () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockOptimizeSvgResponse());
-      await client.optimizeSvg
-        .configure({ file: '/test.svg', compress: true })
-        .execute();
+      await client.optimizeSvg.configure({ file: '/test.svg', compress: true }).execute();
       const formData = fetchMock.mock.calls[0][1].body as FormData;
       expect(formData.get('file')).toBeTruthy();
       expect(formData.get('compress')).toBe('true');
@@ -93,9 +92,7 @@ describe('OptimizeSvgClient', () => {
       const client = createTestClient();
       const mockData = createMockOptimizeSvgResponse();
       mockFetchJsonResponse(mockData);
-      const result = await client.optimizeSvg
-        .configure({ file: '/test.svg' })
-        .execute();
+      const result = await client.optimizeSvg.configure({ file: '/test.svg' }).execute();
       expect(result.svgUrl).toBe(mockData.svgUrl);
       expect(result.svgUrlExpiresIn).toBe(mockData.svgUrlExpiresIn);
       expect(result.metadata).toBeDefined();
@@ -113,10 +110,10 @@ describe('OptimizeSvgClient', () => {
     it('throws ValidationError when file path does not exist', async () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockOptimizeSvgResponse());
-      const fs = require('fs');
+
       fs.existsSync = jest.fn().mockReturnValue(false);
       await expect(
-        client.optimizeSvg.configure({ file: '/nonexistent.svg' }).execute(),
+        client.optimizeSvg.configure({ file: '/nonexistent.svg' }).execute()
       ).rejects.toThrow(ValidationError);
     });
   });
@@ -126,41 +123,41 @@ describe('OptimizeSvgClient', () => {
     it('throws AuthError on INVALID_API_KEY', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INVALID_API_KEY', 401);
-      await expect(
-        client.optimizeSvg.configure({ file: '/test.svg' }).execute(),
-      ).rejects.toThrow(AuthError);
+      await expect(client.optimizeSvg.configure({ file: '/test.svg' }).execute()).rejects.toThrow(
+        AuthError
+      );
     });
 
     it('throws InsufficientCreditsError on INSUFFICIENT_CREDITS', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402);
-      await expect(
-        client.optimizeSvg.configure({ file: '/test.svg' }).execute(),
-      ).rejects.toThrow(InsufficientCreditsError);
+      await expect(client.optimizeSvg.configure({ file: '/test.svg' }).execute()).rejects.toThrow(
+        InsufficientCreditsError
+      );
     });
 
     it('throws RateLimitError on RATE_LIMIT_EXCEEDED', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
-      await expect(
-        client.optimizeSvg.configure({ file: '/test.svg' }).execute(),
-      ).rejects.toThrow(RateLimitError);
+      await expect(client.optimizeSvg.configure({ file: '/test.svg' }).execute()).rejects.toThrow(
+        RateLimitError
+      );
     });
 
     it('throws EndpointDisabledError on ENDPOINT_DISABLED', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503);
-      await expect(
-        client.optimizeSvg.configure({ file: '/test.svg' }).execute(),
-      ).rejects.toThrow(EndpointDisabledError);
+      await expect(client.optimizeSvg.configure({ file: '/test.svg' }).execute()).rejects.toThrow(
+        EndpointDisabledError
+      );
     });
 
     it('throws APIError on generic server error', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INTERNAL_ERROR', 500);
-      await expect(
-        client.optimizeSvg.configure({ file: '/test.svg' }).execute(),
-      ).rejects.toThrow(APIError);
+      await expect(client.optimizeSvg.configure({ file: '/test.svg' }).execute()).rejects.toThrow(
+        APIError
+      );
     });
   });
 });

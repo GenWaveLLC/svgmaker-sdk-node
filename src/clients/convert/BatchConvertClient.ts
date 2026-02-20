@@ -63,8 +63,18 @@ export class BatchConvertClient extends BaseClient {
 
     // Add optional parameters
     this.appendOptionalParams(formData, this.params as Record<string, any>, [
-      'preset', 'mode', 'hierarchical', 'detail', 'smoothness', 'corners', 'reduceNoise',
-      'textToPath', 'dxfVersion', 'quality', 'width', 'height',
+      'preset',
+      'mode',
+      'hierarchical',
+      'detail',
+      'smoothness',
+      'corners',
+      'reduceNoise',
+      'textToPath',
+      'dxfVersion',
+      'quality',
+      'width',
+      'height',
     ]);
 
     // Execute request

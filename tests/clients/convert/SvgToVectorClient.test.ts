@@ -1,3 +1,4 @@
+import fs from 'fs';
 import {
   createTestClient,
   setupFetchMock,
@@ -22,7 +23,7 @@ describe('SvgToVectorClient', () => {
 
   beforeEach(() => {
     fetchMock = setupFetchMock();
-    const fs = require('fs');
+
     originalExistsSync = fs.existsSync;
     originalReadFileSync = fs.readFileSync;
     fs.existsSync = jest.fn().mockReturnValue(true);
@@ -31,7 +32,7 @@ describe('SvgToVectorClient', () => {
 
   afterEach(() => {
     cleanupMocks();
-    const fs = require('fs');
+
     fs.existsSync = originalExistsSync;
     fs.readFileSync = originalReadFileSync;
   });
@@ -75,9 +76,7 @@ describe('SvgToVectorClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
-      await client.convert.svgToVector
-        .configure({ file: '/img.svg', toFormat: 'PDF' })
-        .execute();
+      await client.convert.svgToVector.configure({ file: '/img.svg', toFormat: 'PDF' }).execute();
 
       expect(fetchMock).toHaveBeenCalled();
       const [url, options] = fetchMock.mock.calls[0];
@@ -90,9 +89,7 @@ describe('SvgToVectorClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
-      await client.convert.svgToVector
-        .configure({ file: '/img.svg', toFormat: 'PDF' })
-        .execute();
+      await client.convert.svgToVector.configure({ file: '/img.svg', toFormat: 'PDF' }).execute();
 
       const [, options] = fetchMock.mock.calls[0];
       expect(options.headers['x-api-key']).toBe('test-api-key-123');
@@ -144,9 +141,7 @@ describe('SvgToVectorClient', () => {
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
       await expect(
-        client.convert.svgToVector
-          .configure({ toFormat: 'PDF' } as any)
-          .execute(),
+        client.convert.svgToVector.configure({ toFormat: 'PDF' } as any).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -155,9 +150,7 @@ describe('SvgToVectorClient', () => {
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
       await expect(
-        client.convert.svgToVector
-          .configure({ file: '/img.svg' })
-          .execute(),
+        client.convert.svgToVector.configure({ file: '/img.svg' }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -166,9 +159,7 @@ describe('SvgToVectorClient', () => {
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
       await expect(
-        client.convert.svgToVector
-          .configure({ file: '/img.svg', toFormat: 'BMP' as any })
-          .execute(),
+        client.convert.svgToVector.configure({ file: '/img.svg', toFormat: 'BMP' as any }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -179,7 +170,7 @@ describe('SvgToVectorClient', () => {
       await expect(
         client.convert.svgToVector
           .configure({ file: '/img.svg', toFormat: 'DXF', dxfVersion: 'R15' as any })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
 

@@ -7,11 +7,7 @@ import {
   createMockAccountInfoData,
   createMockAccountUsageData,
 } from '../setup';
-import {
-  ValidationError,
-  RateLimitError,
-  APIError,
-} from '../../src/errors/CustomErrors';
+import { ValidationError, RateLimitError, APIError } from '../../src/errors/CustomErrors';
 
 describe('AccountClient', () => {
   let fetchMock: jest.Mock;
@@ -128,32 +124,30 @@ describe('AccountClient', () => {
       const client = createTestClient();
 
       await expect(
-        client.account.getUsage({ days: 7, start: '2025-01-01' } as any),
+        client.account.getUsage({ days: 7, start: '2025-01-01' } as any)
       ).rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when days is used with end', async () => {
       const client = createTestClient();
 
-      await expect(
-        client.account.getUsage({ days: 7, end: '2025-01-31' } as any),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.account.getUsage({ days: 7, end: '2025-01-31' } as any)).rejects.toThrow(
+        ValidationError
+      );
     });
 
     it('throws ValidationError when only start is provided without end', async () => {
       const client = createTestClient();
 
-      await expect(
-        client.account.getUsage({ start: '2025-01-01' } as any),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.account.getUsage({ start: '2025-01-01' } as any)).rejects.toThrow(
+        ValidationError
+      );
     });
 
     it('throws ValidationError on unknown property due to .strict()', async () => {
       const client = createTestClient();
 
-      await expect(
-        client.account.getUsage({ foo: 'bar' } as any),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.account.getUsage({ foo: 'bar' } as any)).rejects.toThrow(ValidationError);
     });
   });
 
@@ -171,45 +165,35 @@ describe('AccountClient', () => {
       const client = createTestClient();
       mockFetchErrorResponse('INVALID_API_KEY', 401, 'Invalid API key');
 
-      await expect(
-        client.account.getInfo(),
-      ).rejects.toThrow('Invalid API key');
+      await expect(client.account.getInfo()).rejects.toThrow('Invalid API key');
     });
 
     it('throws on INSUFFICIENT_CREDITS (402)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402, 'Not enough credits');
 
-      await expect(
-        client.account.getInfo(),
-      ).rejects.toThrow('Not enough credits');
+      await expect(client.account.getInfo()).rejects.toThrow('Not enough credits');
     });
 
     it('throws RateLimitError on RATE_LIMIT_EXCEEDED (429)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
 
-      await expect(
-        client.account.getInfo(),
-      ).rejects.toThrow(RateLimitError);
+      await expect(client.account.getInfo()).rejects.toThrow(RateLimitError);
     });
 
     it('throws on ENDPOINT_DISABLED (503)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503, 'This endpoint is disabled');
 
-      await expect(
-        client.account.getInfo(),
-      ).rejects.toThrow('This endpoint is disabled');
+      await expect(client.account.getInfo()).rejects.toThrow('This endpoint is disabled');
     });
 
     it('throws APIError on generic server error (500)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('SERVER_ERROR', 500, 'Internal server error');
 
-      await expect(
-        client.account.getInfo(),
-      ).rejects.toThrow(APIError);
+      await expect(client.account.getInfo()).rejects.toThrow(APIError);
     });
   });
 });

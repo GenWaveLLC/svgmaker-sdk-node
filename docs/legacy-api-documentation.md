@@ -1,4 +1,6 @@
-# SVGMaker API Documentation
+# SVGMaker API Documentation (Legacy)
+
+> **This document covers the legacy (pre-v1) API.** For the current v1 API, see [v1-api-documentation.md](v1-api-documentation.md).
 
 This documentation covers the three main API endpoints for SVG generation, editing, and conversion using API keys.
 

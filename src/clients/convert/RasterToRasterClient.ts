@@ -51,7 +51,11 @@ export class RasterToRasterClient extends BaseClient {
     formData.append('toFormat', this.params.toFormat!);
 
     // Add optional parameters
-    this.appendOptionalParams(formData, this.params as Record<string, any>, ['quality', 'width', 'height']);
+    this.appendOptionalParams(formData, this.params as Record<string, any>, [
+      'quality',
+      'width',
+      'height',
+    ]);
 
     // Execute request
     const { data, metadata: responseMetadata } = await this.executeFormDataRequest<any>(

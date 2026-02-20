@@ -1,3 +1,4 @@
+import fs from 'fs';
 import {
   createTestClient,
   setupFetchMock,
@@ -22,7 +23,7 @@ describe('RasterToRasterClient', () => {
 
   beforeEach(() => {
     fetchMock = setupFetchMock();
-    const fs = require('fs');
+
     originalExistsSync = fs.existsSync;
     originalReadFileSync = fs.readFileSync;
     fs.existsSync = jest.fn().mockReturnValue(true);
@@ -31,7 +32,7 @@ describe('RasterToRasterClient', () => {
 
   afterEach(() => {
     cleanupMocks();
-    const fs = require('fs');
+
     fs.existsSync = originalExistsSync;
     fs.readFileSync = originalReadFileSync;
   });
@@ -146,9 +147,7 @@ describe('RasterToRasterClient', () => {
       const client = createTestClient();
 
       await expect(
-        client.convert.rasterToRaster
-          .configure({ toFormat: 'PNG' } as any)
-          .execute(),
+        client.convert.rasterToRaster.configure({ toFormat: 'PNG' } as any).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -156,9 +155,7 @@ describe('RasterToRasterClient', () => {
       const client = createTestClient();
 
       await expect(
-        client.convert.rasterToRaster
-          .configure({ file: '/img.png' })
-          .execute(),
+        client.convert.rasterToRaster.configure({ file: '/img.png' }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -168,7 +165,7 @@ describe('RasterToRasterClient', () => {
       await expect(
         client.convert.rasterToRaster
           .configure({ file: '/img.png', toFormat: 'SVG' as any })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -178,7 +175,7 @@ describe('RasterToRasterClient', () => {
       await expect(
         client.convert.rasterToRaster
           .configure({ file: '/img.png', toFormat: 'PNG', quality: 0 })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -188,7 +185,7 @@ describe('RasterToRasterClient', () => {
       await expect(
         client.convert.rasterToRaster
           .configure({ file: '/img.png', toFormat: 'PNG', quality: 101 })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -198,7 +195,7 @@ describe('RasterToRasterClient', () => {
       await expect(
         client.convert.rasterToRaster
           .configure({ file: '/img.png', toFormat: 'PNG', width: 0 })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -208,7 +205,7 @@ describe('RasterToRasterClient', () => {
       await expect(
         client.convert.rasterToRaster
           .configure({ file: '/img.png', toFormat: 'PNG', height: -10 })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -232,8 +229,10 @@ describe('RasterToRasterClient', () => {
   describe('error handling', () => {
     it('throws AuthError on INVALID_API_KEY', async () => {
       const client = createTestClient();
-      const configured = client.convert.rasterToRaster
-        .configure({ file: '/img.png', toFormat: 'PNG' });
+      const configured = client.convert.rasterToRaster.configure({
+        file: '/img.png',
+        toFormat: 'PNG',
+      });
       mockFetchErrorResponse('INVALID_API_KEY', 401);
 
       await expect(configured.execute()).rejects.toThrow(AuthError);
@@ -241,8 +240,10 @@ describe('RasterToRasterClient', () => {
 
     it('throws InsufficientCreditsError on INSUFFICIENT_CREDITS', async () => {
       const client = createTestClient();
-      const configured = client.convert.rasterToRaster
-        .configure({ file: '/img.png', toFormat: 'PNG' });
+      const configured = client.convert.rasterToRaster.configure({
+        file: '/img.png',
+        toFormat: 'PNG',
+      });
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402);
 
       await expect(configured.execute()).rejects.toThrow(InsufficientCreditsError);
@@ -250,8 +251,10 @@ describe('RasterToRasterClient', () => {
 
     it('throws RateLimitError on RATE_LIMIT_EXCEEDED', async () => {
       const client = createTestClient();
-      const configured = client.convert.rasterToRaster
-        .configure({ file: '/img.png', toFormat: 'PNG' });
+      const configured = client.convert.rasterToRaster.configure({
+        file: '/img.png',
+        toFormat: 'PNG',
+      });
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
 
       await expect(configured.execute()).rejects.toThrow(RateLimitError);
@@ -259,8 +262,10 @@ describe('RasterToRasterClient', () => {
 
     it('throws EndpointDisabledError on ENDPOINT_DISABLED', async () => {
       const client = createTestClient();
-      const configured = client.convert.rasterToRaster
-        .configure({ file: '/img.png', toFormat: 'PNG' });
+      const configured = client.convert.rasterToRaster.configure({
+        file: '/img.png',
+        toFormat: 'PNG',
+      });
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503, 'This endpoint is disabled');
 
       await expect(configured.execute()).rejects.toThrow(EndpointDisabledError);
@@ -268,8 +273,10 @@ describe('RasterToRasterClient', () => {
 
     it('throws APIError on generic server error', async () => {
       const client = createTestClient();
-      const configured = client.convert.rasterToRaster
-        .configure({ file: '/img.png', toFormat: 'PNG' });
+      const configured = client.convert.rasterToRaster.configure({
+        file: '/img.png',
+        toFormat: 'PNG',
+      });
       mockFetchErrorResponse('INTERNAL_ERROR', 500, 'Something went wrong');
 
       await expect(configured.execute()).rejects.toThrow(APIError);

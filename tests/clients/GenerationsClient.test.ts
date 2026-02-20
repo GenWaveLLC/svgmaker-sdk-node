@@ -10,11 +10,7 @@ import {
   createMockGenerationShareData,
   createMockGenerationDownloadData,
 } from '../setup';
-import {
-  ValidationError,
-  RateLimitError,
-  APIError,
-} from '../../src/errors/CustomErrors';
+import { ValidationError, RateLimitError, APIError } from '../../src/errors/CustomErrors';
 
 describe('GenerationsClient', () => {
   let fetchMock: jest.Mock;
@@ -117,27 +113,21 @@ describe('GenerationsClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerationsListData());
 
-      await expect(
-        client.generations.list({ page: 0 }),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.generations.list({ page: 0 })).rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when limit exceeds 100', async () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerationsListData());
 
-      await expect(
-        client.generations.list({ limit: 101 }),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.generations.list({ limit: 101 })).rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError on unknown property due to .strict()', async () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerationsListData());
 
-      await expect(
-        client.generations.list({ foo: 'bar' } as any),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.generations.list({ foo: 'bar' } as any)).rejects.toThrow(ValidationError);
     });
   });
 
@@ -195,9 +185,7 @@ describe('GenerationsClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerationData());
 
-      await expect(
-        client.generations.get(''),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.generations.get('')).rejects.toThrow(ValidationError);
     });
   });
 
@@ -239,9 +227,7 @@ describe('GenerationsClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerationDeleteData());
 
-      await expect(
-        client.generations.delete(''),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.generations.delete('')).rejects.toThrow(ValidationError);
     });
   });
 
@@ -285,9 +271,7 @@ describe('GenerationsClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerationShareData());
 
-      await expect(
-        client.generations.share(''),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.generations.share('')).rejects.toThrow(ValidationError);
     });
   });
 
@@ -346,9 +330,7 @@ describe('GenerationsClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerationDownloadData());
 
-      await expect(
-        client.generations.download(''),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.generations.download('')).rejects.toThrow(ValidationError);
     });
   });
 
@@ -361,45 +343,35 @@ describe('GenerationsClient', () => {
       const client = createTestClient();
       mockFetchErrorResponse('INVALID_API_KEY', 401, 'Invalid API key');
 
-      await expect(
-        client.generations.list(),
-      ).rejects.toThrow('Invalid API key');
+      await expect(client.generations.list()).rejects.toThrow('Invalid API key');
     });
 
     it('throws "Not enough credits" on INSUFFICIENT_CREDITS (402)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402, 'Not enough credits');
 
-      await expect(
-        client.generations.list(),
-      ).rejects.toThrow('Not enough credits');
+      await expect(client.generations.list()).rejects.toThrow('Not enough credits');
     });
 
     it('throws RateLimitError on RATE_LIMIT_EXCEEDED (429)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
 
-      await expect(
-        client.generations.list(),
-      ).rejects.toThrow(RateLimitError);
+      await expect(client.generations.list()).rejects.toThrow(RateLimitError);
     });
 
     it('throws "This endpoint is disabled" on ENDPOINT_DISABLED (503)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503, 'This endpoint is disabled');
 
-      await expect(
-        client.generations.list(),
-      ).rejects.toThrow('This endpoint is disabled');
+      await expect(client.generations.list()).rejects.toThrow('This endpoint is disabled');
     });
 
     it('throws APIError on generic server error (500)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('SERVER_ERROR', 500, 'Internal server error');
 
-      await expect(
-        client.generations.list(),
-      ).rejects.toThrow(APIError);
+      await expect(client.generations.list()).rejects.toThrow(APIError);
     });
   });
 });

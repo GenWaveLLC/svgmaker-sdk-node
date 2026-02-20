@@ -1,3 +1,4 @@
+import fs from 'fs';
 import {
   createTestClient,
   setupFetchMock,
@@ -22,7 +23,7 @@ describe('BatchConvertClient', () => {
 
   beforeEach(() => {
     fetchMock = setupFetchMock();
-    const fs = require('fs');
+
     originalExistsSync = fs.existsSync;
     originalReadFileSync = fs.readFileSync;
     fs.existsSync = jest.fn().mockReturnValue(true);
@@ -31,7 +32,7 @@ describe('BatchConvertClient', () => {
 
   afterEach(() => {
     cleanupMocks();
-    const fs = require('fs');
+
     fs.existsSync = originalExistsSync;
     fs.readFileSync = originalReadFileSync;
   });
@@ -75,9 +76,7 @@ describe('BatchConvertClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
-      await client.convert.batch
-        .configure({ files: ['/img.png'], toFormat: 'svg' })
-        .execute();
+      await client.convert.batch.configure({ files: ['/img.png'], toFormat: 'svg' }).execute();
 
       expect(fetchMock).toHaveBeenCalled();
       const [url, options] = fetchMock.mock.calls[0];
@@ -90,9 +89,7 @@ describe('BatchConvertClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
-      await client.convert.batch
-        .configure({ files: ['/img.png'], toFormat: 'svg' })
-        .execute();
+      await client.convert.batch.configure({ files: ['/img.png'], toFormat: 'svg' }).execute();
 
       const [, options] = fetchMock.mock.calls[0];
       expect(options.headers['x-api-key']).toBe('test-api-key-123');
@@ -142,12 +139,24 @@ describe('BatchConvertClient', () => {
       mockFetchJsonResponse(
         createMockConvertResultsResponse({
           results: [
-            { filename: 'a.png', success: true, url: 'https://x.com/a.svg', urlExpiresIn: '24h', format: 'svg' },
-            { filename: 'b.jpg', success: true, url: 'https://x.com/b.svg', urlExpiresIn: '24h', format: 'svg' },
+            {
+              filename: 'a.png',
+              success: true,
+              url: 'https://x.com/a.svg',
+              urlExpiresIn: '24h',
+              format: 'svg',
+            },
+            {
+              filename: 'b.jpg',
+              success: true,
+              url: 'https://x.com/b.svg',
+              urlExpiresIn: '24h',
+              format: 'svg',
+            },
             { filename: 'c.png', success: false, error: 'Processing failed' },
           ],
           summary: { total: 3, successful: 2, failed: 1 },
-        }),
+        })
       );
 
       const result = await client.convert.batch
@@ -171,9 +180,7 @@ describe('BatchConvertClient', () => {
       const client = createTestClient();
 
       await expect(
-        client.convert.batch
-          .configure({ toFormat: 'svg' } as any)
-          .execute(),
+        client.convert.batch.configure({ toFormat: 'svg' } as any).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -181,9 +188,7 @@ describe('BatchConvertClient', () => {
       const client = createTestClient();
 
       await expect(
-        client.convert.batch
-          .configure({ files: [], toFormat: 'svg' })
-          .execute(),
+        client.convert.batch.configure({ files: [], toFormat: 'svg' }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -193,7 +198,7 @@ describe('BatchConvertClient', () => {
       await expect(
         client.convert.batch
           .configure({ files: Array(11).fill('/img.png'), toFormat: 'svg' })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -201,9 +206,7 @@ describe('BatchConvertClient', () => {
       const client = createTestClient();
 
       await expect(
-        client.convert.batch
-          .configure({ files: ['/img.png'] })
-          .execute(),
+        client.convert.batch.configure({ files: ['/img.png'] }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -233,8 +236,7 @@ describe('BatchConvertClient', () => {
   describe('error handling', () => {
     it('throws AuthError on INVALID_API_KEY', async () => {
       const client = createTestClient();
-      const configured = client.convert.batch
-        .configure({ files: ['/img.png'], toFormat: 'svg' });
+      const configured = client.convert.batch.configure({ files: ['/img.png'], toFormat: 'svg' });
       mockFetchErrorResponse('INVALID_API_KEY', 401);
 
       await expect(configured.execute()).rejects.toThrow(AuthError);
@@ -242,8 +244,7 @@ describe('BatchConvertClient', () => {
 
     it('throws InsufficientCreditsError on INSUFFICIENT_CREDITS', async () => {
       const client = createTestClient();
-      const configured = client.convert.batch
-        .configure({ files: ['/img.png'], toFormat: 'svg' });
+      const configured = client.convert.batch.configure({ files: ['/img.png'], toFormat: 'svg' });
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402);
 
       await expect(configured.execute()).rejects.toThrow(InsufficientCreditsError);
@@ -251,8 +252,7 @@ describe('BatchConvertClient', () => {
 
     it('throws RateLimitError on RATE_LIMIT_EXCEEDED', async () => {
       const client = createTestClient();
-      const configured = client.convert.batch
-        .configure({ files: ['/img.png'], toFormat: 'svg' });
+      const configured = client.convert.batch.configure({ files: ['/img.png'], toFormat: 'svg' });
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
 
       await expect(configured.execute()).rejects.toThrow(RateLimitError);
@@ -260,8 +260,7 @@ describe('BatchConvertClient', () => {
 
     it('throws EndpointDisabledError on ENDPOINT_DISABLED', async () => {
       const client = createTestClient();
-      const configured = client.convert.batch
-        .configure({ files: ['/img.png'], toFormat: 'svg' });
+      const configured = client.convert.batch.configure({ files: ['/img.png'], toFormat: 'svg' });
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503, 'This endpoint is disabled');
 
       await expect(configured.execute()).rejects.toThrow(EndpointDisabledError);
@@ -269,8 +268,7 @@ describe('BatchConvertClient', () => {
 
     it('throws APIError on generic server error', async () => {
       const client = createTestClient();
-      const configured = client.convert.batch
-        .configure({ files: ['/img.png'], toFormat: 'svg' });
+      const configured = client.convert.batch.configure({ files: ['/img.png'], toFormat: 'svg' });
       mockFetchErrorResponse('INTERNAL_ERROR', 500, 'Something went wrong');
 
       await expect(configured.execute()).rejects.toThrow(APIError);

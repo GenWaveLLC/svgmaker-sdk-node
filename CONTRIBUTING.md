@@ -71,13 +71,25 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 ## Pull Request Process
 
 1. Update the README.md with details of changes if applicable.
-2. Update the CHANGELOG.md with details of changes.
-3. The PR should work on Node.js 16.x and above.
-4. The PR will be merged once it passes all checks and is approved by a maintainer.
+2. The PR should work on Node.js 18.x and above.
+3. The PR will be merged once it passes all checks and is approved by a maintainer.
 
 ## Releasing
 
-Releases are handled by the maintainers. If you think a new release should be published, please open an issue.
+Releases are automated. When a push to `main` includes a version bump in `package.json`, the release workflow will:
+
+1. Auto-generate a changelog from conventional commit messages
+2. Create a git tag (`vX.Y.Z`)
+3. Publish to npm
+4. Create a GitHub Release
+
+**To release a new version:**
+
+1. Bump the version in `package.json` (use `npm run version:patch`, `version:minor`, or `version:major`)
+2. Merge to `main` (via PR or direct push)
+3. The release happens automatically
+
+Because the changelog is generated from commit messages, always use [Conventional Commits](https://www.conventionalcommits.org/) format.
 
 ## Questions?
 

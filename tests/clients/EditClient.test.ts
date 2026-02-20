@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Readable } from 'stream';
 import {
   createTestClient,
@@ -75,9 +76,7 @@ describe('EditClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockEditResponse());
 
-      await client.edit
-        .configure({ image: testImageBuffer, prompt: 'Make it red' })
-        .execute();
+      await client.edit.configure({ image: testImageBuffer, prompt: 'Make it red' }).execute();
 
       expect(fetchMock).toHaveBeenCalled();
       const [url, options] = fetchMock.mock.calls[0];
@@ -90,9 +89,7 @@ describe('EditClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockEditResponse());
 
-      await client.edit
-        .configure({ image: testImageBuffer, prompt: 'Make it red' })
-        .execute();
+      await client.edit.configure({ image: testImageBuffer, prompt: 'Make it red' }).execute();
 
       const [, options] = fetchMock.mock.calls[0];
       expect(options.headers['x-api-key']).toBe('test-api-key-123');
@@ -102,9 +99,7 @@ describe('EditClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockEditResponse());
 
-      await client.edit
-        .configure({ image: testImageBuffer, prompt: 'Make it green' })
-        .execute();
+      await client.edit.configure({ image: testImageBuffer, prompt: 'Make it green' }).execute();
 
       const formData = fetchMock.mock.calls[0][1].body as FormData;
       const imageField = formData.get('image');
@@ -207,9 +202,7 @@ describe('EditClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockEditResponse());
 
-      await client.edit
-        .configure({ image: testImageBuffer, prompt: 'Edit this' })
-        .execute();
+      await client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute();
 
       const formData = fetchMock.mock.calls[0][1].body as FormData;
       expect(formData.get('quality')).toBe('medium');
@@ -237,16 +230,14 @@ describe('EditClient', () => {
       mockFetchJsonResponse(createMockEditResponse());
 
       // Mock fs module
-      const fs = require('fs');
+
       const originalExistsSync = fs.existsSync;
       const originalReadFileSync = fs.readFileSync;
       fs.existsSync = jest.fn().mockReturnValue(true);
       fs.readFileSync = jest.fn().mockReturnValue(Buffer.from('fake-png-data'));
 
       try {
-        await client.edit
-          .configure({ image: '/path/to/image.png', prompt: 'Edit this' })
-          .execute();
+        await client.edit.configure({ image: '/path/to/image.png', prompt: 'Edit this' }).execute();
 
         expect(fs.existsSync).toHaveBeenCalledWith('/path/to/image.png');
         expect(fs.readFileSync).toHaveBeenCalledWith('/path/to/image.png');
@@ -268,9 +259,7 @@ describe('EditClient', () => {
       readable.push(Buffer.from('fake-stream-data'));
       readable.push(null);
 
-      await client.edit
-        .configure({ image: readable, prompt: 'Edit this' })
-        .execute();
+      await client.edit.configure({ image: readable, prompt: 'Edit this' }).execute();
 
       expect(fetchMock).toHaveBeenCalled();
       const formData = fetchMock.mock.calls[0][1].body as FormData;
@@ -285,7 +274,7 @@ describe('EditClient', () => {
       await expect(
         client.edit
           .configure({ image: '/nonexistent/path/image.png', prompt: 'Edit this' })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
   });
@@ -299,18 +288,18 @@ describe('EditClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockEditResponse());
 
-      await expect(
-        client.edit.configure({ prompt: 'Edit this' } as any).execute(),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.edit.configure({ prompt: 'Edit this' } as any).execute()).rejects.toThrow(
+        ValidationError
+      );
     });
 
     it('throws ValidationError when neither prompt nor styleParams given', async () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockEditResponse());
 
-      await expect(
-        client.edit.configure({ image: testImageBuffer }).execute(),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.edit.configure({ image: testImageBuffer }).execute()).rejects.toThrow(
+        ValidationError
+      );
     });
 
     it('throws ValidationError when both model and quality are set', async () => {
@@ -325,7 +314,7 @@ describe('EditClient', () => {
             model: 'test-model',
             quality: 'high',
           })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -354,9 +343,7 @@ describe('EditClient', () => {
       mockFetchErrorResponse('INVALID_API_KEY', 401);
 
       await expect(
-        client.edit
-          .configure({ image: testImageBuffer, prompt: 'Edit this' })
-          .execute(),
+        client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute()
       ).rejects.toThrow(AuthError);
     });
 
@@ -365,9 +352,7 @@ describe('EditClient', () => {
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402);
 
       await expect(
-        client.edit
-          .configure({ image: testImageBuffer, prompt: 'Edit this' })
-          .execute(),
+        client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute()
       ).rejects.toThrow(InsufficientCreditsError);
     });
 
@@ -376,9 +361,7 @@ describe('EditClient', () => {
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
 
       await expect(
-        client.edit
-          .configure({ image: testImageBuffer, prompt: 'Edit this' })
-          .execute(),
+        client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute()
       ).rejects.toThrow(RateLimitError);
     });
 
@@ -387,9 +370,7 @@ describe('EditClient', () => {
       mockFetchErrorResponse('CONTENT_POLICY', 422);
 
       await expect(
-        client.edit
-          .configure({ image: testImageBuffer, prompt: 'Edit this' })
-          .execute(),
+        client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute()
       ).rejects.toThrow(ContentSafetyError);
     });
 
@@ -398,9 +379,7 @@ describe('EditClient', () => {
       mockFetchErrorResponse('INTERNAL_ERROR', 500, 'Something went wrong');
 
       await expect(
-        client.edit
-          .configure({ image: testImageBuffer, prompt: 'Edit this' })
-          .execute(),
+        client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute()
       ).rejects.toThrow(APIError);
     });
 
@@ -409,9 +388,7 @@ describe('EditClient', () => {
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503, 'This endpoint is disabled');
 
       await expect(
-        client.edit
-          .configure({ image: testImageBuffer, prompt: 'Edit this' })
-          .execute(),
+        client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute()
       ).rejects.toThrow(EndpointDisabledError);
     });
 
@@ -420,9 +397,7 @@ describe('EditClient', () => {
       mockFetchErrorResponse('FILE_TOO_LARGE', 413, 'File exceeds size limit');
 
       await expect(
-        client.edit
-          .configure({ image: testImageBuffer, prompt: 'Edit this' })
-          .execute(),
+        client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute()
       ).rejects.toThrow(FileSizeError);
     });
 
@@ -431,9 +406,7 @@ describe('EditClient', () => {
       mockFetchErrorResponse('UNKNOWN', 400, 'Unsupported file format');
 
       await expect(
-        client.edit
-          .configure({ image: testImageBuffer, prompt: 'Edit this' })
-          .execute(),
+        client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute()
       ).rejects.toThrow(FileFormatError);
     });
 
@@ -445,13 +418,13 @@ describe('EditClient', () => {
         status: 502,
         headers: new Headers({ 'Content-Type': 'text/plain' }),
         text: async () => 'Bad Gateway',
-        json: async () => { throw new Error('not json'); },
+        json: async () => {
+          throw new Error('not json');
+        },
       });
 
       await expect(
-        client.edit
-          .configure({ image: testImageBuffer, prompt: 'Edit this' })
-          .execute(),
+        client.edit.configure({ image: testImageBuffer, prompt: 'Edit this' }).execute()
       ).rejects.toThrow(APIError);
     });
   });
@@ -508,8 +481,8 @@ describe('EditClient', () => {
       });
 
       expect(events.length).toBeGreaterThanOrEqual(2);
-      expect(events.some((e) => e.status === 'processing')).toBe(true);
-      expect(events.some((e) => e.status === 'complete')).toBe(true);
+      expect(events.some(e => e.status === 'processing')).toBe(true);
+      expect(events.some(e => e.status === 'complete')).toBe(true);
     });
 
     it('emits error on non-ok response', async () => {
@@ -536,13 +509,14 @@ describe('EditClient', () => {
           stream.on('data', () => {});
           stream.on('end', resolve);
           stream.on('error', reject);
-        }),
+        })
       ).rejects.toBeDefined();
     });
 
     it('decodes svgText in stream events', async () => {
       const client = createTestClient();
-      const rawSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="50" height="50"/></svg>';
+      const rawSvg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="50" height="50"/></svg>';
       const streamEvents = [
         { status: 'processing', message: 'Editing...' },
         {
@@ -572,7 +546,7 @@ describe('EditClient', () => {
         stream.on('error', reject);
       });
 
-      const generatedEvent = events.find((e) => e.status === 'generated');
+      const generatedEvent = events.find(e => e.status === 'generated');
       expect(generatedEvent).toBeDefined();
       expect(generatedEvent.svgText).toBe(rawSvg);
     });
@@ -609,7 +583,7 @@ describe('EditClient', () => {
         stream.on('error', reject);
       });
 
-      const generatedEvent = events.find((e) => e.status === 'generated');
+      const generatedEvent = events.find(e => e.status === 'generated');
       expect(generatedEvent).toBeDefined();
       expect(generatedEvent.pngImageData).toBeInstanceOf(Buffer);
     });

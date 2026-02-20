@@ -9,15 +9,7 @@ import {
   createMockGenerateResponse,
   createMockStreamEvents,
 } from '../setup';
-import {
-  ValidationError,
-  AuthError,
-  InsufficientCreditsError,
-  RateLimitError,
-  ContentSafetyError,
-  APIError,
-  EndpointDisabledError,
-} from '../../src/errors/CustomErrors';
+import { ValidationError, RateLimitError, APIError } from '../../src/errors/CustomErrors';
 
 describe('GenerateClient', () => {
   let fetchMock: jest.Mock;
@@ -66,9 +58,7 @@ describe('GenerateClient', () => {
       const mockData = createMockGenerateResponse();
       mockFetchJsonResponse(mockData);
 
-      const result = await client.generate
-        .configure({ prompt: 'A sunset' })
-        .execute();
+      const result = await client.generate.configure({ prompt: 'A sunset' }).execute();
 
       expect(result.svgUrl).toBe(mockData.svgUrl);
     });
@@ -83,9 +73,7 @@ describe('GenerateClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerateResponse());
 
-      await client.generate
-        .configure({ prompt: 'A tree', quality: 'high' })
-        .execute();
+      await client.generate.configure({ prompt: 'A tree', quality: 'high' }).execute();
 
       expect(fetchMock).toHaveBeenCalled();
       const [url, options] = fetchMock.mock.calls[0];
@@ -101,9 +89,7 @@ describe('GenerateClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerateResponse());
 
-      await client.generate
-        .configure({ prompt: 'A tree' })
-        .execute();
+      await client.generate.configure({ prompt: 'A tree' }).execute();
 
       const [, options] = fetchMock.mock.calls[0];
       expect(options.headers['x-api-key']).toBe('test-api-key-123');
@@ -114,9 +100,7 @@ describe('GenerateClient', () => {
       const mockData = createMockGenerateResponse();
       mockFetchJsonResponse(mockData);
 
-      const result = await client.generate
-        .configure({ prompt: 'A flower' })
-        .execute();
+      const result = await client.generate.configure({ prompt: 'A flower' }).execute();
 
       expect(result.svgUrl).toBe(mockData.svgUrl);
       expect(result.creditCost).toBe(mockData.creditCost);
@@ -132,9 +116,7 @@ describe('GenerateClient', () => {
         '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
       mockFetchJsonResponse(createMockGenerateResponse({ svgText: rawSvg }));
 
-      const result = await client.generate
-        .configure({ prompt: 'A box', svgText: true })
-        .execute();
+      const result = await client.generate.configure({ prompt: 'A box', svgText: true }).execute();
 
       expect(result.svgText).toBe(rawSvg);
     });
@@ -142,9 +124,7 @@ describe('GenerateClient', () => {
     it('decodes base64Png to pngImageData Buffer', async () => {
       const client = createTestClient();
       const base64Png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==';
-      mockFetchJsonResponse(
-        createMockGenerateResponse({ base64Png }),
-      );
+      mockFetchJsonResponse(createMockGenerateResponse({ base64Png }));
 
       const result = await client.generate
         .configure({ prompt: 'A dot', base64Png: true })
@@ -208,9 +188,7 @@ describe('GenerateClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerateResponse({ quality: undefined }));
 
-      await client.generate
-        .configure({ prompt: 'A tree', model: 'custom-model-v1' })
-        .execute();
+      await client.generate.configure({ prompt: 'A tree', model: 'custom-model-v1' }).execute();
 
       const body = JSON.parse(fetchMock.mock.calls[0][1].body);
       expect(body.model).toBe('custom-model-v1');
@@ -227,9 +205,9 @@ describe('GenerateClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockGenerateResponse());
 
-      await expect(
-        client.generate.configure({ prompt: '' }).execute(),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.generate.configure({ prompt: '' }).execute()).rejects.toThrow(
+        ValidationError
+      );
     });
 
     it('throws ValidationError when prompt is missing', async () => {
@@ -246,7 +224,7 @@ describe('GenerateClient', () => {
       await expect(
         client.generate
           .configure({ prompt: 'A cat', model: 'test-model', quality: 'high' })
-          .execute(),
+          .execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -255,9 +233,7 @@ describe('GenerateClient', () => {
 
       for (const quality of ['low', 'medium', 'high'] as const) {
         mockFetchJsonResponse(createMockGenerateResponse({ quality }));
-        const result = await client.generate
-          .configure({ prompt: 'Test', quality })
-          .execute();
+        const result = await client.generate.configure({ prompt: 'Test', quality }).execute();
         expect(result).toBeDefined();
       }
     });
@@ -267,9 +243,7 @@ describe('GenerateClient', () => {
 
       for (const aspectRatio of ['auto', 'portrait', 'landscape', 'square'] as const) {
         mockFetchJsonResponse(createMockGenerateResponse());
-        const result = await client.generate
-          .configure({ prompt: 'Test', aspectRatio })
-          .execute();
+        const result = await client.generate.configure({ prompt: 'Test', aspectRatio }).execute();
         expect(result).toBeDefined();
       }
     });
@@ -309,63 +283,63 @@ describe('GenerateClient', () => {
       const client = createTestClient();
       mockFetchErrorResponse('INVALID_API_KEY', 401, 'Invalid API key');
 
-      await expect(
-        client.generate.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow('Invalid API key');
+      await expect(client.generate.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        'Invalid API key'
+      );
     });
 
     it('throws on INSUFFICIENT_CREDITS', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402, 'Not enough credits');
 
-      await expect(
-        client.generate.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow('Not enough credits');
+      await expect(client.generate.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        'Not enough credits'
+      );
     });
 
     it('throws RateLimitError on RATE_LIMIT_EXCEEDED', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
 
-      await expect(
-        client.generate.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow(RateLimitError);
+      await expect(client.generate.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        RateLimitError
+      );
     });
 
     it('throws on CONTENT_POLICY', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('CONTENT_POLICY', 422, 'Content policy violation');
 
-      await expect(
-        client.generate.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow('Content policy violation');
+      await expect(client.generate.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        'Content policy violation'
+      );
     });
 
     it('throws APIError on generic server error', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INTERNAL_ERROR', 500, 'Something went wrong');
 
-      await expect(
-        client.generate.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow(APIError);
+      await expect(client.generate.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        APIError
+      );
     });
 
     it('throws on ENDPOINT_DISABLED', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503, 'This endpoint is disabled');
 
-      await expect(
-        client.generate.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow('This endpoint is disabled');
+      await expect(client.generate.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        'This endpoint is disabled'
+      );
     });
 
     it('throws on FILE_SIZE_EXCEEDED (413)', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('FILE_SIZE_EXCEEDED', 413, 'File too large');
 
-      await expect(
-        client.generate.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow('File too large');
+      await expect(client.generate.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        'File too large'
+      );
     });
   });
 
@@ -378,9 +352,7 @@ describe('GenerateClient', () => {
       const client = createTestClient();
       mockFetchStreamResponse(createMockStreamEvents());
 
-      const stream = client.generate
-        .configure({ prompt: 'A cat' })
-        .stream();
+      const stream = client.generate.configure({ prompt: 'A cat' }).stream();
 
       expect(stream).toBeInstanceOf(Readable);
     });
@@ -389,9 +361,7 @@ describe('GenerateClient', () => {
       const client = createTestClient();
       mockFetchStreamResponse(createMockStreamEvents());
 
-      const stream = client.generate
-        .configure({ prompt: 'A cat' })
-        .stream();
+      const stream = client.generate.configure({ prompt: 'A cat' }).stream();
 
       const events: any[] = [];
       await new Promise<void>((resolve, reject) => {
@@ -400,7 +370,7 @@ describe('GenerateClient', () => {
         stream.on('error', reject);
       });
 
-      const processingEvent = events.find((e) => e.status === 'processing');
+      const processingEvent = events.find(e => e.status === 'processing');
       expect(processingEvent).toBeDefined();
       expect(processingEvent.message).toBe('Generating SVG...');
     });
@@ -409,9 +379,7 @@ describe('GenerateClient', () => {
       const client = createTestClient();
       mockFetchStreamResponse(createMockStreamEvents());
 
-      const stream = client.generate
-        .configure({ prompt: 'A cat' })
-        .stream();
+      const stream = client.generate.configure({ prompt: 'A cat' }).stream();
 
       const events: any[] = [];
       await new Promise<void>((resolve, reject) => {
@@ -420,7 +388,7 @@ describe('GenerateClient', () => {
         stream.on('error', reject);
       });
 
-      const completeEvent = events.find((e) => e.status === 'complete');
+      const completeEvent = events.find(e => e.status === 'complete');
       expect(completeEvent).toBeDefined();
       // svgText from 'generated' event should be accumulated into 'complete'
       expect(completeEvent.svgText).toBeDefined();
@@ -432,9 +400,7 @@ describe('GenerateClient', () => {
       const client = createTestClient();
       mockFetchStreamResponse(createMockStreamEvents());
 
-      const stream = client.generate
-        .configure({ prompt: 'A cat' })
-        .stream();
+      const stream = client.generate.configure({ prompt: 'A cat' }).stream();
 
       // Wait for stream to start
       await new Promise<void>((resolve, reject) => {
@@ -464,22 +430,21 @@ describe('GenerateClient', () => {
         text: async () => '{"success":false}',
       });
 
-      const stream = client.generate
-        .configure({ prompt: 'A cat' })
-        .stream();
+      const stream = client.generate.configure({ prompt: 'A cat' }).stream();
 
       await expect(
         new Promise<void>((resolve, reject) => {
           stream.on('data', () => {});
           stream.on('end', resolve);
           stream.on('error', reject);
-        }),
+        })
       ).rejects.toBeDefined();
     });
 
     it('decodes svgText in stream events', async () => {
       const client = createTestClient();
-      const rawSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="50" height="50"/></svg>';
+      const rawSvg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="50" height="50"/></svg>';
       const streamEvents = [
         { status: 'processing', message: 'Generating SVG...' },
         {
@@ -507,7 +472,7 @@ describe('GenerateClient', () => {
         stream.on('error', reject);
       });
 
-      const generatedEvent = events.find((e) => e.status === 'generated');
+      const generatedEvent = events.find(e => e.status === 'generated');
       expect(generatedEvent).toBeDefined();
       expect(generatedEvent.svgText).toBe(rawSvg);
     });
@@ -542,14 +507,15 @@ describe('GenerateClient', () => {
         stream.on('error', reject);
       });
 
-      const generatedEvent = events.find((e) => e.status === 'generated');
+      const generatedEvent = events.find(e => e.status === 'generated');
       expect(generatedEvent).toBeDefined();
       expect(generatedEvent.pngImageData).toBeInstanceOf(Buffer);
     });
 
     it('accumulates fields from intermediate events into complete event', async () => {
       const client = createTestClient();
-      const rawSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="50" height="50"/></svg>';
+      const rawSvg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="50" height="50"/></svg>';
       const streamEvents = [
         { status: 'processing', message: 'Generating SVG...' },
         {
@@ -576,7 +542,7 @@ describe('GenerateClient', () => {
         stream.on('error', reject);
       });
 
-      const completeEvent = events.find((e) => e.status === 'complete');
+      const completeEvent = events.find(e => e.status === 'complete');
       expect(completeEvent).toBeDefined();
       // Fields from 'generated' event should be accumulated into 'complete'
       expect(completeEvent.svgText).toBe(rawSvg);

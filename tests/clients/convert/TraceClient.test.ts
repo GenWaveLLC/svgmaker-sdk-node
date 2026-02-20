@@ -1,3 +1,4 @@
+import fs from 'fs';
 import {
   createTestClient,
   setupFetchMock,
@@ -22,7 +23,7 @@ describe('TraceClient', () => {
 
   beforeEach(() => {
     fetchMock = setupFetchMock();
-    const fs = require('fs');
+
     originalExistsSync = fs.existsSync;
     originalReadFileSync = fs.readFileSync;
     fs.existsSync = jest.fn().mockReturnValue(true);
@@ -31,7 +32,7 @@ describe('TraceClient', () => {
 
   afterEach(() => {
     cleanupMocks();
-    const fs = require('fs');
+
     fs.existsSync = originalExistsSync;
     fs.readFileSync = originalReadFileSync;
   });
@@ -74,9 +75,7 @@ describe('TraceClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
-      await client.convert.trace
-        .configure({ file: '/test.png' })
-        .execute();
+      await client.convert.trace.configure({ file: '/test.png' }).execute();
 
       expect(fetchMock).toHaveBeenCalled();
       const [url, options] = fetchMock.mock.calls[0];
@@ -89,9 +88,7 @@ describe('TraceClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
-      await client.convert.trace
-        .configure({ file: '/test.png' })
-        .execute();
+      await client.convert.trace.configure({ file: '/test.png' }).execute();
 
       const [, options] = fetchMock.mock.calls[0];
       expect(options.headers['x-api-key']).toBe('test-api-key-123');
@@ -132,9 +129,7 @@ describe('TraceClient', () => {
       const mockData = createMockConvertResultsResponse();
       mockFetchJsonResponse(mockData);
 
-      const result = await client.convert.trace
-        .configure({ file: '/test.png' })
-        .execute();
+      const result = await client.convert.trace.configure({ file: '/test.png' }).execute();
 
       expect(Array.isArray(result.results)).toBe(true);
       expect(result.results[0].filename).toBe('test-image.png');
@@ -152,9 +147,7 @@ describe('TraceClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
-      await expect(
-        client.convert.trace.execute(),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.convert.trace.execute()).rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError for invalid preset value', async () => {
@@ -162,9 +155,7 @@ describe('TraceClient', () => {
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
       await expect(
-        client.convert.trace
-          .configure({ file: '/img.png', preset: 'invalid' as any })
-          .execute(),
+        client.convert.trace.configure({ file: '/img.png', preset: 'invalid' as any }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -173,9 +164,7 @@ describe('TraceClient', () => {
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
       await expect(
-        client.convert.trace
-          .configure({ file: '/img.png', mode: 'invalid' as any })
-          .execute(),
+        client.convert.trace.configure({ file: '/img.png', mode: 'invalid' as any }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -184,9 +173,7 @@ describe('TraceClient', () => {
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
       await expect(
-        client.convert.trace
-          .configure({ file: '/img.png', detail: -1 })
-          .execute(),
+        client.convert.trace.configure({ file: '/img.png', detail: -1 }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -195,9 +182,7 @@ describe('TraceClient', () => {
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
       await expect(
-        client.convert.trace
-          .configure({ file: '/img.png', detail: 101 })
-          .execute(),
+        client.convert.trace.configure({ file: '/img.png', detail: 101 }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -206,9 +191,7 @@ describe('TraceClient', () => {
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
       await expect(
-        client.convert.trace
-          .configure({ file: '/img.png', smoothness: 101 })
-          .execute(),
+        client.convert.trace.configure({ file: '/img.png', smoothness: 101 }).execute()
       ).rejects.toThrow(ValidationError);
     });
 
@@ -217,9 +200,7 @@ describe('TraceClient', () => {
       mockFetchJsonResponse(createMockConvertResultsResponse());
 
       await expect(
-        client.convert.trace
-          .configure({ file: '/img.png', corners: -1 })
-          .execute(),
+        client.convert.trace.configure({ file: '/img.png', corners: -1 }).execute()
       ).rejects.toThrow(ValidationError);
     });
 

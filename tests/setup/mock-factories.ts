@@ -7,9 +7,7 @@ import { ResponseMetadata } from '../../src/types/api';
 /**
  * Create mock response metadata
  */
-export function createMockMetadata(
-  overrides?: Partial<ResponseMetadata>,
-): ResponseMetadata {
+export function createMockMetadata(overrides?: Partial<ResponseMetadata>): ResponseMetadata {
   return {
     requestId: 'test-req-id',
     creditsUsed: 1,
@@ -21,9 +19,7 @@ export function createMockMetadata(
 /**
  * Create mock generate response data (v1 envelope data field)
  */
-export function createMockGenerateResponse(
-  overrides?: Record<string, any>,
-): Record<string, any> {
+export function createMockGenerateResponse(overrides?: Record<string, any>): Record<string, any> {
   return {
     svgUrl: 'https://storage.example.com/test.svg',
     creditCost: 1,
@@ -38,9 +34,7 @@ export function createMockGenerateResponse(
 /**
  * Create mock edit response data (v1 envelope data field)
  */
-export function createMockEditResponse(
-  overrides?: Record<string, any>,
-): Record<string, any> {
+export function createMockEditResponse(overrides?: Record<string, any>): Record<string, any> {
   return {
     svgUrl: 'https://storage.example.com/test-edit.svg',
     creditCost: 2,
@@ -83,7 +77,7 @@ export function createMockStreamEvents(): Record<string, any>[] {
  * Create mock AI vectorize response data (v1 envelope data field)
  */
 export function createMockAiVectorizeResponse(
-  overrides?: Record<string, any>,
+  overrides?: Record<string, any>
 ): Record<string, any> {
   return {
     svgUrl: 'https://storage.example.com/vectorized.svg',
@@ -99,7 +93,7 @@ export function createMockAiVectorizeResponse(
  * Create mock convert results response data (v1 envelope data field)
  */
 export function createMockConvertResultsResponse(
-  overrides?: Record<string, any>,
+  overrides?: Record<string, any>
 ): Record<string, any> {
   return {
     results: [
@@ -151,7 +145,7 @@ export function createMockAiVectorizeStreamEvents(): Record<string, any>[] {
  * Create mock optimize SVG response data
  */
 export function createMockOptimizeSvgResponse(
-  overrides?: Record<string, any>,
+  overrides?: Record<string, any>
 ): Record<string, any> {
   return {
     svgUrl: 'https://storage.example.com/optimized.svg',
@@ -164,7 +158,7 @@ export function createMockOptimizeSvgResponse(
  * Create mock enhance prompt response data
  */
 export function createMockEnhancePromptResponse(
-  overrides?: Record<string, any>,
+  overrides?: Record<string, any>
 ): Record<string, any> {
   return {
     enhancedPrompt: 'A beautifully detailed mountain landscape with snow-capped peaks',
@@ -176,7 +170,7 @@ export function createMockEnhancePromptResponse(
  * Create mock generations list response data (v1 envelope data field)
  */
 export function createMockGenerationsListData(
-  overrides?: Record<string, any>,
+  overrides?: Record<string, any>
 ): Record<string, any> {
   return {
     items: ['gen-001', 'gen-002'],
@@ -195,9 +189,7 @@ export function createMockGenerationsListData(
 /**
  * Create mock single generation response data (v1 envelope data field)
  */
-export function createMockGenerationData(
-  overrides?: Record<string, any>,
-): Record<string, any> {
+export function createMockGenerationData(overrides?: Record<string, any>): Record<string, any> {
   return {
     id: 'gen-001',
     prompt: 'A mountain landscape',
@@ -216,7 +208,7 @@ export function createMockGenerationData(
  * Create mock generation delete response data (v1 envelope data field)
  */
 export function createMockGenerationDeleteData(
-  overrides?: Record<string, any>,
+  overrides?: Record<string, any>
 ): Record<string, any> {
   return {
     message: 'Generation deleted successfully',
@@ -228,7 +220,7 @@ export function createMockGenerationDeleteData(
  * Create mock generation share response data (v1 envelope data field)
  */
 export function createMockGenerationShareData(
-  overrides?: Record<string, any>,
+  overrides?: Record<string, any>
 ): Record<string, any> {
   return {
     message: 'Generation shared',
@@ -242,7 +234,7 @@ export function createMockGenerationShareData(
  * Create mock generation download response data (v1 envelope data field)
  */
 export function createMockGenerationDownloadData(
-  overrides?: Record<string, any>,
+  overrides?: Record<string, any>
 ): Record<string, any> {
   return {
     id: 'gen-001',
@@ -257,9 +249,7 @@ export function createMockGenerationDownloadData(
 /**
  * Create mock account info response data (v1 envelope data field)
  */
-export function createMockAccountInfoData(
-  overrides?: Record<string, any>,
-): Record<string, any> {
+export function createMockAccountInfoData(overrides?: Record<string, any>): Record<string, any> {
   return {
     email: 'user@example.com',
     displayName: 'Test User',
@@ -272,9 +262,7 @@ export function createMockAccountInfoData(
 /**
  * Create mock account usage response data (v1 envelope data field)
  */
-export function createMockAccountUsageData(
-  overrides?: Record<string, any>,
-): Record<string, any> {
+export function createMockAccountUsageData(overrides?: Record<string, any>): Record<string, any> {
   return {
     period: { type: 'all' },
     summary: {

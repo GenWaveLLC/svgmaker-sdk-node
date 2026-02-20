@@ -50,7 +50,10 @@ export class SvgToVectorClient extends BaseClient {
     formData.append('toFormat', this.params.toFormat!);
 
     // Add optional parameters
-    this.appendOptionalParams(formData, this.params as Record<string, any>, ['textToPath', 'dxfVersion']);
+    this.appendOptionalParams(formData, this.params as Record<string, any>, [
+      'textToPath',
+      'dxfVersion',
+    ]);
 
     // Execute request
     const { data, metadata: responseMetadata } = await this.executeFormDataRequest<any>(

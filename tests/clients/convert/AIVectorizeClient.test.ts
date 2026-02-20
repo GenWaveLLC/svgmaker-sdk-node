@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Readable } from 'stream';
 import {
   createTestClient,
@@ -68,9 +69,7 @@ describe('AIVectorizeClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockAiVectorizeResponse());
 
-      await client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .execute();
+      await client.convert.aiVectorize.configure({ file: testFileBuffer }).execute();
 
       const [url, options] = fetchMock.mock.calls[0];
       expect(url).toContain('/v1/convert/ai-vectorize');
@@ -82,9 +81,7 @@ describe('AIVectorizeClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockAiVectorizeResponse());
 
-      await client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .execute();
+      await client.convert.aiVectorize.configure({ file: testFileBuffer }).execute();
 
       const [, options] = fetchMock.mock.calls[0];
       expect(options.headers['x-api-key']).toBe('test-api-key-123');
@@ -94,9 +91,7 @@ describe('AIVectorizeClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockAiVectorizeResponse());
 
-      await client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .execute();
+      await client.convert.aiVectorize.configure({ file: testFileBuffer }).execute();
 
       const formData = fetchMock.mock.calls[0][1].body as FormData;
       expect(formData.get('file')).toBeTruthy();
@@ -120,9 +115,7 @@ describe('AIVectorizeClient', () => {
       const mockData = createMockAiVectorizeResponse();
       mockFetchJsonResponse(mockData);
 
-      const result = await client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .execute();
+      const result = await client.convert.aiVectorize.configure({ file: testFileBuffer }).execute();
 
       expect(result.svgUrl).toBe(mockData.svgUrl);
       expect(result.creditCost).toBe(mockData.creditCost);
@@ -148,16 +141,13 @@ describe('AIVectorizeClient', () => {
       const client = createTestClient();
       mockFetchJsonResponse(createMockAiVectorizeResponse());
 
-      const fs = require('fs');
       const originalExistsSync = fs.existsSync;
       const originalReadFileSync = fs.readFileSync;
       fs.existsSync = jest.fn().mockReturnValue(true);
       fs.readFileSync = jest.fn().mockReturnValue(Buffer.from('fake-png-data'));
 
       try {
-        await client.convert.aiVectorize
-          .configure({ file: '/path/to/image.png' })
-          .execute();
+        await client.convert.aiVectorize.configure({ file: '/path/to/image.png' }).execute();
 
         expect(fs.existsSync).toHaveBeenCalledWith('/path/to/image.png');
         expect(fs.readFileSync).toHaveBeenCalledWith('/path/to/image.png');
@@ -178,9 +168,7 @@ describe('AIVectorizeClient', () => {
       readable.push(Buffer.from('fake-stream-data'));
       readable.push(null);
 
-      await client.convert.aiVectorize
-        .configure({ file: readable })
-        .execute();
+      await client.convert.aiVectorize.configure({ file: readable }).execute();
 
       expect(fetchMock).toHaveBeenCalled();
       const formData = fetchMock.mock.calls[0][1].body as FormData;
@@ -196,18 +184,14 @@ describe('AIVectorizeClient', () => {
     it('throws ValidationError when file is missing', async () => {
       const client = createTestClient();
 
-      await expect(
-        client.convert.aiVectorize.execute(),
-      ).rejects.toThrow(ValidationError);
+      await expect(client.convert.aiVectorize.execute()).rejects.toThrow(ValidationError);
     });
 
     it('throws ValidationError when file path does not exist', async () => {
       const client = createTestClient();
 
       await expect(
-        client.convert.aiVectorize
-          .configure({ file: '/nonexistent/path/image.png' })
-          .execute(),
+        client.convert.aiVectorize.configure({ file: '/nonexistent/path/image.png' }).execute()
       ).rejects.toThrow(ValidationError);
     });
   });
@@ -222,9 +206,7 @@ describe('AIVectorizeClient', () => {
       mockFetchErrorResponse('INVALID_API_KEY', 401);
 
       await expect(
-        client.convert.aiVectorize
-          .configure({ file: testFileBuffer })
-          .execute(),
+        client.convert.aiVectorize.configure({ file: testFileBuffer }).execute()
       ).rejects.toThrow(AuthError);
     });
 
@@ -233,9 +215,7 @@ describe('AIVectorizeClient', () => {
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402);
 
       await expect(
-        client.convert.aiVectorize
-          .configure({ file: testFileBuffer })
-          .execute(),
+        client.convert.aiVectorize.configure({ file: testFileBuffer }).execute()
       ).rejects.toThrow(InsufficientCreditsError);
     });
 
@@ -244,9 +224,7 @@ describe('AIVectorizeClient', () => {
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
 
       await expect(
-        client.convert.aiVectorize
-          .configure({ file: testFileBuffer })
-          .execute(),
+        client.convert.aiVectorize.configure({ file: testFileBuffer }).execute()
       ).rejects.toThrow(RateLimitError);
     });
 
@@ -255,9 +233,7 @@ describe('AIVectorizeClient', () => {
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503, 'This endpoint is disabled');
 
       await expect(
-        client.convert.aiVectorize
-          .configure({ file: testFileBuffer })
-          .execute(),
+        client.convert.aiVectorize.configure({ file: testFileBuffer }).execute()
       ).rejects.toThrow(EndpointDisabledError);
     });
 
@@ -266,9 +242,7 @@ describe('AIVectorizeClient', () => {
       mockFetchErrorResponse('INTERNAL_ERROR', 500, 'Something went wrong');
 
       await expect(
-        client.convert.aiVectorize
-          .configure({ file: testFileBuffer })
-          .execute(),
+        client.convert.aiVectorize.configure({ file: testFileBuffer }).execute()
       ).rejects.toThrow(APIError);
     });
   });
@@ -282,9 +256,7 @@ describe('AIVectorizeClient', () => {
       const client = createTestClient();
       mockFetchStreamResponse(createMockAiVectorizeStreamEvents());
 
-      const stream = client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .stream();
+      const stream = client.convert.aiVectorize.configure({ file: testFileBuffer }).stream();
 
       expect(stream).toBeInstanceOf(Readable);
     });
@@ -293,9 +265,7 @@ describe('AIVectorizeClient', () => {
       const client = createTestClient();
       mockFetchStreamResponse(createMockAiVectorizeStreamEvents());
 
-      const stream = client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .stream();
+      const stream = client.convert.aiVectorize.configure({ file: testFileBuffer }).stream();
 
       const events: any[] = [];
       await new Promise<void>((resolve, reject) => {
@@ -304,7 +274,7 @@ describe('AIVectorizeClient', () => {
         stream.on('error', reject);
       });
 
-      const processingEvent = events.find((e) => e.status === 'processing');
+      const processingEvent = events.find(e => e.status === 'processing');
       expect(processingEvent).toBeDefined();
       expect(processingEvent.message).toBe('Vectorizing image...');
     });
@@ -313,9 +283,7 @@ describe('AIVectorizeClient', () => {
       const client = createTestClient();
       mockFetchStreamResponse(createMockAiVectorizeStreamEvents());
 
-      const stream = client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .stream();
+      const stream = client.convert.aiVectorize.configure({ file: testFileBuffer }).stream();
 
       const events: any[] = [];
       await new Promise<void>((resolve, reject) => {
@@ -324,7 +292,7 @@ describe('AIVectorizeClient', () => {
         stream.on('error', reject);
       });
 
-      const completeEvent = events.find((e) => e.status === 'complete');
+      const completeEvent = events.find(e => e.status === 'complete');
       expect(completeEvent).toBeDefined();
       expect(completeEvent.svgUrl).toBeDefined();
       expect(completeEvent.creditCost).toBeDefined();
@@ -335,9 +303,7 @@ describe('AIVectorizeClient', () => {
       const client = createTestClient();
       mockFetchStreamResponse(createMockAiVectorizeStreamEvents());
 
-      const stream = client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .stream();
+      const stream = client.convert.aiVectorize.configure({ file: testFileBuffer }).stream();
 
       await new Promise<void>((resolve, reject) => {
         stream.on('data', () => {});
@@ -353,9 +319,7 @@ describe('AIVectorizeClient', () => {
       const client = createTestClient();
       mockFetchStreamResponse(createMockAiVectorizeStreamEvents());
 
-      const stream = client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .stream();
+      const stream = client.convert.aiVectorize.configure({ file: testFileBuffer }).stream();
 
       await new Promise<void>((resolve, reject) => {
         stream.on('data', () => {});
@@ -390,9 +354,7 @@ describe('AIVectorizeClient', () => {
       ];
       mockFetchStreamResponse(streamEvents);
 
-      const stream = client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .stream();
+      const stream = client.convert.aiVectorize.configure({ file: testFileBuffer }).stream();
 
       const events: any[] = [];
       await new Promise<void>((resolve, reject) => {
@@ -401,7 +363,7 @@ describe('AIVectorizeClient', () => {
         stream.on('error', reject);
       });
 
-      const generatedEvent = events.find((e) => e.status === 'generated');
+      const generatedEvent = events.find(e => e.status === 'generated');
       expect(generatedEvent).toBeDefined();
       expect(generatedEvent.svgText).toBe(rawSvg);
     });
@@ -425,16 +387,14 @@ describe('AIVectorizeClient', () => {
         text: async () => '{"success":false}',
       });
 
-      const stream = client.convert.aiVectorize
-        .configure({ file: testFileBuffer })
-        .stream();
+      const stream = client.convert.aiVectorize.configure({ file: testFileBuffer }).stream();
 
       await expect(
         new Promise<void>((resolve, reject) => {
           stream.on('data', () => {});
           stream.on('end', resolve);
           stream.on('error', reject);
-        }),
+        })
       ).rejects.toBeDefined();
     });
   });

@@ -54,7 +54,14 @@ export class TraceClient extends BaseClient {
 
     // Add optional parameters
     this.appendOptionalParams(formData, this.params as Record<string, any>, [
-      'algorithm', 'preset', 'mode', 'hierarchical', 'detail', 'smoothness', 'corners', 'reduceNoise',
+      'algorithm',
+      'preset',
+      'mode',
+      'hierarchical',
+      'detail',
+      'smoothness',
+      'corners',
+      'reduceNoise',
     ]);
 
     // Execute request

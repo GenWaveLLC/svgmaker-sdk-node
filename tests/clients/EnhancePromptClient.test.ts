@@ -86,9 +86,7 @@ describe('EnhancePromptClient', () => {
       const client = createTestClient();
       const mockData = createMockEnhancePromptResponse();
       mockFetchJsonResponse(mockData);
-      const result = await client.enhancePrompt
-        .configure({ prompt: 'A sunset' })
-        .execute();
+      const result = await client.enhancePrompt.configure({ prompt: 'A sunset' }).execute();
       expect(result.enhancedPrompt).toBe(mockData.enhancedPrompt);
       expect(result.metadata).toBeDefined();
     });
@@ -108,41 +106,41 @@ describe('EnhancePromptClient', () => {
     it('throws AuthError on INVALID_API_KEY', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INVALID_API_KEY', 401);
-      await expect(
-        client.enhancePrompt.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow(AuthError);
+      await expect(client.enhancePrompt.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        AuthError
+      );
     });
 
     it('throws InsufficientCreditsError on INSUFFICIENT_CREDITS', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INSUFFICIENT_CREDITS', 402);
-      await expect(
-        client.enhancePrompt.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow(InsufficientCreditsError);
+      await expect(client.enhancePrompt.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        InsufficientCreditsError
+      );
     });
 
     it('throws RateLimitError on RATE_LIMIT_EXCEEDED', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('RATE_LIMIT_EXCEEDED', 429);
-      await expect(
-        client.enhancePrompt.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow(RateLimitError);
+      await expect(client.enhancePrompt.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        RateLimitError
+      );
     });
 
     it('throws EndpointDisabledError on ENDPOINT_DISABLED', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('ENDPOINT_DISABLED', 503);
-      await expect(
-        client.enhancePrompt.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow(EndpointDisabledError);
+      await expect(client.enhancePrompt.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        EndpointDisabledError
+      );
     });
 
     it('throws APIError on generic server error', async () => {
       const client = createTestClient();
       mockFetchErrorResponse('INTERNAL_ERROR', 500);
-      await expect(
-        client.enhancePrompt.configure({ prompt: 'A cat' }).execute(),
-      ).rejects.toThrow(APIError);
+      await expect(client.enhancePrompt.configure({ prompt: 'A cat' }).execute()).rejects.toThrow(
+        APIError
+      );
     });
   });
 });

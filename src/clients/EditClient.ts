@@ -94,7 +94,15 @@ export class EditClient extends BaseClient {
 
     // Add optional parameters
     this.appendOptionalParams(formData, this.params as Record<string, any>, [
-      'prompt', 'quality', 'aspectRatio', 'background', 'storage', 'stream', 'base64Png', 'svgText', 'model',
+      'prompt',
+      'quality',
+      'aspectRatio',
+      'background',
+      'storage',
+      'stream',
+      'base64Png',
+      'svgText',
+      'model',
     ]);
 
     // Execute request
