@@ -19,6 +19,7 @@ const generateParamsSchema = z
     base64Png: z.boolean().optional(),
     svgText: z.boolean().optional(),
     model: z.string().optional(),
+    raster: z.boolean().optional(),
     styleParams: z
       .object({
         style: z
@@ -44,6 +45,9 @@ const generateParamsSchema = z
   })
   .refine(data => !(data.model && data.quality), {
     message: "Cannot specify both 'model' and 'quality'. Use one or the other.",
+  })
+  .refine(data => !(data.raster && data.storage), {
+    message: "Cannot use 'storage: true' with 'raster: true'. Raster mode returns temporary URLs only.",
   });
 
 /**
@@ -105,6 +109,8 @@ export class GenerateClient extends BaseClient {
       pngImageData: rawResult.pngImageData,
       svgText,
       quality: rawResult.quality ?? this.params.quality ?? 'medium',
+      imageUrl: rawResult.imageUrl,
+      imageUrlExpiresIn: rawResult.imageUrlExpiresIn,
     };
 
     this.logger.debug('SVG generation completed', {

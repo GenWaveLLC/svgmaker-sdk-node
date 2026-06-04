@@ -42,12 +42,16 @@ const editParamsSchema = z
     base64Png: z.boolean().optional(),
     svgText: z.boolean().optional(),
     model: z.string().optional(),
+    raster: z.boolean().optional(),
   })
   .refine(data => data.prompt || data.styleParams, {
     message: 'Either prompt or styleParams must be provided',
   })
   .refine(data => !(data.model && data.quality), {
     message: "Cannot specify both 'model' and 'quality'. Use one or the other.",
+  })
+  .refine(data => !(data.raster && data.storage), {
+    message: "Cannot use 'storage: true' with 'raster: true'. Raster mode returns temporary URLs only.",
   });
 
 /**
@@ -103,6 +107,7 @@ export class EditClient extends BaseClient {
       'base64Png',
       'svgText',
       'model',
+      'raster',
     ]);
 
     // Execute request
@@ -131,6 +136,8 @@ export class EditClient extends BaseClient {
       pngImageData,
       svgText,
       quality: data.quality,
+      imageUrl: data.imageUrl,
+      imageUrlExpiresIn: data.imageUrlExpiresIn,
     };
 
     this.logger.debug('Image/SVG edit completed', {
@@ -239,6 +246,10 @@ export class EditClient extends BaseClient {
 
         if (client.params.model) {
           formData.append('model', client.params.model);
+        }
+
+        if (client.params.raster !== undefined) {
+          formData.append('raster', String(client.params.raster));
         }
 
         // Make request to the streaming endpoint using native fetch
