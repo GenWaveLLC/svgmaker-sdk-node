@@ -47,7 +47,8 @@ const generateParamsSchema = z
     message: "Cannot specify both 'model' and 'quality'. Use one or the other.",
   })
   .refine(data => !(data.raster && data.storage), {
-    message: "Cannot use 'storage: true' with 'raster: true'. Raster mode returns temporary URLs only.",
+    message:
+      "Cannot use 'storage: true' with 'raster: true'. Raster mode returns temporary URLs only.",
   });
 
 /**

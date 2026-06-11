@@ -22,6 +22,7 @@ v1.0.0 includes breaking changes. If you're upgrading from v0.x, see the **[Migr
 - **TypeScript Native**: Full type safety with comprehensive type definitions
 - **Automatic Retries**: Built-in retry logic with exponential backoff
 - **Streaming Support**: Real-time progress updates via Server-Sent Events
+- **Raster Mode**: Return PNG output directly on generate and edit, skipping vectorization
 - **Input Validation**: Zod-based schema validation for all requests
 - **Dual Package**: ESM and CommonJS support
 
@@ -75,6 +76,28 @@ for await (const event of stream) {
   if (event.status === 'complete') console.log('Done:', event.svgUrl);
 }
 ```
+
+### Raster Mode
+
+Pass `raster: true` to `generate` or `edit` to receive a PNG instead of an SVG. This skips vectorization, so it's faster and simpler. In raster mode the response has no `svgUrl`; instead you get `imageUrl` (a temporary URL to the PNG) and `imageUrlExpiresIn`.
+
+```typescript
+// Generate a raster PNG instead of an SVG
+const result = await client.generate
+  .configure({
+    prompt: 'A minimalist mountain landscape',
+    quality: 'high',
+    raster: true,
+  })
+  .execute();
+
+console.log('Image URL:', result.imageUrl);
+console.log('Expires in:', result.imageUrlExpiresIn);
+
+// raster: true also works on client.edit
+```
+
+> **Note:** `raster: true` cannot be combined with `storage: true` — raster mode returns temporary URLs only, and the SDK throws if both are set. Set `base64Png: true` if you need the PNG as a Buffer via `result.pngImageData`.
 
 ## Available Clients
 
