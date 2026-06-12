@@ -92,6 +92,9 @@ export interface GenerateParams {
 
   /** Optional: Specific AI model ID to use. Cannot be combined with quality. Credits are charged based on the model. */
   model?: string;
+
+  /** Optional: Return PNG instead of SVG. Skips vectorization. Cannot combine with storage: true. */
+  raster?: boolean;
 }
 
 /**
@@ -130,6 +133,9 @@ export interface EditParams {
 
   /** Optional: Specific AI model ID to use. Cannot be combined with quality. Credits are charged based on the model. */
   model?: string;
+
+  /** Optional: Return PNG instead of SVG. Skips vectorization. Cannot combine with storage: true. */
+  raster?: boolean;
 }
 
 /**
@@ -159,8 +165,8 @@ export type ConvertParams = AiVectorizeParams;
  * Base SVGMaker API response
  */
 export interface BaseResponse {
-  /** URL to the generated/edited/converted SVG */
-  svgUrl: string;
+  /** URL to the generated/edited/converted SVG (absent in raster mode) */
+  svgUrl?: string;
 
   /** Number of credits consumed by the operation */
   creditCost: number;
@@ -176,6 +182,12 @@ export interface BaseResponse {
 
   /** Unique identifier for this generation */
   generationId?: string;
+
+  /** URL to the raster PNG image (only when raster: true) */
+  imageUrl?: string;
+
+  /** Expiration time for the image URL (only when raster: true) */
+  imageUrlExpiresIn?: string;
 }
 
 /**
@@ -378,8 +390,8 @@ export interface ProcessingStreamEvent extends StreamEventBase {
  */
 export interface CompleteStreamEvent extends StreamEventBase {
   status: 'complete';
-  /** URL to the generated/edited/converted SVG */
-  svgUrl: string;
+  /** URL to the generated/edited/converted SVG (absent in raster mode) */
+  svgUrl?: string;
   /** SVG source code as text - only when svgText=true */
   svgText?: string;
   /** Expiration time for the SVG URL */
@@ -392,6 +404,10 @@ export interface CompleteStreamEvent extends StreamEventBase {
   message?: string;
   /** Response metadata */
   metadata?: ResponseMetadata;
+  /** URL to the raster PNG image (only when raster: true) */
+  imageUrl?: string;
+  /** Expiration time for the image URL (only when raster: true) */
+  imageUrlExpiresIn?: string;
 }
 
 /**

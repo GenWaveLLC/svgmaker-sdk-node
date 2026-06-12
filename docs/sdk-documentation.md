@@ -182,19 +182,22 @@ if (result.svgText) {
 | `styleParams` | `StyleParams` | `{}` | Style parameters object |
 | `base64Png` | `boolean` | `false` | Include PNG preview in response |
 | `svgText` | `boolean` | `false` | Include SVG source code in response |
+| `raster` | `boolean` | `false` | Return a raster PNG instead of an SVG, skipping vectorization. The response then contains `imageUrl`/`imageUrlExpiresIn` instead of `svgUrl`, and `svgText` is not produced. Cannot be combined with `storage: true` (the SDK throws a validation error if both are set) |
 
 #### Generation Response Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `svgUrl` | `string` | URL of the generated SVG |
+| `svgUrl` | `string` | URL of the generated SVG. Absent when `raster: true` |
+| `imageUrl` | `string \| undefined` | URL of the generated raster PNG (only when `raster: true`; temporary) |
+| `imageUrlExpiresIn` | `string \| undefined` | Expiration for the raster PNG URL (only when `raster: true`) |
 | `creditCost` | `number` | Credits consumed by the request |
 | `quality` | `string` | Quality level used |
 | `message` | `string` | API response message |
 | `svgUrlExpiresIn` | `number` | Seconds until the SVG URL expires |
 | `generationId` | `string` | Unique ID for the generation |
-| `pngImageData` | `Buffer \| undefined` | Decoded PNG preview (when `base64Png` is true) |
-| `svgText` | `string \| undefined` | SVG source code (when `svgText` is true) |
+| `pngImageData` | `Buffer \| undefined` | Decoded PNG preview (when `base64Png` is true; also available in raster mode) |
+| `svgText` | `string \| undefined` | SVG source code (when `svgText` is true; not produced when `raster: true`) |
 | `revisedPrompt` | `string \| undefined` | Prompt as revised by the model |
 | `metadata` | `object` | Additional API metadata |
 
@@ -253,8 +256,9 @@ const result2 = await client.edit
 | `background` | `'auto' \| 'transparent' \| 'opaque'` | `'auto'` | Background handling |
 | `base64Png` | `boolean` | `false` | Include PNG preview in response |
 | `svgText` | `boolean` | `false` | Include SVG source code in response |
+| `raster` | `boolean` | `false` | Return a raster PNG instead of an SVG, skipping vectorization. The response then contains `imageUrl`/`imageUrlExpiresIn` instead of `svgUrl`, and `svgText` is not produced. Cannot be combined with `storage: true` (the SDK throws a validation error if both are set) |
 
-The response shape is identical to the [Generation Response Fields](#generation-response-fields) table above.
+The response shape is identical to the [Generation Response Fields](#generation-response-fields) table above. When `raster: true`, the `svgUrl` field is absent and the response instead exposes `imageUrl` and `imageUrlExpiresIn` (the temporary raster PNG URL and its expiration); `pngImageData` remains available if `base64Png: true` is set.
 
 ### Convert Namespace
 

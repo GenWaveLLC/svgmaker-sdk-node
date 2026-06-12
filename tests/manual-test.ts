@@ -250,6 +250,50 @@ async function generateWithStyleParams(): Promise<boolean> {
   }
 }
 
+// ========== GENERATE RASTER TESTS ==========
+
+async function generateRasterOnly(): Promise<boolean> {
+  console.log('\n[Generate] Raster mode (raster: true)');
+  try {
+    const result = await client.generate
+      .configure({
+        prompt: 'A simple red circle',
+        quality: 'low',
+        raster: true,
+      })
+      .execute();
+    console.log('  PASS');
+    console.log(`  Image URL: ${result.imageUrl}`);
+    console.log(`  Image URL expires in: ${result.imageUrlExpiresIn}`);
+    console.log(`  Credits: ${result.creditCost}`);
+    if (result.generationId) console.log(`  Generation ID: ${result.generationId}`);
+    if (result.metadata) console.log(`  Credits remaining: ${result.metadata.creditsRemaining}`);
+    return true;
+  } catch (error: any) {
+    console.log(`  FAIL: ${error.message}`);
+    return false;
+  }
+}
+
+async function generateRasterWithStorage(): Promise<boolean> {
+  console.log('\n[Generate] Raster + storage (should fail validation)');
+  try {
+    await client.generate
+      .configure({
+        prompt: 'A blue square',
+        quality: 'low',
+        raster: true,
+        storage: true,
+      })
+      .execute();
+    console.log('  FAIL: Should have thrown validation error');
+    return false;
+  } catch (error: any) {
+    console.log(`  PASS (caught expected error): ${error.message}`);
+    return true;
+  }
+}
+
 // ========== EDIT TESTS ==========
 
 async function editWithModel(): Promise<boolean> {
@@ -429,6 +473,62 @@ async function editWithStyleParams(): Promise<boolean> {
   }
 }
 
+// ========== EDIT RASTER TESTS ==========
+
+async function editRasterOnly(): Promise<boolean> {
+  console.log('\n[Edit] Raster mode (raster: true)');
+  const img = findTestImage();
+  if (!img) {
+    console.log('  SKIP: No test image found');
+    return false;
+  }
+  try {
+    const result = await client.edit
+      .configure({
+        image: img,
+        prompt: 'Add a red border',
+        quality: 'low',
+        raster: true,
+      })
+      .execute();
+    console.log('  PASS');
+    console.log(`  Image URL: ${result.imageUrl}`);
+    console.log(`  Image URL expires in: ${result.imageUrlExpiresIn}`);
+    console.log(`  Credits: ${result.creditCost}`);
+    if (result.generationId) console.log(`  Generation ID: ${result.generationId}`);
+    if (result.metadata) console.log(`  Credits remaining: ${result.metadata.creditsRemaining}`);
+    return true;
+  } catch (error: any) {
+    console.log(`  FAIL: ${error.message}`);
+    return false;
+  }
+}
+
+async function editRasterWithStorage(): Promise<boolean> {
+  console.log('\n[Edit] Raster + storage (should fail validation)');
+  const img = findTestImage();
+  if (!img) {
+    console.log('  SKIP: No test image found');
+    return false;
+  }
+  try {
+    await client.edit
+      .configure({
+        image: img,
+        prompt: 'Make it green',
+        quality: 'low',
+        raster: true,
+        storage: true,
+      })
+      .execute();
+    console.log('  FAIL: Should have thrown validation error');
+    return false;
+  } catch (error: any) {
+    console.log(`  PASS (caught expected error): ${error.message}`);
+    return true;
+  }
+}
+
 // ========== CONVERT TESTS ==========
 
 async function convertBasic(): Promise<boolean> {
@@ -521,6 +621,13 @@ async function runTests(): Promise<void> {
     results['edit-storage-true'] = await editWithStorageTrue();
     results['edit-stream'] = await editWithStream();
     results['edit-styleparams'] = await editWithStyleParams();
+  }
+
+  if (testType === 'raster' || testType === 'all') {
+    results['generate-raster'] = await generateRasterOnly();
+    results['generate-raster-storage-error'] = await generateRasterWithStorage();
+    results['edit-raster'] = await editRasterOnly();
+    results['edit-raster-storage-error'] = await editRasterWithStorage();
   }
 
   if (testType === 'convert' || testType === 'all') {

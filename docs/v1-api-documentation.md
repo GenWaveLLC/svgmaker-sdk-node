@@ -154,6 +154,7 @@ x-api-key: svgmaker-io{your-api-key}
 | `aspectRatio` | string | No | `auto` | Aspect ratio: `auto`, `portrait`, `landscape`, or `square` |
 | `background` | string | No | `auto` | Background type: `auto`, `transparent`, or `opaque` |
 | `storage` | boolean | No | `false` | Whether to save files to cloud storage. When `false`, returns proxy URLs immediately (files not persisted). When `true`, saves files to Firebase Storage. `generationId` is always returned. |
+| `raster` | boolean | No | `false` | When `true`, returns a raster PNG instead of an SVG (vectorization is skipped). The response includes `imageUrl` and `imageUrlExpiresIn` instead of `svgUrl`. Cannot be combined with `storage: true` — raster mode returns temporary URLs only. |
 | `stream` | boolean | No | `false` | Enable streaming response (Server-Sent Events) |
 | `base64Png` | boolean | No | `false` | Include base64-encoded PNG preview in response |
 | `svgText` | boolean | No | `false` | Include raw SVG source code as text in response |
@@ -255,6 +256,29 @@ curl -X POST https://api.svgmaker.io/v1/generate \
 }
 ```
 
+#### Response (raster: true)
+
+When `raster: true`, the endpoint returns a raster PNG instead of an SVG. The `svgUrl` field is absent; the response includes `imageUrl` and `imageUrlExpiresIn` instead. `raster: true` cannot be combined with `storage: true`.
+
+```json
+{
+  "success": true,
+  "data": {
+    "creditCost": 3,
+    "quality": "high",
+    "message": "Image generated successfully",
+    "imageUrl": "https://svgmaker.io/api/files/eyJ1cmwiOiJodHRwOi8v...",
+    "imageUrlExpiresIn": "12h",
+    "base64Png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+  },
+  "metadata": {
+    "requestId": "req_6-vXlRW6lfD_",
+    "creditsUsed": 3,
+    "creditsRemaining": 102.5
+  }
+}
+```
+
 #### Response Fields
 
 | Field | Type | Description |
@@ -262,8 +286,10 @@ curl -X POST https://api.svgmaker.io/v1/generate \
 | `creditCost` | number | Credits charged for this operation |
 | `quality` | string | Quality level used (`low`, `medium`, `high`) |
 | `message` | string | Status message (`Image generated successfully` when `storage: false`, `Files stored to cloud successfully` when `storage: true`) |
-| `svgUrl` | string | URL to access the generated SVG (proxy URL or persistent URL) |
+| `svgUrl` | string | URL to access the generated SVG (proxy URL or persistent URL). Absent when `raster: true`. |
 | `svgUrlExpiresIn` | string | Expiration time for proxy URLs (e.g., "12h"). Only present for proxy URLs. |
+| `imageUrl` | string | URL to access the generated raster PNG (temporary). Only present when `raster: true`. |
+| `imageUrlExpiresIn` | string | Expiration time for the raster PNG URL (e.g., "12h"). Only present when `raster: true`. |
 | `generationId` | string | Unique identifier for the generation. Always present. |
 | `base64Png` | string | Base64-encoded PNG preview. Only present when `base64Png: true`. |
 | `svgText` | string | Raw SVG source code. Only present when `svgText: true`. |
@@ -297,6 +323,7 @@ x-api-key: svgmaker-io{your-api-key}
 | `aspectRatio` | string | No | `auto` | Aspect ratio: `auto`, `portrait`, `landscape`, or `square` |
 | `background` | string | No | `auto` | Background type: `auto`, `transparent`, or `opaque` |
 | `storage` | string | No | `false` | Whether to save to cloud storage. Pass `"true"` or `"false"` as a string. |
+| `raster` | string | No | `false` | When `"true"`, returns a raster PNG instead of an SVG (vectorization is skipped). The response includes `imageUrl` and `imageUrlExpiresIn` instead of `svgUrl`. Cannot be combined with `storage: true` — raster mode returns temporary URLs only. Pass `"true"` or `"false"` as a string. |
 | `stream` | string | No | `false` | Enable streaming response. Pass `"true"` or `"false"` as a string. |
 | `base64Png` | string | No | `false` | Include base64-encoded PNG preview. Pass `"true"` or `"false"` as a string. |
 | `svgText` | string | No | `false` | Include raw SVG source code. Pass `"true"` or `"false"` as a string. |
@@ -378,9 +405,32 @@ curl -X POST https://api.svgmaker.io/v1/edit \
 }
 ```
 
+#### Response (raster: true)
+
+When `raster: true`, the endpoint returns a raster PNG instead of an SVG. The `svgUrl` field is absent; the response includes `imageUrl` and `imageUrlExpiresIn` instead. `raster: true` cannot be combined with `storage: true`.
+
+```json
+{
+  "success": true,
+  "data": {
+    "creditCost": 3,
+    "quality": "medium",
+    "message": "Image edited successfully",
+    "imageUrl": "https://svgmaker.io/api/files/eyJ1cmwiOiJodHRwOi8v...",
+    "imageUrlExpiresIn": "12h",
+    "base64Png": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+  },
+  "metadata": {
+    "requestId": "req_6-vXlRW6lfD_",
+    "creditsUsed": 3,
+    "creditsRemaining": 97.5
+  }
+}
+```
+
 #### Response Fields
 
-Same as Generate endpoint (see above).
+Same as Generate endpoint (see above). When `raster: true`, the response includes `imageUrl` and `imageUrlExpiresIn` instead of `svgUrl`.
 
 ---
 
