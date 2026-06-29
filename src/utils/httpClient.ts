@@ -295,9 +295,18 @@ export class HttpClient {
     const headers: Record<string, string> = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'x-api-key': this.config.apiKey,
-      ...(options.headers as Record<string, string>),
     };
+
+    // Prefer the OAuth Bearer access token when present; otherwise fall back
+    // to the API key sent via the `x-api-key` header.
+    if (this.config.accessToken) {
+      headers['Authorization'] = `Bearer ${this.config.accessToken}`;
+    } else {
+      headers['x-api-key'] = this.config.apiKey;
+    }
+
+    // Let per-request headers override the defaults above.
+    Object.assign(headers, options.headers as Record<string, string>);
 
     return headers;
   }

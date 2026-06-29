@@ -113,11 +113,13 @@ export class SVGMakerClient {
    * @param config Additional configuration options
    */
   constructor(apiKey: string, config: Partial<SVGMakerConfig> = {}) {
-    if (!apiKey) {
-      throw new ValidationError('API key is required');
+    if (!apiKey && !config.accessToken) {
+      throw new ValidationError('Either an API key or an access token is required');
     }
 
-    // Merge default config with provided config
+    // Merge default config with provided config.
+    // The explicit `apiKey` argument wins over any `apiKey` in `config`,
+    // while an OAuth `accessToken` from `config` is preserved (different key).
     this.config = {
       ...DEFAULT_CONFIG,
       ...config,
