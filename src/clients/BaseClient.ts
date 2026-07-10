@@ -171,6 +171,19 @@ export abstract class BaseClient {
   }
 
   /**
+   * Build the authentication header for raw fetch calls (form-data and streaming
+   * paths that bypass HttpClient.buildHeaders). Prefers the OAuth Bearer access
+   * token when present; otherwise falls back to the `x-api-key` header. Mirrors
+   * the logic in HttpClient so all transports authenticate consistently.
+   */
+  protected buildAuthHeaders(): Record<string, string> {
+    if (this.config.accessToken) {
+      return { Authorization: `Bearer ${this.config.accessToken}` };
+    }
+    return { 'x-api-key': this.config.apiKey };
+  }
+
+  /**
    * Execute a POST request with FormData body and unwrap the v1 API envelope
    * @param endpoint API endpoint path (e.g., '/v1/convert/trace')
    * @param formData FormData body
@@ -183,7 +196,7 @@ export abstract class BaseClient {
     const response = await fetch(`${this.config.baseUrl}${endpoint}`, {
       method: 'POST',
       headers: {
-        'x-api-key': this.config.apiKey,
+        ...this.buildAuthHeaders(),
       },
       body: formData,
     });

@@ -162,6 +162,26 @@ export interface AiVectorizeParams {
 export type ConvertParams = AiVectorizeParams;
 
 /**
+ * Remove Background request parameters
+ *
+ * Removes the background from an image and returns the result as an SVG with
+ * transparency. Accepts any raster image (PNG, JPEG, WebP, etc.) or SVG.
+ */
+export interface RemoveBackgroundParams {
+  /** Required: Image file to remove the background from */
+  file: string | Buffer | Readable;
+
+  /** Optional: Enable streaming response (default: false) */
+  stream?: boolean;
+
+  /** Optional: Include SVG source code as text in response (default: false) */
+  svgText?: boolean;
+
+  /** Optional: Store the resulting SVG on SVGMaker servers (default: false) */
+  storage?: boolean;
+}
+
+/**
  * Base SVGMaker API response
  */
 export interface BaseResponse {
@@ -231,6 +251,14 @@ export interface AiVectorizeResponse extends BaseResponse {
  * @deprecated Use AiVectorizeResponse instead
  */
 export type ConvertResponse = AiVectorizeResponse;
+
+/**
+ * Remove Background response
+ */
+export interface RemoveBackgroundResponse extends BaseResponse {
+  /** SVG source code as text - only when svgText=true */
+  svgText?: string;
+}
 
 // --- Optimize SVG Types ---
 
@@ -445,6 +473,11 @@ export type ConvertStreamEvent = StreamEvent;
  * AI Vectorize stream event
  */
 export type AiVectorizeStreamEvent = StreamEvent;
+
+/**
+ * Remove Background stream event
+ */
+export type RemoveBackgroundStreamEvent = StreamEvent;
 
 // --- Generations Management Types ---
 

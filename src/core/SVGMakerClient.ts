@@ -13,6 +13,7 @@ import { GenerationsClient } from '../clients/GenerationsClient';
 import { GalleryClient } from '../clients/GalleryClient';
 import { AccountClient } from '../clients/AccountClient';
 import { OptimizeSvgClient } from '../clients/OptimizeSvgClient';
+import { RemoveBackgroundClient } from '../clients/RemoveBackgroundClient';
 import { createRetryWrapper } from '../utils/retry';
 import { createRateLimiter } from '../utils/rateLimit';
 import { Logger, createLogger } from '../utils/logger';
@@ -65,6 +66,11 @@ export class SVGMakerClient {
    * Edit SVG/Image client
    */
   public readonly edit: EditClient;
+
+  /**
+   * Remove Background client — removes an image's background and returns an SVG
+   */
+  public readonly removeBackground: RemoveBackgroundClient;
 
   /**
    * Convert namespace — contains AI vectorize and future conversion clients
@@ -144,6 +150,7 @@ export class SVGMakerClient {
     // Create API clients
     this.generate = new GenerateClient(this);
     this.edit = new EditClient(this);
+    this.removeBackground = new RemoveBackgroundClient(this);
     this.convert = {
       aiVectorize: new AIVectorizeClient(this),
       trace: new TraceClient(this),
