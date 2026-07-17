@@ -16,6 +16,7 @@ import { SvgToVectorClient } from './clients/convert/SvgToVectorClient';
 import { RasterToRasterClient } from './clients/convert/RasterToRasterClient';
 import { BatchConvertClient } from './clients/convert/BatchConvertClient';
 import { EnhancePromptClient } from './clients/EnhancePromptClient';
+import { RemoveBackgroundClient } from './clients/RemoveBackgroundClient';
 
 // Export error classes
 import * as Errors from './errors/CustomErrors';
@@ -44,6 +45,7 @@ export {
   RasterToRasterClient,
   BatchConvertClient,
   EnhancePromptClient,
+  RemoveBackgroundClient,
 
   // Utils
   HttpClient,

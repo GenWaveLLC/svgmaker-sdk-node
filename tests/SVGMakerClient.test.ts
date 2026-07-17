@@ -8,9 +8,17 @@ describe('SVGMakerClient', () => {
   });
 
   describe('constructor', () => {
-    it('should throw an error if no API key is provided', () => {
+    it('should throw an error if no API key or access token is provided', () => {
       expect(() => new SVGMakerClient('')).toThrow(ValidationError);
-      expect(() => new SVGMakerClient('')).toThrow('API key is required');
+      expect(() => new SVGMakerClient('')).toThrow(
+        'Either an API key or an access token is required'
+      );
+    });
+
+    it('should create a client when only an access token is provided', () => {
+      const client = new SVGMakerClient('', { accessToken: 'test-access-token' });
+      expect(client).toBeInstanceOf(SVGMakerClient);
+      expect(client.getConfig().accessToken).toBe('test-access-token');
     });
 
     it('should create a client with default configuration', () => {

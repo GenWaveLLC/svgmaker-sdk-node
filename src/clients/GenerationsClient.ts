@@ -107,7 +107,7 @@ export class GenerationsClient extends BaseClient {
       method: 'GET',
       headers: {
         Accept: 'application/json',
-        'x-api-key': this.config.apiKey,
+        ...this.buildAuthHeaders(),
       },
     });
 

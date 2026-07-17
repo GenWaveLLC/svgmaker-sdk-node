@@ -13,6 +13,7 @@ import { GenerationsClient } from '../clients/GenerationsClient';
 import { GalleryClient } from '../clients/GalleryClient';
 import { AccountClient } from '../clients/AccountClient';
 import { OptimizeSvgClient } from '../clients/OptimizeSvgClient';
+import { RemoveBackgroundClient } from '../clients/RemoveBackgroundClient';
 import { createRetryWrapper } from '../utils/retry';
 import { createRateLimiter } from '../utils/rateLimit';
 import { Logger, createLogger } from '../utils/logger';
@@ -67,6 +68,11 @@ export class SVGMakerClient {
   public readonly edit: EditClient;
 
   /**
+   * Remove Background client — removes an image's background and returns an SVG
+   */
+  public readonly removeBackground: RemoveBackgroundClient;
+
+  /**
    * Convert namespace — contains AI vectorize and future conversion clients
    */
   public readonly convert: {
@@ -113,11 +119,13 @@ export class SVGMakerClient {
    * @param config Additional configuration options
    */
   constructor(apiKey: string, config: Partial<SVGMakerConfig> = {}) {
-    if (!apiKey) {
-      throw new ValidationError('API key is required');
+    if (!apiKey && !config.accessToken) {
+      throw new ValidationError('Either an API key or an access token is required');
     }
 
-    // Merge default config with provided config
+    // Merge default config with provided config.
+    // The explicit `apiKey` argument wins over any `apiKey` in `config`,
+    // while an OAuth `accessToken` from `config` is preserved (different key).
     this.config = {
       ...DEFAULT_CONFIG,
       ...config,
@@ -142,6 +150,7 @@ export class SVGMakerClient {
     // Create API clients
     this.generate = new GenerateClient(this);
     this.edit = new EditClient(this);
+    this.removeBackground = new RemoveBackgroundClient(this);
     this.convert = {
       aiVectorize: new AIVectorizeClient(this),
       trace: new TraceClient(this),

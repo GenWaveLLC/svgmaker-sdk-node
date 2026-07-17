@@ -8,6 +8,13 @@ export interface SVGMakerConfig {
   apiKey: string;
 
   /**
+   * OAuth Bearer access token (JWT).
+   * When set, this takes precedence over `apiKey` and is sent as an
+   * `Authorization: Bearer <token>` header instead of `x-api-key`.
+   */
+  accessToken?: string;
+
+  /**
    * Base URL for the SVGMaker API
    * @default "https://api.svgmaker.io"
    */

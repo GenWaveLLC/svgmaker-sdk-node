@@ -105,6 +105,7 @@ console.log('Expires in:', result.imageUrlExpiresIn);
 |--------|--------|-------------|
 | `generate` | `client.generate` | Create SVGs from text prompts |
 | `edit` | `client.edit` | Modify existing images/SVGs with AI |
+| `removeBackground` | `client.removeBackground` | Remove an image's background and return an SVG |
 | `convert.aiVectorize` | `client.convert.aiVectorize` | AI-powered raster to SVG conversion |
 | `convert.trace` | `client.convert.trace` | Algorithmic raster to SVG tracing |
 | `convert.svgToVector` | `client.convert.svgToVector` | SVG to vector formats (PDF, EPS, DXF, AI, PS) |
