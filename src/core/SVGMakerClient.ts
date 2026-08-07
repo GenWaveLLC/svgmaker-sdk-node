@@ -14,6 +14,7 @@ import { GalleryClient } from '../clients/GalleryClient';
 import { AccountClient } from '../clients/AccountClient';
 import { OptimizeSvgClient } from '../clients/OptimizeSvgClient';
 import { RemoveBackgroundClient } from '../clients/RemoveBackgroundClient';
+import { UploadClient } from '../clients/UploadClient';
 import { createRetryWrapper } from '../utils/retry';
 import { createRateLimiter } from '../utils/rateLimit';
 import { Logger, createLogger } from '../utils/logger';
@@ -114,6 +115,11 @@ export class SVGMakerClient {
   public readonly enhancePrompt: EnhancePromptClient;
 
   /**
+   * Upload client for minting signed upload tickets
+   */
+  public readonly upload: UploadClient;
+
+  /**
    * Create a new SVGMaker client
    * @param apiKey API key for authentication
    * @param config Additional configuration options
@@ -163,6 +169,7 @@ export class SVGMakerClient {
     this.gallery = new GalleryClient(this);
     this.account = new AccountClient(this);
     this.optimizeSvg = new OptimizeSvgClient(this);
+    this.upload = new UploadClient(this);
 
     this.logger.info('SVGMaker SDK initialized');
   }

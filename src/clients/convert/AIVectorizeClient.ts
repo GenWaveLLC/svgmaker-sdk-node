@@ -8,12 +8,17 @@ import { decodeSvgContent } from '../../utils/base64';
 /**
  * Schema for validating AI vectorize parameters
  */
-const aiVectorizeParamsSchema = z.object({
-  file: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]),
-  storage: z.boolean().optional(),
-  stream: z.boolean().optional(),
-  svgText: z.boolean().optional(),
-});
+const aiVectorizeParamsSchema = z
+  .object({
+    file: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]).optional(),
+    imageUrl: z.string().optional(),
+    storage: z.boolean().optional(),
+    stream: z.boolean().optional(),
+    svgText: z.boolean().optional(),
+  })
+  .refine(data => (data.file ? 1 : 0) + (data.imageUrl ? 1 : 0) === 1, {
+    message: "Provide exactly one image source: either 'file' or 'imageUrl'",
+  });
 
 /**
  * Client for the AI Vectorize (Convert Image to SVG) API
@@ -45,8 +50,13 @@ export class AIVectorizeClient extends BaseClient {
     // Prepare form data
     const formData = new FormData();
 
-    // Add file
-    await this.addFileToForm(formData, 'file', this.params.file!);
+    // Add image source. addFileToForm resolves every string against the local
+    // filesystem, so a URL must never reach it.
+    if (this.params.imageUrl) {
+      formData.append('imageUrl', this.params.imageUrl);
+    } else {
+      await this.addFileToForm(formData, 'file', this.params.file!);
+    }
 
     // Add optional parameters
     this.appendOptionalParams(formData, this.params as Record<string, any>, [
@@ -120,8 +130,13 @@ export class AIVectorizeClient extends BaseClient {
         // Prepare form data
         const formData = new FormData();
 
-        // Add file
-        await this.addFileToForm(formData, 'file', client.params.file!);
+        // Add image source. addFileToForm resolves every string against the
+        // local filesystem, so a URL must never reach it.
+        if (client.params.imageUrl) {
+          formData.append('imageUrl', client.params.imageUrl);
+        } else {
+          await this.addFileToForm(formData, 'file', client.params.file!);
+        }
 
         // Add storage option if present
         if (client.params.storage !== undefined) {
@@ -135,12 +150,13 @@ export class AIVectorizeClient extends BaseClient {
           formData.append('svgText', String(client.params.svgText));
         }
 
-        // Make request to the streaming endpoint using native fetch
+        // Make request to the streaming endpoint using native fetch. Auth headers
+        // prefer the OAuth Bearer token when present, else the x-api-key.
         const response = await fetch(`${this.config.baseUrl}/v1/convert/ai-vectorize`, {
           method: 'POST',
           headers: {
             Accept: 'text/event-stream',
-            'x-api-key': this.config.apiKey,
+            ...this.buildAuthHeaders(),
           },
           body: formData,
         });

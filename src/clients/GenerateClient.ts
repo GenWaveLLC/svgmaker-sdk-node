@@ -172,13 +172,14 @@ export class GenerateClient extends BaseClient {
     // Execute the request and handle streaming
     (async () => {
       try {
-        // Make request to the streaming endpoint using native fetch
+        // Make request to the streaming endpoint using native fetch. Auth headers
+        // prefer the OAuth Bearer token when present, else the x-api-key.
         const response = await fetch(`${this.config.baseUrl}/v1/generate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Accept: 'text/event-stream',
-            'x-api-key': this.config.apiKey,
+            ...this.buildAuthHeaders(),
           },
           body: JSON.stringify(client.params),
         });

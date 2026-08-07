@@ -8,6 +8,8 @@ import {
   mockFetchStreamResponse,
   createMockGenerateResponse,
   createMockStreamEvents,
+  createOAuthTestClient,
+  TEST_ACCESS_TOKEN,
 } from '../setup';
 import { ValidationError, RateLimitError, APIError } from '../../src/errors/CustomErrors';
 
@@ -549,6 +551,28 @@ describe('GenerateClient', () => {
       expect(completeEvent.svgUrl).toBe('https://storage.example.com/test.svg');
       expect(completeEvent.creditCost).toBe(1);
       expect(completeEvent.generationId).toBe('gen-stream-001');
+    });
+  });
+  // ==========================================================================
+  // Authentication
+  // ==========================================================================
+
+  describe('authentication', () => {
+    it('sends a Bearer token on the streaming path when an access token is configured', async () => {
+      const client = createOAuthTestClient();
+      mockFetchStreamResponse([{ status: 'complete', message: 'done' }]);
+
+      const stream = client.generate.configure({ prompt: 'A cat' }).stream();
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {});
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const [, options] = fetchMock.mock.calls[0];
+      expect(options.headers.Authorization).toBe(`Bearer ${TEST_ACCESS_TOKEN}`);
+      expect(options.headers['x-api-key']).toBeUndefined();
     });
   });
 });
