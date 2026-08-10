@@ -17,14 +17,20 @@ const removeBackgroundParamsSchema = z
     file: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]).optional(),
     imageUrl: z.string().optional(),
     generationId: z.string().optional(),
+    uploadId: z.string().optional(),
     stream: z.boolean().optional(),
     svgText: z.boolean().optional(),
     storage: z.boolean().optional(),
   })
   .refine(
-    data => (data.file ? 1 : 0) + (data.imageUrl ? 1 : 0) + (data.generationId ? 1 : 0) === 1,
+    data =>
+      (data.file ? 1 : 0) +
+        (data.imageUrl ? 1 : 0) +
+        (data.generationId ? 1 : 0) +
+        (data.uploadId ? 1 : 0) ===
+      1,
     {
-      message: "Provide exactly one image source: 'file', 'imageUrl' or 'generationId'",
+      message: "Provide exactly one image source: 'file', 'imageUrl', 'generationId' or 'uploadId'",
     }
   );
 
@@ -61,15 +67,7 @@ export class RemoveBackgroundClient extends BaseClient {
     // Prepare form data
     const formData = new FormData();
 
-    // Add image source. addFileToForm resolves every string against the local
-    // filesystem, so a URL or generation id must never reach it.
-    if (this.params.imageUrl) {
-      formData.append('imageUrl', this.params.imageUrl);
-    } else if (this.params.generationId) {
-      formData.append('generationId', this.params.generationId);
-    } else {
-      await this.addFileToForm(formData, 'file', this.params.file!);
-    }
+    await this.appendImageSource(formData, this.params, 'file');
 
     // Add optional parameters
     this.appendOptionalParams(formData, this.params as Record<string, any>, [
@@ -143,15 +141,7 @@ export class RemoveBackgroundClient extends BaseClient {
         // Prepare form data
         const formData = new FormData();
 
-        // Add image source. addFileToForm resolves every string against the
-        // local filesystem, so a URL or generation id must never reach it.
-        if (client.params.imageUrl) {
-          formData.append('imageUrl', client.params.imageUrl);
-        } else if (client.params.generationId) {
-          formData.append('generationId', client.params.generationId);
-        } else {
-          await this.addFileToForm(formData, 'file', client.params.file!);
-        }
+        await this.appendImageSource(formData, client.params, 'file');
 
         // Add storage option if present
         if (client.params.storage !== undefined) {

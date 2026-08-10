@@ -13,6 +13,7 @@ const editParamsSchema = z
     image: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]).optional(),
     imageUrl: z.string().optional(),
     generationId: z.string().optional(),
+    uploadId: z.string().optional(),
     prompt: z.string().optional(),
     styleParams: z
       .object({
@@ -47,9 +48,15 @@ const editParamsSchema = z
     raster: z.boolean().optional(),
   })
   .refine(
-    data => (data.image ? 1 : 0) + (data.imageUrl ? 1 : 0) + (data.generationId ? 1 : 0) === 1,
+    data =>
+      (data.image ? 1 : 0) +
+        (data.imageUrl ? 1 : 0) +
+        (data.generationId ? 1 : 0) +
+        (data.uploadId ? 1 : 0) ===
+      1,
     {
-      message: "Provide exactly one image source: 'image', 'imageUrl' or 'generationId'",
+      message:
+        "Provide exactly one image source: 'image', 'imageUrl', 'generationId' or 'uploadId'",
     }
   )
   .refine(data => data.prompt || data.styleParams, {
@@ -97,15 +104,7 @@ export class EditClient extends BaseClient {
     // Prepare form data
     const formData = new FormData();
 
-    // Add image source. addFileToForm resolves every string against the local
-    // filesystem, so a URL or generation id must never reach it.
-    if (this.params.imageUrl) {
-      formData.append('imageUrl', this.params.imageUrl);
-    } else if (this.params.generationId) {
-      formData.append('generationId', this.params.generationId);
-    } else {
-      await this.addFileToForm(formData, 'image', this.params.image!);
-    }
+    await this.appendImageSource(formData, this.params, 'image');
 
     // Add styleParams if present (requires JSON.stringify)
     if (this.params.styleParams) {
@@ -220,15 +219,7 @@ export class EditClient extends BaseClient {
         // Prepare form data
         const formData = new FormData();
 
-        // Add image source. addFileToForm resolves every string against the
-        // local filesystem, so a URL or generation id must never reach it.
-        if (client.params.imageUrl) {
-          formData.append('imageUrl', client.params.imageUrl);
-        } else if (client.params.generationId) {
-          formData.append('generationId', client.params.generationId);
-        } else {
-          await this.addFileToForm(formData, 'image', client.params.image!);
-        }
+        await this.appendImageSource(formData, client.params, 'image');
 
         // Add prompt if present
         if (client.params.prompt) {

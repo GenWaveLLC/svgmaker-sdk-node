@@ -101,14 +101,17 @@ export interface GenerateParams {
  * Edit SVG/Image request parameters
  */
 export interface EditParams {
-  /** Image file to edit. Provide exactly one of `image`, `imageUrl` or `generationId`. */
+  /** Image file to edit. Provide exactly one of `image`, `imageUrl`, `generationId` or `uploadId`. */
   image?: string | Buffer | Readable;
 
-  /** Publicly reachable https URL the API fetches itself. Provide exactly one of `image`, `imageUrl` or `generationId`. */
+  /** Publicly reachable https URL the API fetches itself. Provide exactly one image source. */
   imageUrl?: string;
 
-  /** Id of a previous generation the API resolves internally. Provide exactly one of `image`, `imageUrl` or `generationId`. */
+  /** Id of a previous generation the API resolves internally. Provide exactly one image source. */
   generationId?: string;
+
+  /** Id returned by the temporary upload endpoint. Provide exactly one image source. */
+  uploadId?: string;
 
   /** Optional: Edit instructions as a simple text string */
   prompt?: string;
@@ -148,11 +151,14 @@ export interface EditParams {
  * AI Vectorize (Convert Image to SVG) request parameters
  */
 export interface AiVectorizeParams {
-  /** File to convert to SVG. Provide exactly one of `file` or `imageUrl`. */
+  /** File to convert to SVG. Provide exactly one of `file`, `imageUrl` or `uploadId`. */
   file?: string | Buffer | Readable;
 
-  /** Publicly reachable https URL the API fetches itself. Provide exactly one of `file` or `imageUrl`. */
+  /** Publicly reachable https URL the API fetches itself. Provide exactly one image source. */
   imageUrl?: string;
+
+  /** Id returned by the temporary upload endpoint. Provide exactly one image source. */
+  uploadId?: string;
 
   /** Optional: Enable streaming response (default: false) */
   stream?: boolean;
@@ -177,14 +183,17 @@ export type ConvertParams = AiVectorizeParams;
  * transparency. Accepts any raster image (PNG, JPEG, WebP, etc.) or SVG.
  */
 export interface RemoveBackgroundParams {
-  /** Image file to remove the background from. Provide exactly one of `file`, `imageUrl` or `generationId`. */
+  /** Image file to remove the background from. Provide exactly one of `file`, `imageUrl`, `generationId` or `uploadId`. */
   file?: string | Buffer | Readable;
 
-  /** Publicly reachable https URL the API fetches itself. Provide exactly one of `file`, `imageUrl` or `generationId`. */
+  /** Publicly reachable https URL the API fetches itself. Provide exactly one image source. */
   imageUrl?: string;
 
-  /** Id of a previous generation the API resolves internally. Provide exactly one of `file`, `imageUrl` or `generationId`. */
+  /** Id of a previous generation the API resolves internally. Provide exactly one image source. */
   generationId?: string;
+
+  /** Id returned by the temporary upload endpoint. Provide exactly one image source. */
+  uploadId?: string;
 
   /** Optional: Enable streaming response (default: false) */
   stream?: boolean;
@@ -301,27 +310,18 @@ export interface OptimizeSvgResponse {
   metadata: ResponseMetadata;
 }
 
-// --- Upload Ticket Types ---
+// --- Temporary Upload Types ---
 
-export interface UploadTicketParams {
-  /** Required: File name. Its extension determines the content type; the stored object name is generated server-side */
+export interface UploadPrepareParams {
+  /** Required: Original file name, used to prepare a temporary upload endpoint. */
   filename: string;
-  /** Required: Size of the file in bytes */
-  size: number;
-  /** Optional: MIME type override, for when the extension is missing or misleading */
-  contentType?: string;
 }
 
-export interface UploadTicketResponse {
-  /**
-   * Signed URL to PUT the file bytes to. The request must send
-   * `Content-Type: <contentType>` — that value is bound into the signature.
-   */
-  putUrl: string;
-  /** Signed read URL to pass back as `imageUrl` on a later edit/convert/remove-background call */
-  fileUrl: string;
-  /** The resolved MIME type — send this as the Content-Type header of the PUT */
-  contentType: string;
+export interface UploadPrepareResponse {
+  /** Short-lived SVGMaker endpoint that accepts a multipart `file` upload. */
+  uploadUrl: string;
+  /** Number of seconds before the upload endpoint expires. */
+  expiresIn: number;
   /** Response metadata */
   metadata: ResponseMetadata;
 }

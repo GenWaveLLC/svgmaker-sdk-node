@@ -152,6 +152,39 @@ export abstract class BaseClient {
   }
 
   /**
+   * Append the single image source the params carry. addFileToForm resolves
+   * every string against the local filesystem, so a URL or an id must never
+   * reach it — the schemas guarantee exactly one source is set.
+   * @param formData Form data
+   * @param params Validated request params
+   * @param fileField Field name the endpoint expects the raw file under
+   */
+  protected async appendImageSource(
+    formData: FormData,
+    params: {
+      imageUrl?: string;
+      generationId?: string;
+      uploadId?: string;
+      [key: string]: unknown;
+    },
+    fileField: 'image' | 'file'
+  ): Promise<void> {
+    if (params.imageUrl) {
+      formData.append('imageUrl', params.imageUrl);
+    } else if (params.generationId) {
+      formData.append('generationId', params.generationId);
+    } else if (params.uploadId) {
+      formData.append('uploadId', params.uploadId);
+    } else {
+      await this.addFileToForm(
+        formData,
+        fileField,
+        params[fileField] as string | Buffer | Readable
+      );
+    }
+  }
+
+  /**
    * Get MIME type from filename
    * @param filename File name
    * @returns MIME type

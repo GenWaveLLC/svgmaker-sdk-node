@@ -1,23 +1,18 @@
 import { BaseClient } from './BaseClient';
-import { UploadTicketParams, UploadTicketResponse } from '../types/api';
+import { UploadPrepareParams, UploadPrepareResponse } from '../types/api';
 import { SVGMakerClient } from '../core/SVGMakerClient';
 import { APIError } from '../errors/CustomErrors';
 import { z } from 'zod';
 
 /**
- * Schema for validating upload ticket parameters
+ * Schema for validating upload preparation parameters
  */
-const uploadTicketParamsSchema = z.object({
+const uploadPrepareParamsSchema = z.object({
   filename: z.string().min(1),
-  size: z.number().int().positive(),
-  contentType: z.string().min(1).optional(),
 });
 
 /**
- * Client for the Upload Ticket API
- *
- * Mints a pair of signed URLs over a single temporary object: one to PUT the
- * file bytes to, one to read it back. Bytes never pass through this SDK.
+ * Client for preparing temporary uploads through the SVGMaker API.
  */
 export class UploadClient extends BaseClient {
   /**
@@ -29,17 +24,16 @@ export class UploadClient extends BaseClient {
   }
 
   /**
-   * Create an upload ticket
-   * @param params File metadata for the object to be uploaded
-   * @returns Signed write and read URLs
+   * Prepare a temporary upload endpoint.
+   * @param params Original file metadata
+   * @returns Short-lived multipart upload URL
    */
-  public async createTicket(params: UploadTicketParams): Promise<UploadTicketResponse> {
-    this.logger.debug('Creating upload ticket', {
+  public async prepare(params: UploadPrepareParams): Promise<UploadPrepareResponse> {
+    this.logger.debug('Preparing temporary upload', {
       filename: params.filename,
-      size: params.size,
     });
 
-    this.validateRequest(params, uploadTicketParamsSchema);
+    this.validateRequest(params, uploadPrepareParamsSchema);
 
     // Raw fetch bypasses the retry/timeout wrapper applied to httpClient.request.
     const controller = new AbortController();
@@ -47,22 +41,21 @@ export class UploadClient extends BaseClient {
 
     let response: globalThis.Response;
     try {
-      response = await fetch(`${this.config.baseUrl}/v1/upload/ticket`, {
+      response = await fetch(`${this.config.baseUrl}/v1/upload/prepare`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...this.buildAuthHeaders(),
         },
-        body: JSON.stringify({
-          filename: params.filename,
-          content_type: params.contentType,
-          size: params.size,
-        }),
+        body: JSON.stringify({ filename: params.filename }),
         signal: controller.signal,
       });
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new APIError(`Upload ticket request timed out after ${this.config.timeout}ms`, 408);
+        throw new APIError(
+          `Upload preparation request timed out after ${this.config.timeout}ms`,
+          408
+        );
       }
       throw error;
     } finally {
@@ -76,12 +69,11 @@ export class UploadClient extends BaseClient {
     const rawResult = await response.json();
     const { data, metadata: responseMetadata } = this.unwrapEnvelope<any>(rawResult);
 
-    this.logger.debug('Upload ticket created');
+    this.logger.debug('Temporary upload prepared');
 
     return {
-      putUrl: data.put_url,
-      fileUrl: data.file_url,
-      contentType: data.content_type,
+      uploadUrl: data.upload_url,
+      expiresIn: data.expires_in,
       metadata: responseMetadata,
     };
   }

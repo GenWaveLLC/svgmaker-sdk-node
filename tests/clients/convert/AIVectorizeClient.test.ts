@@ -463,6 +463,55 @@ describe('AIVectorizeClient', () => {
     });
   });
 
+  describe('uploadId', () => {
+    const UPLOAD_ID = 'upl_abc123';
+
+    it('sends uploadId as a form field without touching the filesystem', async () => {
+      const originalExistsSync = fs.existsSync;
+      fs.existsSync = jest.fn().mockReturnValue(false);
+
+      try {
+        const client = createTestClient();
+        mockFetchJsonResponse(createMockAiVectorizeResponse());
+
+        await client.convert.aiVectorize.configure({ uploadId: UPLOAD_ID }).execute();
+
+        const formData = fetchMock.mock.calls[0][1].body as FormData;
+        expect(formData.get('uploadId')).toBe(UPLOAD_ID);
+        expect(formData.get('file')).toBeNull();
+        expect(fs.existsSync).not.toHaveBeenCalled();
+      } finally {
+        fs.existsSync = originalExistsSync;
+      }
+    });
+
+    it('sends uploadId on the streaming path', async () => {
+      const client = createTestClient();
+      mockFetchStreamResponse([{ status: 'complete', message: 'done' }]);
+
+      const stream = client.convert.aiVectorize.configure({ uploadId: UPLOAD_ID }).stream();
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {});
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('uploadId')).toBe(UPLOAD_ID);
+    });
+
+    it('rejects uploadId combined with another image source', async () => {
+      const client = createTestClient();
+
+      await expect(
+        client.convert.aiVectorize
+          .configure({ file: testFileBuffer, uploadId: UPLOAD_ID })
+          .execute()
+      ).rejects.toThrow(ValidationError);
+    });
+  });
+
   // ==========================================================================
   // Authentication
   // ==========================================================================
