@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-11
+
 ### Added
 - `imageUrl` on `EditParams`, `AiVectorizeParams` and `RemoveBackgroundParams`, and `generationId` on edit and remove-background, so an image can be supplied without reading a local file
 - `uploadId` on the same three, accepting an id from the temporary upload endpoint
