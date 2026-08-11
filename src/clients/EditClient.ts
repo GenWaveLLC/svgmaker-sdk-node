@@ -10,7 +10,10 @@ import { decodeSvgContent, decodeBase64Png } from '../utils/base64';
  */
 const editParamsSchema = z
   .object({
-    image: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]),
+    image: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]).optional(),
+    imageUrl: z.string().optional(),
+    generationId: z.string().optional(),
+    uploadId: z.string().optional(),
     prompt: z.string().optional(),
     styleParams: z
       .object({
@@ -44,6 +47,18 @@ const editParamsSchema = z
     model: z.string().optional(),
     raster: z.boolean().optional(),
   })
+  .refine(
+    data =>
+      (data.image ? 1 : 0) +
+        (data.imageUrl ? 1 : 0) +
+        (data.generationId ? 1 : 0) +
+        (data.uploadId ? 1 : 0) ===
+      1,
+    {
+      message:
+        "Provide exactly one image source: 'image', 'imageUrl', 'generationId' or 'uploadId'",
+    }
+  )
   .refine(data => data.prompt || data.styleParams, {
     message: 'Either prompt or styleParams must be provided',
   })
@@ -89,8 +104,7 @@ export class EditClient extends BaseClient {
     // Prepare form data
     const formData = new FormData();
 
-    // Add image file
-    await this.addFileToForm(formData, 'image', this.params.image!);
+    await this.appendImageSource(formData, this.params, 'image');
 
     // Add styleParams if present (requires JSON.stringify)
     if (this.params.styleParams) {
@@ -205,8 +219,7 @@ export class EditClient extends BaseClient {
         // Prepare form data
         const formData = new FormData();
 
-        // Add image file
-        await this.addFileToForm(formData, 'image', client.params.image!);
+        await this.appendImageSource(formData, client.params, 'image');
 
         // Add prompt if present
         if (client.params.prompt) {
@@ -253,12 +266,13 @@ export class EditClient extends BaseClient {
           formData.append('raster', String(client.params.raster));
         }
 
-        // Make request to the streaming endpoint using native fetch
+        // Make request to the streaming endpoint using native fetch. Auth headers
+        // prefer the OAuth Bearer token when present, else the x-api-key.
         const response = await fetch(`${this.config.baseUrl}/v1/edit`, {
           method: 'POST',
           headers: {
             Accept: 'text/event-stream',
-            'x-api-key': this.config.apiKey,
+            ...this.buildAuthHeaders(),
           },
           body: formData,
         });

@@ -17,6 +17,7 @@ import { RasterToRasterClient } from './clients/convert/RasterToRasterClient';
 import { BatchConvertClient } from './clients/convert/BatchConvertClient';
 import { EnhancePromptClient } from './clients/EnhancePromptClient';
 import { RemoveBackgroundClient } from './clients/RemoveBackgroundClient';
+import { UploadClient } from './clients/UploadClient';
 
 // Export error classes
 import * as Errors from './errors/CustomErrors';
@@ -46,6 +47,7 @@ export {
   BatchConvertClient,
   EnhancePromptClient,
   RemoveBackgroundClient,
+  UploadClient,
 
   // Utils
   HttpClient,

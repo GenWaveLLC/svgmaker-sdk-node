@@ -101,8 +101,17 @@ export interface GenerateParams {
  * Edit SVG/Image request parameters
  */
 export interface EditParams {
-  /** Required: Image file to edit */
-  image: string | Buffer | Readable;
+  /** Image file to edit. Provide exactly one of `image`, `imageUrl`, `generationId` or `uploadId`. */
+  image?: string | Buffer | Readable;
+
+  /** Publicly reachable https URL the API fetches itself. Provide exactly one image source. */
+  imageUrl?: string;
+
+  /** Id of a previous generation the API resolves internally. Provide exactly one image source. */
+  generationId?: string;
+
+  /** Id returned by the temporary upload endpoint. Provide exactly one image source. */
+  uploadId?: string;
 
   /** Optional: Edit instructions as a simple text string */
   prompt?: string;
@@ -142,8 +151,14 @@ export interface EditParams {
  * AI Vectorize (Convert Image to SVG) request parameters
  */
 export interface AiVectorizeParams {
-  /** Required: File to convert to SVG */
-  file: string | Buffer | Readable;
+  /** File to convert to SVG. Provide exactly one of `file`, `imageUrl` or `uploadId`. */
+  file?: string | Buffer | Readable;
+
+  /** Publicly reachable https URL the API fetches itself. Provide exactly one image source. */
+  imageUrl?: string;
+
+  /** Id returned by the temporary upload endpoint. Provide exactly one image source. */
+  uploadId?: string;
 
   /** Optional: Enable streaming response (default: false) */
   stream?: boolean;
@@ -168,8 +183,17 @@ export type ConvertParams = AiVectorizeParams;
  * transparency. Accepts any raster image (PNG, JPEG, WebP, etc.) or SVG.
  */
 export interface RemoveBackgroundParams {
-  /** Required: Image file to remove the background from */
-  file: string | Buffer | Readable;
+  /** Image file to remove the background from. Provide exactly one of `file`, `imageUrl`, `generationId` or `uploadId`. */
+  file?: string | Buffer | Readable;
+
+  /** Publicly reachable https URL the API fetches itself. Provide exactly one image source. */
+  imageUrl?: string;
+
+  /** Id of a previous generation the API resolves internally. Provide exactly one image source. */
+  generationId?: string;
+
+  /** Id returned by the temporary upload endpoint. Provide exactly one image source. */
+  uploadId?: string;
 
   /** Optional: Enable streaming response (default: false) */
   stream?: boolean;
@@ -282,6 +306,22 @@ export interface OptimizeSvgResponse {
   filename?: string;
   /** Size of the compressed file in bytes (when compress=true) */
   compressedSize?: number;
+  /** Response metadata */
+  metadata: ResponseMetadata;
+}
+
+// --- Temporary Upload Types ---
+
+export interface UploadPrepareParams {
+  /** Required: Original file name, used to prepare a temporary upload endpoint. */
+  filename: string;
+}
+
+export interface UploadPrepareResponse {
+  /** Short-lived SVGMaker endpoint that accepts a multipart `file` upload. */
+  uploadUrl: string;
+  /** Number of seconds before the upload endpoint expires. */
+  expiresIn: number;
   /** Response metadata */
   metadata: ResponseMetadata;
 }

@@ -9,6 +9,8 @@ import {
   mockFetchStreamResponse,
   createMockEditResponse,
   createMockStreamEvents,
+  createOAuthTestClient,
+  TEST_ACCESS_TOKEN,
 } from '../setup';
 import {
   ValidationError,
@@ -586,6 +588,242 @@ describe('EditClient', () => {
       const generatedEvent = events.find(e => e.status === 'generated');
       expect(generatedEvent).toBeDefined();
       expect(generatedEvent.pngImageData).toBeInstanceOf(Buffer);
+    });
+  });
+
+  // ==========================================================================
+  // imageUrl source
+  // ==========================================================================
+
+  describe('imageUrl', () => {
+    const IMAGE_URL = 'https://storage.example.com/temp-uploads/user/abc.png';
+    let originalExistsSync: any;
+
+    beforeEach(() => {
+      originalExistsSync = fs.existsSync;
+      fs.existsSync = jest.fn().mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      fs.existsSync = originalExistsSync;
+    });
+
+    it('sends imageUrl as a form field without touching the filesystem', async () => {
+      const client = createTestClient();
+      mockFetchJsonResponse(createMockEditResponse());
+
+      await client.edit.configure({ imageUrl: IMAGE_URL, prompt: 'Make it blue' }).execute();
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('imageUrl')).toBe(IMAGE_URL);
+      expect(formData.get('image')).toBeNull();
+      expect(fs.existsSync).not.toHaveBeenCalled();
+    });
+
+    it('sends imageUrl on the streaming path', async () => {
+      const client = createTestClient();
+      mockFetchStreamResponse([{ status: 'complete', message: 'done' }]);
+
+      const stream = client.edit
+        .configure({ imageUrl: IMAGE_URL, prompt: 'Make it blue' })
+        .stream();
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {});
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('imageUrl')).toBe(IMAGE_URL);
+      expect(fs.existsSync).not.toHaveBeenCalled();
+    });
+
+    it('throws ValidationError when neither image nor imageUrl is provided', async () => {
+      const client = createTestClient();
+
+      await expect(client.edit.configure({ prompt: 'Make it blue' }).execute()).rejects.toThrow(
+        ValidationError
+      );
+    });
+
+    it('throws ValidationError when both image and imageUrl are provided', async () => {
+      const client = createTestClient();
+
+      await expect(
+        client.edit
+          .configure({ image: testImageBuffer, imageUrl: IMAGE_URL, prompt: 'Make it blue' })
+          .execute()
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it('accepts an image-only call', async () => {
+      const client = createTestClient();
+      mockFetchJsonResponse(createMockEditResponse());
+
+      await client.edit.configure({ image: testImageBuffer, prompt: 'Make it blue' }).execute();
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('image')).toBeTruthy();
+      expect(formData.get('imageUrl')).toBeNull();
+    });
+  });
+
+  // ==========================================================================
+  // generationId source
+  // ==========================================================================
+
+  describe('generationId', () => {
+    const GENERATION_ID = 'gen-abc-123';
+    const IMAGE_URL = 'https://storage.example.com/temp-uploads/user/abc.png';
+    let originalExistsSync: any;
+
+    beforeEach(() => {
+      originalExistsSync = fs.existsSync;
+      fs.existsSync = jest.fn().mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      fs.existsSync = originalExistsSync;
+    });
+
+    it('sends generationId as a form field without touching the filesystem', async () => {
+      const client = createTestClient();
+      mockFetchJsonResponse(createMockEditResponse());
+
+      await client.edit
+        .configure({ generationId: GENERATION_ID, prompt: 'Make it blue' })
+        .execute();
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('generationId')).toBe(GENERATION_ID);
+      expect(formData.get('image')).toBeNull();
+      expect(formData.get('imageUrl')).toBeNull();
+      expect(fs.existsSync).not.toHaveBeenCalled();
+    });
+
+    it('sends generationId on the streaming path', async () => {
+      const client = createTestClient();
+      mockFetchStreamResponse([{ status: 'complete', message: 'done' }]);
+
+      const stream = client.edit
+        .configure({ generationId: GENERATION_ID, prompt: 'Make it blue' })
+        .stream();
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {});
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('generationId')).toBe(GENERATION_ID);
+      expect(formData.get('image')).toBeNull();
+      expect(fs.existsSync).not.toHaveBeenCalled();
+    });
+
+    it('throws ValidationError when both generationId and image are provided', async () => {
+      const client = createTestClient();
+
+      await expect(
+        client.edit
+          .configure({
+            image: testImageBuffer,
+            generationId: GENERATION_ID,
+            prompt: 'Make it blue',
+          })
+          .execute()
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it('throws ValidationError when both generationId and imageUrl are provided', async () => {
+      const client = createTestClient();
+
+      await expect(
+        client.edit
+          .configure({
+            imageUrl: IMAGE_URL,
+            generationId: GENERATION_ID,
+            prompt: 'Make it blue',
+          })
+          .execute()
+      ).rejects.toThrow(ValidationError);
+    });
+  });
+
+  describe('uploadId', () => {
+    const UPLOAD_ID = 'upl_abc123';
+
+    it('sends uploadId as a form field without touching the filesystem', async () => {
+      const originalExistsSync = fs.existsSync;
+      fs.existsSync = jest.fn().mockReturnValue(false);
+
+      try {
+        const client = createTestClient();
+        mockFetchJsonResponse(createMockEditResponse());
+
+        await client.edit.configure({ uploadId: UPLOAD_ID, prompt: 'Make it blue' }).execute();
+
+        const formData = fetchMock.mock.calls[0][1].body as FormData;
+        expect(formData.get('uploadId')).toBe(UPLOAD_ID);
+        expect(formData.get('image')).toBeNull();
+        expect(fs.existsSync).not.toHaveBeenCalled();
+      } finally {
+        fs.existsSync = originalExistsSync;
+      }
+    });
+
+    it('sends uploadId on the streaming path', async () => {
+      const client = createTestClient();
+      mockFetchStreamResponse([{ status: 'complete', message: 'done' }]);
+
+      const stream = client.edit
+        .configure({ uploadId: UPLOAD_ID, prompt: 'Make it blue' })
+        .stream();
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {});
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('uploadId')).toBe(UPLOAD_ID);
+    });
+
+    it('rejects uploadId combined with another image source', async () => {
+      const client = createTestClient();
+
+      await expect(
+        client.edit
+          .configure({ image: testImageBuffer, uploadId: UPLOAD_ID, prompt: 'Make it blue' })
+          .execute()
+      ).rejects.toThrow(ValidationError);
+    });
+  });
+
+  // ==========================================================================
+  // Authentication
+  // ==========================================================================
+
+  describe('authentication', () => {
+    it('sends a Bearer token on the streaming path when an access token is configured', async () => {
+      const client = createOAuthTestClient();
+      mockFetchStreamResponse([{ status: 'complete', message: 'done' }]);
+
+      const stream = client.edit
+        .configure({ image: testImageBuffer, prompt: 'Edit this' })
+        .stream();
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {});
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const [, options] = fetchMock.mock.calls[0];
+      expect(options.headers.Authorization).toBe(`Bearer ${TEST_ACCESS_TOKEN}`);
+      expect(options.headers['x-api-key']).toBeUndefined();
     });
   });
 });

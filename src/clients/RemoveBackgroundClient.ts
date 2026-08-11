@@ -12,12 +12,27 @@ import { decodeSvgContent } from '../utils/base64';
 /**
  * Schema for validating remove background parameters
  */
-const removeBackgroundParamsSchema = z.object({
-  file: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]),
-  stream: z.boolean().optional(),
-  svgText: z.boolean().optional(),
-  storage: z.boolean().optional(),
-});
+const removeBackgroundParamsSchema = z
+  .object({
+    file: z.union([z.string(), z.instanceof(Buffer), z.instanceof(Readable)]).optional(),
+    imageUrl: z.string().optional(),
+    generationId: z.string().optional(),
+    uploadId: z.string().optional(),
+    stream: z.boolean().optional(),
+    svgText: z.boolean().optional(),
+    storage: z.boolean().optional(),
+  })
+  .refine(
+    data =>
+      (data.file ? 1 : 0) +
+        (data.imageUrl ? 1 : 0) +
+        (data.generationId ? 1 : 0) +
+        (data.uploadId ? 1 : 0) ===
+      1,
+    {
+      message: "Provide exactly one image source: 'file', 'imageUrl', 'generationId' or 'uploadId'",
+    }
+  );
 
 /**
  * Client for the Remove Background API
@@ -52,8 +67,7 @@ export class RemoveBackgroundClient extends BaseClient {
     // Prepare form data
     const formData = new FormData();
 
-    // Add file
-    await this.addFileToForm(formData, 'file', this.params.file!);
+    await this.appendImageSource(formData, this.params, 'file');
 
     // Add optional parameters
     this.appendOptionalParams(formData, this.params as Record<string, any>, [
@@ -127,8 +141,7 @@ export class RemoveBackgroundClient extends BaseClient {
         // Prepare form data
         const formData = new FormData();
 
-        // Add file
-        await this.addFileToForm(formData, 'file', client.params.file!);
+        await this.appendImageSource(formData, client.params, 'file');
 
         // Add storage option if present
         if (client.params.storage !== undefined) {

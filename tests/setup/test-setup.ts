@@ -7,6 +7,7 @@ import { SVGMakerClient } from '../../src/core/SVGMakerClient';
 
 export const TEST_API_KEY = 'test-api-key-123';
 export const TEST_BASE_URL = 'https://api.svgmaker.io';
+export const TEST_ACCESS_TOKEN = 'test-access-token-abc';
 
 /**
  * Default test configuration with retries disabled
@@ -33,6 +34,13 @@ export const DEFAULT_TEST_CONFIG: Partial<SVGMakerConfig> = {
  */
 export function createTestClient(): SVGMakerClient {
   return new SVGMakerClient(TEST_API_KEY, DEFAULT_TEST_CONFIG);
+}
+
+/**
+ * Create a client authenticated with an OAuth access token and no API key
+ */
+export function createOAuthTestClient(): SVGMakerClient {
+  return new SVGMakerClient('', { ...DEFAULT_TEST_CONFIG, accessToken: TEST_ACCESS_TOKEN });
 }
 
 // ============================================================================

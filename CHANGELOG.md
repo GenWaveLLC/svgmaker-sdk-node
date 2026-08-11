@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-11
+
+### Added
+- `imageUrl` on `EditParams`, `AiVectorizeParams` and `RemoveBackgroundParams`, and `generationId` on edit and remove-background, so an image can be supplied without reading a local file
+- `uploadId` on the same three, accepting an id from the temporary upload endpoint
+- `client.upload.prepare({ filename })`, which returns a short-lived multipart upload URL and its expiry
+- Exactly one image source must be set. Existing callers passing `image`/`file` validate unchanged
+
 ### Fixed
+- `EditClient`, `AIVectorizeClient` and `GenerateClient` sent a hardcoded `x-api-key` header on their stream paths, which returned a guaranteed 401 for OAuth callers. They now use `buildAuthHeaders()`
+- A URL no longer reaches `addFileToForm`, which resolves every string against the local filesystem and threw `File not found: https://...`
 - Fix AI-enhanced release notes failing silently due to missing `models: read` permission in release job
 - Add test workflow for verifying GitHub Models API access
 

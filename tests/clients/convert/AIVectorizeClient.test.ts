@@ -9,6 +9,8 @@ import {
   mockFetchStreamResponse,
   createMockAiVectorizeResponse,
   createMockAiVectorizeStreamEvents,
+  createOAuthTestClient,
+  TEST_ACCESS_TOKEN,
 } from '../../setup';
 import {
   ValidationError,
@@ -396,6 +398,140 @@ describe('AIVectorizeClient', () => {
           stream.on('error', reject);
         })
       ).rejects.toBeDefined();
+    });
+  });
+  // ==========================================================================
+  // imageUrl source
+  // ==========================================================================
+
+  describe('imageUrl', () => {
+    const IMAGE_URL = 'https://storage.example.com/temp-uploads/user/abc.png';
+    let originalExistsSync: any;
+
+    beforeEach(() => {
+      originalExistsSync = fs.existsSync;
+      fs.existsSync = jest.fn().mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      fs.existsSync = originalExistsSync;
+    });
+
+    it('sends imageUrl as a form field without touching the filesystem', async () => {
+      const client = createTestClient();
+      mockFetchJsonResponse(createMockAiVectorizeResponse());
+
+      await client.convert.aiVectorize.configure({ imageUrl: IMAGE_URL }).execute();
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('imageUrl')).toBe(IMAGE_URL);
+      expect(formData.get('file')).toBeNull();
+      expect(fs.existsSync).not.toHaveBeenCalled();
+    });
+
+    it('sends imageUrl on the streaming path', async () => {
+      const client = createTestClient();
+      mockFetchStreamResponse([{ status: 'complete', message: 'done' }]);
+
+      const stream = client.convert.aiVectorize.configure({ imageUrl: IMAGE_URL }).stream();
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {});
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('imageUrl')).toBe(IMAGE_URL);
+      expect(fs.existsSync).not.toHaveBeenCalled();
+    });
+
+    it('throws ValidationError when neither file nor imageUrl is provided', async () => {
+      const client = createTestClient();
+
+      await expect(client.convert.aiVectorize.execute()).rejects.toThrow(ValidationError);
+    });
+
+    it('throws ValidationError when both file and imageUrl are provided', async () => {
+      const client = createTestClient();
+
+      await expect(
+        client.convert.aiVectorize
+          .configure({ file: testFileBuffer, imageUrl: IMAGE_URL })
+          .execute()
+      ).rejects.toThrow(ValidationError);
+    });
+  });
+
+  describe('uploadId', () => {
+    const UPLOAD_ID = 'upl_abc123';
+
+    it('sends uploadId as a form field without touching the filesystem', async () => {
+      const originalExistsSync = fs.existsSync;
+      fs.existsSync = jest.fn().mockReturnValue(false);
+
+      try {
+        const client = createTestClient();
+        mockFetchJsonResponse(createMockAiVectorizeResponse());
+
+        await client.convert.aiVectorize.configure({ uploadId: UPLOAD_ID }).execute();
+
+        const formData = fetchMock.mock.calls[0][1].body as FormData;
+        expect(formData.get('uploadId')).toBe(UPLOAD_ID);
+        expect(formData.get('file')).toBeNull();
+        expect(fs.existsSync).not.toHaveBeenCalled();
+      } finally {
+        fs.existsSync = originalExistsSync;
+      }
+    });
+
+    it('sends uploadId on the streaming path', async () => {
+      const client = createTestClient();
+      mockFetchStreamResponse([{ status: 'complete', message: 'done' }]);
+
+      const stream = client.convert.aiVectorize.configure({ uploadId: UPLOAD_ID }).stream();
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {});
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const formData = fetchMock.mock.calls[0][1].body as FormData;
+      expect(formData.get('uploadId')).toBe(UPLOAD_ID);
+    });
+
+    it('rejects uploadId combined with another image source', async () => {
+      const client = createTestClient();
+
+      await expect(
+        client.convert.aiVectorize
+          .configure({ file: testFileBuffer, uploadId: UPLOAD_ID })
+          .execute()
+      ).rejects.toThrow(ValidationError);
+    });
+  });
+
+  // ==========================================================================
+  // Authentication
+  // ==========================================================================
+
+  describe('authentication', () => {
+    it('sends a Bearer token on the streaming path when an access token is configured', async () => {
+      const client = createOAuthTestClient();
+      mockFetchStreamResponse([{ status: 'complete', message: 'done' }]);
+
+      const stream = client.convert.aiVectorize.configure({ file: testFileBuffer }).stream();
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {});
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const [, options] = fetchMock.mock.calls[0];
+      expect(options.headers.Authorization).toBe(`Bearer ${TEST_ACCESS_TOKEN}`);
+      expect(options.headers['x-api-key']).toBeUndefined();
     });
   });
 });
