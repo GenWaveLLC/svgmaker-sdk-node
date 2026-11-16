@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-11-16
+
+### Security
+- Upgrade `zod` from v3 to v4 (`^4.6.7`), fixing GHSA-mrhx-c7xc-m3w5: validating oversized constrained collections could exhaust memory. zod is internal only, so the public API is unchanged
+- Update dev dependencies to fix security advisories, including `rimraf` v6
+
 ## [1.3.0] - 2026-08-11
 
 ### Added
