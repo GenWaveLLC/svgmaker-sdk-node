@@ -26,50 +26,30 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
 
-    - name: Detect version change
+    - name: Detect unreleased version
       id: detect
       env:
         FORCE_RELEASE: ${{ github.event.inputs.force }}
       run: |
         NEW_VERSION=$(node -p "require('./package.json').version")
 
-        # Manual run: only release when the "force" box is checked,
-        # and only if this version isn't already published.
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          if [ "$FORCE_RELEASE" != "true" ]; then
-            echo "Manual run without force enabled, skipping"
-            echo "should-release=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          if npm view "@genwave/svgmaker-sdk@$NEW_VERSION" version >/dev/null 2>&1; then
-            echo "Version $NEW_VERSION already on npm, skipping"
-            echo "should-release=false" >> $GITHUB_OUTPUT
-          else
-            echo "Manual dispatch (force): releasing $NEW_VERSION"
-            echo "should-release=true" >> $GITHUB_OUTPUT
-            echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          fi
+        # Manual run: only release when the "force" box is checked
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "$FORCE_RELEASE" != "true" ]; then
+          echo "Manual run without force enabled, skipping"
+          echo "should-release=false" >> $GITHUB_OUTPUT
           exit 0
         fi
 
-        # Get previous commit's package.json version
-        OLD_VERSION=$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).version")
-        if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
-          # Check npm
-          if npm view "@genwave/svgmaker-sdk@$NEW_VERSION" version >/dev/null 2>&1; then
-            echo "Version $NEW_VERSION already on npm, skipping"
-            echo "should-release=false" >> $GITHUB_OUTPUT
-          else
-            echo "Version changed: $OLD_VERSION -> $NEW_VERSION"
-            echo "should-release=true" >> $GITHUB_OUTPUT
-            echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          fi
-        else
-          echo "No version change, skipping"
+        # Release the package.json version whenever it isn't on npm yet,
+        # so a release that failed earlier is retried on the next push
+        if npm view "@genwave/svgmaker-sdk@$NEW_VERSION" version >/dev/null 2>&1; then
+          echo "Version $NEW_VERSION already on npm, skipping"
           echo "should-release=false" >> $GITHUB_OUTPUT
+        else
+          echo "Version $NEW_VERSION not on npm, releasing"
+          echo "should-release=true" >> $GITHUB_OUTPUT
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
         fi
 
   release:
